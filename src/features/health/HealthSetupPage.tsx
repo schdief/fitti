@@ -22,7 +22,7 @@ const SAMPLE_PAYLOAD = `{
 const STEPS = [
   {
     title: 'Kurzbefehl anlegen',
-    body: 'In der Kurzbefehle-App einen neuen Kurzbefehl erstellen und exakt so benennen wie im Feld oben. Die oberste Zeile „… erhalten“ kannst du unverändert lassen.',
+    body: 'In der Kurzbefehle-App einen neuen Kurzbefehl erstellen und exakt so benennen wie im Feld oben.',
   },
   {
     title: 'Aktion: Wörterbuch aus Eingabe abrufen',
