@@ -34,6 +34,10 @@ Wandelt eine Trainingsbeschreibung in gültige JSON-Dateien um. Ein Plan liegt i
   Gleiches gilt für `equipment` gegenüber den Übungen.
 - `estimatedDurationMin` realistisch setzen. Faustregel: Wiederholung ≈ 3 s, plus Pausen,
   plus 15 s Übergang je Übung. Die Validierung warnt ab 25 % Abweichung.
+- `avgHeartRateBpm` ist die erwartete durchschnittliche Herzfrequenz und geht beim
+  Health-Export mit. Anhaltspunkte: ruhiges Krafttraining 105–115, zügiges Ganzkörper- oder
+  Zirkeltraining 120–135, Ausdauerbetontes 135–150. Ohne Angabe gilt 120.
+- `metValue` passend zur Intensität wählen: 3–4 locker, 4–6 normal, 6–8 intensiv.
 - `mode: "reps"` verlangt `reps` in jedem Satz, `mode: "time"` verlangt `durationSec`.
 - `targetWeightKg` nur setzen, wenn `usesWeight` true ist. Ist das Gewicht unbekannt, `null`
   eintragen – die App erfasst es dann trotzdem und schlägt beim nächsten Mal den Vorwert vor.

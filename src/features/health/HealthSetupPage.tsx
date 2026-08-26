@@ -14,6 +14,7 @@ const SAMPLE_PAYLOAD = `{
   "end": "2026-08-26T17:51:00Z",
   "durationSec": 2820,
   "activeEnergyKcal": 312,
+  "avgHeartRateBpm": 124,
   "title": "Oberkörper mit Kurzhanteln",
   "sessionId": "…"
 }`
@@ -38,6 +39,10 @@ const STEPS = [
   {
     title: 'Echter Eintrag',
     body: 'Im Andernfalls-Zweig die Health-Aktion deiner iOS-Version einsetzen (Workout protokollieren beziehungsweise Health-Sample protokollieren) und mit start, end, durationSec und activeEnergyKcal füttern.',
+  },
+  {
+    title: 'Herzfrequenz mitschreiben',
+    body: 'Zusätzlich ein Health-Sample vom Typ Herzfrequenz mit dem Wert aus avgHeartRateBpm anlegen, Zeitraum von start bis end. Krankenkassen erkennen ein Training oft erst ab einer Mindestfrequenz an.',
   },
   {
     title: 'Einmal freigeben',

@@ -151,7 +151,7 @@ export function PlanDetailPage() {
         ))}
 
         <p className="px-1 text-xs text-fg-faint">
-          Gerechnete Dauer inklusive Pausen: {realMinutes} min
+          Gerechnete Dauer inklusive Pausen: {realMinutes} min · Ø {plan.avgHeartRateBpm} bpm
         </p>
       </div>
 

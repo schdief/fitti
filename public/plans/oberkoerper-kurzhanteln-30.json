@@ -17,6 +17,7 @@
   ],
   "tags": ["oberkörper", "hantel"],
   "metValue": 5,
+  "avgHeartRateBpm": 118,
   "blocks": [
     {
       "type": "warmup",

@@ -63,7 +63,6 @@ export function sendHealthWorkout(
   session: WorkoutSession,
   shortcutName: string,
   bodyWeightKg: number | null,
-  metValue: number,
   returnRoute: string,
 ): void {
   runShortcut({
@@ -77,7 +76,12 @@ export function sendHealthWorkout(
       start: session.startedAt,
       end: session.endedAt,
       durationSec: session.durationSec,
-      activeEnergyKcal: estimateActiveEnergyKcal(session.durationSec, bodyWeightKg, metValue),
+      activeEnergyKcal: estimateActiveEnergyKcal(
+        session.durationSec,
+        bodyWeightKg,
+        session.metValue ?? 4.5,
+      ),
+      avgHeartRateBpm: session.avgHeartRateBpm ?? 120,
       title: session.planTitle,
       sessionId: session.sessionId,
     },

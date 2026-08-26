@@ -176,7 +176,6 @@ export function SessionDetailPage() {
                     session,
                     health.shortcutName,
                     bodyWeightKg,
-                    4.5,
                     `/logbook/${session.sessionId}`,
                   )
                 }

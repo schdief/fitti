@@ -23,10 +23,11 @@ export function ShortcutSpike() {
         durationSec: 900,
         completed: true,
         results: [],
+        metValue: 4.5,
+        avgHeartRateBpm: 120,
       },
       health.shortcutName,
       bodyWeightKg,
-      4.5,
       '/lab',
     )
   }

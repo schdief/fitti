@@ -23,6 +23,9 @@ export interface WorkoutSession {
   durationSec: number
   completed: boolean
   results: SetResult[]
+  /** Kennwerte des Plans, mitgespeichert für spätere Health-Exporte. */
+  metValue?: number
+  avgHeartRateBpm?: number
   note?: string
   exportedToHealth?: boolean
 }

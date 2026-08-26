@@ -9,6 +9,7 @@
   "targetMuscles": ["chest", "quads", "glutes", "abs", "triceps", "mobility"],
   "tags": ["zuhause", "kurz"],
   "metValue": 4,
+  "avgHeartRateBpm": 124,
   "blocks": [
     {
       "type": "warmup",

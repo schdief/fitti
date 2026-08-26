@@ -8,6 +8,8 @@ export interface HealthWorkoutPayload {
   end: string
   durationSec: number
   activeEnergyKcal: number | null
+  /** Durchschnittliche Herzfrequenz in Schlägen pro Minute. */
+  avgHeartRateBpm: number
   title: string
   sessionId: string
 }

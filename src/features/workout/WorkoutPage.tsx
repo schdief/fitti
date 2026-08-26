@@ -207,6 +207,8 @@ export function WorkoutPage() {
       durationSec: Math.round(((active.endedAt ?? Date.now()) - active.startedAt) / 1000),
       completed: true,
       results: active.results,
+      metValue: plan.metValue,
+      avgHeartRateBpm: plan.avgHeartRateBpm,
     }
 
     sessionRef.current = session
@@ -216,7 +218,7 @@ export function WorkoutPage() {
 
       if (health.autoExport === 'on' && health.state === 'connected') {
         useWorkout.getState().discard()
-        sendHealthWorkout(session, health.shortcutName, bodyWeightKg, plan.metValue, '/logbook')
+        sendHealthWorkout(session, health.shortcutName, bodyWeightKg, '/logbook')
       }
     })
   }, [phase, plan, active, health, bodyWeightKg])
@@ -278,6 +280,8 @@ export function WorkoutPage() {
         durationSec: Math.round((Date.now() - current.startedAt) / 1000),
         completed: false,
         results: current.results,
+        metValue: plan.metValue,
+        avgHeartRateBpm: plan.avgHeartRateBpm,
       })
     }
 
@@ -370,13 +374,7 @@ export function WorkoutPage() {
               const session = sessionRef.current
               if (!session) return
               useWorkout.getState().discard()
-              sendHealthWorkout(
-                session,
-                health.shortcutName,
-                bodyWeightKg,
-                plan.metValue,
-                '/logbook',
-              )
+              sendHealthWorkout(session, health.shortcutName, bodyWeightKg, '/logbook')
             }}
             className="w-full py-3"
           >

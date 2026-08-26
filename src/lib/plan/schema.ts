@@ -101,6 +101,11 @@ export const planSchema = z
     tags: z.array(z.string().max(30)).max(8).default([]),
     /** MET-Wert für die Kalorienschätzung beim Health-Export. */
     metValue: z.number().min(1).max(15).default(4.5),
+    /**
+     * Erwartete durchschnittliche Herzfrequenz. Geht als Health-Wert mit, weil
+     * Krankenkassen ein Training oft erst ab einer Mindestfrequenz anerkennen.
+     */
+    avgHeartRateBpm: z.int().min(40).max(220).default(120),
     blocks: z.array(blockSchema).min(1).max(12),
   })
   .strict()

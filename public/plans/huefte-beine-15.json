@@ -9,6 +9,7 @@
   "targetMuscles": ["glutes", "quads", "hamstrings", "mobility"],
   "tags": ["kurz", "beine"],
   "metValue": 3.8,
+  "avgHeartRateBpm": 121,
   "blocks": [
     {
       "type": "main",
