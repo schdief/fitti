@@ -68,6 +68,33 @@ export const MUSCLE_GROUPS = [
 
 export type MuscleGroupId = (typeof MUSCLE_GROUPS)[number]['id']
 
+/**
+ * Umgangssprachliche Begriffe für die Volltextsuche. Der Katalog soll auch
+ * „Po“ oder „Sixpack“ finden, nicht nur die offizielle Bezeichnung.
+ */
+export const MUSCLE_SEARCH_TERMS: Record<Muscle, string[]> = {
+  chest: ['Brust', 'Brustmuskel', 'Push', 'Drücken'],
+  'upper-back': ['Rücken', 'Oberer Rücken', 'Rudern', 'Pull', 'Ziehen'],
+  lats: ['Rücken', 'Latissimus', 'Lat', 'Klimmzug', 'Pull'],
+  'lower-back': ['Rücken', 'Unterer Rücken', 'Kreuz', 'Rückenstrecker'],
+  traps: ['Nacken', 'Trapez', 'Schultern'],
+  shoulders: ['Schulter', 'Schultern', 'Delta', 'Deltamuskel'],
+  'rear-delts': ['Schulter', 'Hintere Schulter', 'Rücken'],
+  biceps: ['Bizeps', 'Arme', 'Oberarm'],
+  triceps: ['Trizeps', 'Arme', 'Oberarm'],
+  forearms: ['Unterarm', 'Unterarme', 'Griffkraft', 'Arme'],
+  abs: ['Bauch', 'Bauchmuskeln', 'Core', 'Rumpf', 'Sixpack'],
+  obliques: ['Bauch', 'Seitlich', 'Core', 'Rumpf', 'Taille'],
+  glutes: ['Gesäß', 'Po', 'Popo', 'Hintern', 'Butt', 'Hüfte'],
+  quads: ['Quadrizeps', 'Oberschenkel', 'Beine', 'Vorderseite'],
+  hamstrings: ['Beinbeuger', 'Oberschenkel', 'Beine', 'Rückseite'],
+  adductors: ['Adduktoren', 'Innenschenkel', 'Beine'],
+  calves: ['Waden', 'Wade', 'Beine'],
+  'full-body': ['Ganzkörper', 'Komplett', 'Allround'],
+  cardio: ['Ausdauer', 'Kondition', 'Cardio', 'Puls'],
+  mobility: ['Beweglichkeit', 'Mobility', 'Dehnen', 'Stretching', 'Mobilisation'],
+}
+
 export const EQUIPMENT = [
   'none',
   'dumbbells',

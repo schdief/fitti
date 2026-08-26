@@ -7,6 +7,7 @@ import { usePlan } from '@/features/catalog/useCatalog'
 import { ExerciseFigures } from '@/features/figures/ExerciseFigures'
 import { FigureView } from '@/features/figures/FigureView'
 import { useFigure } from '@/features/figures/useFigure'
+import { MusicBar } from '@/features/music/MusicBar'
 import { loadPreviousResults, saveSession } from '@/features/logbook/db'
 import type { SetResult } from '@/features/logbook/db'
 import { useSettings } from '@/features/settings/settingsStore'
@@ -517,6 +518,8 @@ export function WorkoutPage() {
               <dd className="tabular-nums">noch etwa {Math.ceil(leftSec / 60)} min</dd>
             </div>
           </dl>
+
+          <MusicBar />
         </div>
       </footer>
 

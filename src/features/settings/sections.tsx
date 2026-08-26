@@ -9,6 +9,7 @@ import {
   NumberStepper,
   SegmentedControl,
   StatusBadge,
+  TextField,
   Toggle,
 } from '@/components/ui'
 import { clearSessions } from '@/features/logbook/db'
@@ -22,7 +23,7 @@ import {
   unlockAudio,
   WORKOUT_AUDIO_SESSION,
 } from '@/lib/audio'
-import { readTokens } from '@/lib/spotify/auth'
+import { clearTokens, getClientId, readTokens, redirectUri, startLogin } from '@/lib/spotify/auth'
 import { checkForUpdate, resetAppCache } from '@/lib/swUpdate'
 
 export interface SettingsSectionDef {
@@ -32,19 +33,65 @@ export interface SettingsSectionDef {
   Component: ComponentType
 }
 
-function ConnectionsSection() {
-  const { spotify, health } = useSettings((state) => state.connections)
-  const navigate = useNavigate()
-  const spotifyState = readTokens() ? 'connected' : spotify.state
+function SpotifyRows() {
+  const [clientId, setClientIdInput] = useState(getClientId())
+  const [connected, setConnected] = useState(readTokens() !== null)
+
+  const disconnect = () => {
+    clearTokens()
+    setConnected(false)
+  }
 
   return (
-    <Card>
+    <>
       <ListRow
         label="Spotify"
         hint="Steuert die Wiedergabe während des Trainings. Benötigt Premium."
-        control={<StatusBadge state={spotifyState} />}
-        onClick={() => navigate('/lab')}
+        control={
+          connected ? (
+            <ActionButton variant="danger" onClick={disconnect}>
+              Trennen
+            </ActionButton>
+          ) : (
+            <ActionButton
+              variant="primary"
+              disabled={!clientId.trim()}
+              onClick={() => void startLogin(clientId.trim(), '/settings')}
+            >
+              Verbinden
+            </ActionButton>
+          )
+        }
       />
+      {connected ? null : (
+        <>
+          <TextField
+            label="Client-ID"
+            value={clientId}
+            onChange={setClientIdInput}
+            placeholder="aus dem Spotify Developer Dashboard"
+          />
+          <button
+            type="button"
+            onClick={() => void navigator.clipboard?.writeText(redirectUri()).catch(() => undefined)}
+            className="w-full px-4 pb-3 text-left text-xs text-fg-muted"
+          >
+            Redirect-URI im Dashboard eintragen, tippen zum Kopieren:
+            <span className="mt-0.5 block break-all text-fg">{redirectUri()}</span>
+          </button>
+        </>
+      )}
+    </>
+  )
+}
+
+function ConnectionsSection() {
+  const health = useSettings((state) => state.connections.health)
+  const navigate = useNavigate()
+
+  return (
+    <Card>
+      <SpotifyRows />
       <ListRow
         label="Apple Health"
         hint={`Export über den Kurzbefehl „${health.shortcutName}“.`}

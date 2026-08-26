@@ -1,4 +1,10 @@
-import { MUSCLE_GROUPS } from '@/lib/plan/enums'
+import {
+  EQUIPMENT_LABELS,
+  LEVEL_LABELS,
+  MUSCLE_GROUPS,
+  MUSCLE_LABELS,
+  MUSCLE_SEARCH_TERMS,
+} from '@/lib/plan/enums'
 import type { Equipment, MuscleGroupId, PlanLevel } from '@/lib/plan/enums'
 import type { CatalogEntry } from '@/lib/plan/schema'
 
@@ -74,15 +80,38 @@ function musclesOfGroups(groups: MuscleGroupId[]): Set<string> {
   return muscles
 }
 
+/** Klein schreiben und Umlaute abbauen, damit "gesass" auch "Gesäß" findet. */
+function normalize(value: string): string {
+  return value
+    .toLowerCase()
+    .replaceAll('ß', 'ss')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+}
+
+/** Alles, worin gesucht wird: Titel, Beschreibung, Tags, Muskeln, Equipment, Level. */
+function searchIndex(entry: CatalogEntry): string {
+  return normalize(
+    [
+      entry.title,
+      entry.description ?? '',
+      ...entry.tags,
+      ...entry.targetMuscles.flatMap((muscle) => [
+        MUSCLE_LABELS[muscle],
+        ...MUSCLE_SEARCH_TERMS[muscle],
+      ]),
+      ...entry.equipment.map((item) => EQUIPMENT_LABELS[item]),
+      LEVEL_LABELS[entry.level],
+    ].join(' '),
+  )
+}
+
 export function filterPlans(entries: CatalogEntry[], filters: CatalogFilters): CatalogEntry[] {
-  const query = filters.query.trim().toLowerCase()
+  const query = normalize(filters.query.trim())
   const wantedMuscles = musclesOfGroups(filters.groups)
 
   return entries.filter((entry) => {
-    if (query) {
-      const haystack = `${entry.title} ${entry.description ?? ''} ${entry.tags.join(' ')}`.toLowerCase()
-      if (!haystack.includes(query)) return false
-    }
+    if (query && !searchIndex(entry).includes(query)) return false
 
     if (filters.durations.length > 0) {
       const matches = DURATION_BUCKETS.filter((bucket) => filters.durations.includes(bucket.id)).some(
