@@ -8,6 +8,7 @@ import { FigureLabPage } from '@/features/figures/FigureLabPage'
 import { LabPage } from '@/features/lab/LabPage'
 import { LogbookPage } from '@/features/logbook/LogbookPage'
 import { SettingsPage } from '@/features/settings/SettingsPage'
+import { WorkoutPage } from '@/features/workout/WorkoutPage'
 
 export function App() {
   return (
@@ -19,6 +20,7 @@ export function App() {
         </Route>
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/plan/:planId" element={<PlanDetailPage />} />
+        <Route path="/workout/:planId" element={<WorkoutPage />} />
         <Route path="/lab" element={<LabPage />} />
         <Route path="/figure-lab" element={<FigureLabPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />

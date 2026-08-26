@@ -1,5 +1,5 @@
 import { Clock, Dumbbell, Layers, Play } from 'lucide-react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 
 import { PageHeader } from '@/components/PageHeader'
 import { ActionButton, Card } from '@/components/ui'
@@ -40,6 +40,7 @@ function setSummary(exercise: PlanExercise): string {
 
 export function PlanDetailPage() {
   const { planId } = useParams()
+  const navigate = useNavigate()
   const { plan, loading } = usePlan(planId)
 
   if (loading) {
@@ -158,16 +159,12 @@ export function PlanDetailPage() {
         <div className="mx-auto max-w-lg">
           <ActionButton
             variant="primary"
-            disabled
-            onClick={() => undefined}
-            className="flex w-full items-center justify-center gap-2 py-3"
+            onClick={() => navigate(`/workout/${plan.id}`)}
+            className="flex w-full items-center justify-center gap-2 py-3.5 text-base"
           >
             <Play size={18} aria-hidden />
             Training starten
           </ActionButton>
-          <p className="mt-1 text-center text-[11px] text-fg-faint">
-            Der Trainingsablauf folgt im nächsten Schritt.
-          </p>
         </div>
       </div>
     </div>

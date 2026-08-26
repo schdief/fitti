@@ -203,12 +203,29 @@ export function FigureContent({
   const arrowFrom = figure.arrowJoint ? figure.poses.start[figure.arrowJoint] : undefined
   const arrowTo = figure.arrowJoint ? figure.poses.mid?.[figure.arrowJoint] : undefined
   const arrowId = `arrow-${figure.id}-${pose}`
+  const markerSize = box.size * 0.045
+
+  // Bei sehr kurzen Wegen verdeckt die Spitze den Pfeil komplett.
+  const arrowVisible =
+    showArrow &&
+    arrowFrom !== undefined &&
+    arrowTo !== undefined &&
+    Math.hypot(arrowTo[0] - arrowFrom[0], arrowTo[1] - arrowFrom[1]) > box.size * 0.1
 
   return (
     <>
       <defs>
-        <marker id={arrowId} viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
-          <path d="M 0 0 L 10 5 L 0 10 z" className="fill-accent" />
+        <marker
+          id={arrowId}
+          viewBox="0 0 10 10"
+          refX="9"
+          refY="5"
+          markerUnits="userSpaceOnUse"
+          markerWidth={markerSize}
+          markerHeight={markerSize}
+          orient="auto"
+        >
+          <path d="M 0 1 L 10 5 L 0 9 z" className="fill-accent" />
         </marker>
       </defs>
 
@@ -269,15 +286,15 @@ export function FigureContent({
           return at ? <HeldProp key={`held-${index}`} type={prop.type} at={at} /> : null
         })}
 
-      {showArrow && arrowFrom && arrowTo ? (
+      {arrowVisible ? (
         <line
           x1={arrowFrom[0]}
           y1={arrowFrom[1]}
           x2={arrowTo[0]}
           y2={arrowTo[1]}
           className="stroke-accent"
-          strokeWidth={stroke * 0.5}
-          strokeDasharray={`${stroke} ${stroke * 0.7}`}
+          strokeWidth={stroke * 0.4}
+          strokeDasharray={`${stroke * 0.8} ${stroke * 0.6}`}
           markerEnd={`url(#${arrowId})`}
           opacity={0.85}
         />
