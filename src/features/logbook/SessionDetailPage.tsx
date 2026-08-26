@@ -3,8 +3,10 @@ import { useEffect, useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { PageHeader } from '@/components/PageHeader'
-import { Card } from '@/components/ui'
+import { ActionButton, Card } from '@/components/ui'
+import { sendHealthWorkout } from '@/features/health/healthExport'
 import { describeResult, sessionVolume, useSessions } from '@/features/logbook/useSessions'
+import { useSettings } from '@/features/settings/settingsStore'
 import type { SetResult, WorkoutSession } from '@/features/logbook/db'
 
 /** Jüngstes älteres Ergebnis derselben Übung und Satznummer. */
@@ -47,6 +49,8 @@ export function SessionDetailPage() {
   const { sessionId } = useParams()
   const navigate = useNavigate()
   const { sessions, loaded, load, remove } = useSessions()
+  const health = useSettings((state) => state.connections.health)
+  const bodyWeightKg = useSettings((state) => state.profile.bodyWeightKg)
 
   useEffect(() => {
     if (!loaded) void load()
@@ -161,7 +165,33 @@ export function SessionDetailPage() {
             </Card>
           </section>
         ))}
+        {health.state === 'connected' ? (
+          <ListRowLike>
+            {session.exportedToHealth ? (
+              <span className="text-sm text-fg-muted">Bereits an Apple Health übergeben.</span>
+            ) : (
+              <ActionButton
+                onClick={() =>
+                  sendHealthWorkout(
+                    session,
+                    health.shortcutName,
+                    bodyWeightKg,
+                    4.5,
+                    `/logbook/${session.sessionId}`,
+                  )
+                }
+                className="w-full py-3"
+              >
+                An Apple Health senden
+              </ActionButton>
+            )}
+          </ListRowLike>
+        ) : null}
       </div>
     </div>
   )
+}
+
+function ListRowLike({ children }: { children: React.ReactNode }) {
+  return <div className="pt-2">{children}</div>
 }

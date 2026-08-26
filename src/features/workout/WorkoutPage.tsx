@@ -9,7 +9,9 @@ import { FigureView } from '@/features/figures/FigureView'
 import { useFigure } from '@/features/figures/useFigure'
 import { MusicBar } from '@/features/music/MusicBar'
 import { loadPreviousResults, saveSession } from '@/features/logbook/db'
-import type { SetResult } from '@/features/logbook/db'
+import type { SetResult, WorkoutSession } from '@/features/logbook/db'
+import { useSessions } from '@/features/logbook/useSessions'
+import { sendHealthWorkout } from '@/features/health/healthExport'
 import { useSettings } from '@/features/settings/settingsStore'
 import { SetInputSheet } from '@/features/workout/SetInputSheet'
 import type { SetInputValues } from '@/features/workout/SetInputSheet'
@@ -107,9 +109,13 @@ export function WorkoutPage() {
 
   const active = useWorkout((state) => state.active)
   const training = useSettings((state) => state.training)
+  const health = useSettings((state) => state.connections.health)
+  const bodyWeightKg = useSettings((state) => state.profile.bodyWeightKg)
 
   const [previous, setPrevious] = useState<Map<string, SetResult>>(new Map())
+  const [askAbort, setAskAbort] = useState(false)
   const savedRef = useRef(false)
+  const sessionRef = useRef<WorkoutSession | null>(null)
 
   const steps = useMemo(() => (plan ? buildSteps(plan) : []), [plan])
   const step = active ? steps[active.stepIndex] : undefined
@@ -192,7 +198,7 @@ export function WorkoutPage() {
     if (phase !== 'done' || savedRef.current || !plan || !active) return
     savedRef.current = true
 
-    void saveSession({
+    const session: WorkoutSession = {
       sessionId: active.sessionId,
       planId: active.planId,
       planTitle: active.planTitle,
@@ -201,8 +207,19 @@ export function WorkoutPage() {
       durationSec: Math.round(((active.endedAt ?? Date.now()) - active.startedAt) / 1000),
       completed: true,
       results: active.results,
+    }
+
+    sessionRef.current = session
+
+    void saveSession(session).then(() => {
+      void useSessions.getState().load()
+
+      if (health.autoExport === 'on' && health.state === 'connected') {
+        useWorkout.getState().discard()
+        sendHealthWorkout(session, health.shortcutName, bodyWeightKg, plan.metValue, '/logbook')
+      }
     })
-  }, [phase, plan, active])
+  }, [phase, plan, active, health, bodyWeightKg])
 
   if (loading) {
     return <p className="mt-16 text-center text-sm text-fg-muted">Lädt …</p>
@@ -248,15 +265,10 @@ export function WorkoutPage() {
     state.beginWork(first.exercise.mode === 'time' ? (first.set.durationSec ?? null) : null)
   }
 
-  const abort = async () => {
+  const leaveWorkout = async (keepProgress: boolean) => {
     const current = useWorkout.getState().active
-    const keep = current && current.results.length > 0
 
-    if (!window.confirm(keep ? 'Training beenden und Fortschritt speichern?' : 'Training abbrechen?')) {
-      return
-    }
-
-    if (keep && current) {
+    if (keepProgress && current && current.results.length > 0) {
       await saveSession({
         sessionId: current.sessionId,
         planId: current.planId,
@@ -271,7 +283,7 @@ export function WorkoutPage() {
 
     useWorkout.getState().discard()
     void releaseWakeLock()
-    navigate(`/plan/${plan.id}`, { replace: true })
+    navigate(keepProgress ? '/logbook' : `/plan/${plan.id}`, { replace: true })
   }
 
   if (!active) {
@@ -351,6 +363,26 @@ export function WorkoutPage() {
         >
           Ins Logbuch
         </ActionButton>
+
+        {health.autoExport === 'ask' && health.state === 'connected' && sessionRef.current ? (
+          <ActionButton
+            onClick={() => {
+              const session = sessionRef.current
+              if (!session) return
+              useWorkout.getState().discard()
+              sendHealthWorkout(
+                session,
+                health.shortcutName,
+                bodyWeightKg,
+                plan.metValue,
+                '/logbook',
+              )
+            }}
+            className="w-full py-3"
+          >
+            An Apple Health senden
+          </ActionButton>
+        ) : null}
       </div>
     )
   }
@@ -414,7 +446,7 @@ export function WorkoutPage() {
           <button
             type="button"
             aria-label="Training beenden"
-            onClick={() => void abort()}
+            onClick={() => setAskAbort(true)}
             className="-mr-2 flex size-9 shrink-0 items-center justify-center rounded-full text-fg-muted active:bg-surface"
           >
             <X size={20} aria-hidden />
@@ -541,6 +573,46 @@ export function WorkoutPage() {
             )
           }}
         />
+      ) : null}
+
+      {askAbort ? (
+        <div className="fixed inset-0 z-50 flex flex-col justify-end">
+          <button
+            type="button"
+            aria-label="Zurück zum Training"
+            onClick={() => setAskAbort(false)}
+            className="absolute inset-0 bg-black/70"
+          />
+          <div className="pad-safe-bottom relative space-y-3 rounded-t-3xl border-t border-line bg-surface px-4 pb-4 pt-5">
+            <h2 className="text-center text-lg font-semibold">Training beenden?</h2>
+            <p className="text-center text-sm text-fg-muted">
+              {completedSets === 0
+                ? 'Es ist noch kein Satz erfasst.'
+                : completedSets === 1
+                  ? `1 von ${steps.length} Sätzen ist geschafft.`
+                  : `${completedSets} von ${steps.length} Sätzen sind geschafft.`}
+            </p>
+
+            <ActionButton
+              variant="primary"
+              disabled={completedSets === 0}
+              onClick={() => void leaveWorkout(true)}
+              className="w-full py-3.5 text-base"
+            >
+              Speichern und beenden
+            </ActionButton>
+            <ActionButton
+              variant="danger"
+              onClick={() => void leaveWorkout(false)}
+              className="w-full py-3"
+            >
+              Ohne Speichern verwerfen
+            </ActionButton>
+            <ActionButton onClick={() => setAskAbort(false)} className="w-full py-3">
+              Weiter trainieren
+            </ActionButton>
+          </div>
+        </div>
       ) : null}
     </div>
   )

@@ -1,89 +1,34 @@
-import { useEffect } from 'react'
-import { useSearchParams } from 'react-router-dom'
-
 import { ActionButton, Card, TextField } from '@/components/ui'
+import { sendHealthTest, sendHealthWorkout } from '@/features/health/healthExport'
 import { labLog } from '@/features/lab/labLog'
 import { useSettings } from '@/features/settings/settingsStore'
-import { buildShortcutUrl, estimateActiveEnergyKcal } from '@/lib/health'
-import type { HealthPayload } from '@/lib/health'
-
-const PENDING_KEY = 'fitti.lab.healthPending'
+import { buildShortcutUrl } from '@/lib/health'
 
 export function ShortcutSpike() {
   const health = useSettings((state) => state.connections.health)
   const bodyWeightKg = useSettings((state) => state.profile.bodyWeightKg)
   const setHealth = useSettings((state) => state.setHealth)
-  const [searchParams, setSearchParams] = useSearchParams()
-
-  const result = searchParams.get('health')
-
-  useEffect(() => {
-    if (!result) return
-
-    const pending = localStorage.getItem(PENDING_KEY)
-    const roundtripMs = pending ? Date.now() - Number(pending) : null
-    localStorage.removeItem(PENDING_KEY)
-
-    labLog(
-      result === 'ok' ? 'ok' : 'error',
-      `x-callback zurück: ${result}${roundtripMs === null ? '' : ` nach ${roundtripMs} ms`}`,
-    )
-
-    const next = new URLSearchParams(searchParams)
-    next.delete('health')
-    setSearchParams(next, { replace: true })
-  }, [result, searchParams, setSearchParams])
-
-  useEffect(() => {
-    const onVisibilityChange = () => {
-      if (document.visibilityState !== 'visible') return
-      if (window.location.hash.includes('health=')) return
-
-      const pending = localStorage.getItem(PENDING_KEY)
-      if (!pending) return
-
-      localStorage.removeItem(PENDING_KEY)
-      labLog(
-        'warn',
-        `Zurück in der App nach ${Date.now() - Number(pending)} ms, aber ohne x-success. ` +
-          'Fallback nötig: Nutzer muss den Erfolg bestätigen.',
-      )
-    }
-
-    document.addEventListener('visibilitychange', onVisibilityChange)
-    return () => document.removeEventListener('visibilitychange', onVisibilityChange)
-  }, [])
-
-  const run = (payload: HealthPayload) => {
-    const url = buildShortcutUrl({
-      shortcutName: health.shortcutName,
-      payload,
-      successRoute: '/lab?health=ok',
-      errorRoute: '/lab?health=fail',
-    })
-
-    localStorage.setItem(PENDING_KEY, String(Date.now()))
-    labLog('info', `Öffne Kurzbefehl „${health.shortcutName}“ (mode=${payload.mode})`)
-    window.location.href = url
-  }
-
-  const sendTest = () =>
-    run({ mode: 'test', app: 'fitti', sentAt: new Date().toISOString() })
 
   const sendWorkout = () => {
     const end = new Date()
     const start = new Date(end.getTime() - 15 * 60_000)
-    run({
-      mode: 'log',
-      app: 'fitti',
-      workoutType: 'traditionalStrengthTraining',
-      start: start.toISOString(),
-      end: end.toISOString(),
-      durationSec: 900,
-      activeEnergyKcal: estimateActiveEnergyKcal(900, bodyWeightKg),
-      title: 'fitti Testtraining',
-      sessionId: crypto.randomUUID(),
-    })
+
+    sendHealthWorkout(
+      {
+        sessionId: crypto.randomUUID(),
+        planId: 'diagnose',
+        planTitle: 'fitti Testtraining',
+        startedAt: start.toISOString(),
+        endedAt: end.toISOString(),
+        durationSec: 900,
+        completed: true,
+        results: [],
+      },
+      health.shortcutName,
+      bodyWeightKg,
+      4.5,
+      '/lab',
+    )
   }
 
   const showUrl = () => {
@@ -112,7 +57,7 @@ export function ShortcutSpike() {
       </p>
 
       <div className="flex flex-wrap gap-2">
-        <ActionButton variant="primary" onClick={sendTest}>
+        <ActionButton variant="primary" onClick={() => sendHealthTest(health.shortcutName, '/lab')}>
           Test senden
         </ActionButton>
         <ActionButton onClick={sendWorkout}>Workout senden</ActionButton>

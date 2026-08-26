@@ -44,6 +44,13 @@ export async function deleteSession(sessionId: string): Promise<void> {
   await del(sessionId, store)
 }
 
+/** Merkt sich, dass ein Training bereits an Health übergeben wurde. */
+export async function markExported(sessionId: string): Promise<void> {
+  const session = await get<WorkoutSession>(sessionId, store)
+  if (!session) return
+  await set(sessionId, { ...session, exportedToHealth: true }, store)
+}
+
 export async function clearSessions(): Promise<void> {
   const ids = await keys(store)
   await Promise.all(ids.map((id) => del(id as string, store)))

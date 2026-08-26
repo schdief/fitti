@@ -13,7 +13,7 @@ export function StatusBadge({ state, detail }: { state: ConnectionState; detail?
   const { label, className } = badgeStyles[state]
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${className}`}
+      className={`inline-flex shrink-0 items-center whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${className}`}
     >
       {detail ? `${label} · ${detail}` : label}
     </span>

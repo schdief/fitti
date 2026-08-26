@@ -14,6 +14,7 @@ import {
 } from '@/components/ui'
 import { clearSessions } from '@/features/logbook/db'
 import type { WorkoutSession } from '@/features/logbook/db'
+import { sendHealthTest } from '@/features/health/healthExport'
 import { useSessions } from '@/features/logbook/useSessions'
 import { useSettings } from '@/features/settings/settingsStore'
 import {
@@ -85,19 +86,57 @@ function SpotifyRows() {
   )
 }
 
-function ConnectionsSection() {
+function HealthRows() {
   const health = useSettings((state) => state.connections.health)
+  const setHealth = useSettings((state) => state.setHealth)
   const navigate = useNavigate()
 
+  const checked = health.lastCheckedAt
+    ? new Date(health.lastCheckedAt).toLocaleDateString('de-DE')
+    : undefined
+
+  return (
+    <>
+      <ListRow
+        label="Apple Health"
+        hint={health.message ?? `Kurzbefehl „${health.shortcutName}“`}
+        control={<StatusBadge state={health.state} detail={checked} />}
+        onClick={() => navigate('/health-setup')}
+      />
+      <ListRow
+        label="Verbindung testen"
+        hint="Ruft den Kurzbefehl im Testmodus auf."
+        control={
+          <ActionButton onClick={() => sendHealthTest(health.shortcutName, '/settings')}>
+            Testen
+          </ActionButton>
+        }
+      />
+      <ListRow
+        label="Nach dem Training"
+        hint="Automatisch übergeben oder vorher fragen."
+        control={
+          <SegmentedControl
+            label="Automatischer Export"
+            value={health.autoExport}
+            onChange={(autoExport) => setHealth({ autoExport })}
+            options={[
+              { value: 'off', label: 'Aus' },
+              { value: 'ask', label: 'Fragen' },
+              { value: 'on', label: 'Auto' },
+            ]}
+          />
+        }
+      />
+    </>
+  )
+}
+
+function ConnectionsSection() {
   return (
     <Card>
       <SpotifyRows />
-      <ListRow
-        label="Apple Health"
-        hint={`Export über den Kurzbefehl „${health.shortcutName}“.`}
-        control={<StatusBadge state={health.state} />}
-        onClick={() => navigate('/lab')}
-      />
+      <HealthRows />
     </Card>
   )
 }
@@ -289,7 +328,10 @@ function DataSection() {
     <Card>
       <ListRow
         label="Logbuch exportieren"
-        hint={status ?? `${sessions.length} Trainings gespeichert`}
+        hint={
+          status ??
+          (sessions.length === 1 ? '1 Training gespeichert' : `${sessions.length} Trainings gespeichert`)
+        }
         control={<ActionButton onClick={exportJson}>Sichern</ActionButton>}
       />
       <ListRow
