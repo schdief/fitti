@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import type { ComponentType } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { Card, ListRow, NumberStepper, SegmentedControl, StatusBadge, Toggle } from '@/components/ui'
 import { useSettings } from '@/features/settings/settingsStore'
+import { checkForUpdate, resetAppCache } from '@/lib/swUpdate'
 
 export interface SettingsSectionDef {
   id: string
@@ -152,9 +154,19 @@ function DataSection() {
 function AboutSection() {
   const resetOnboarding = useSettings((state) => state.resetOnboarding)
   const navigate = useNavigate()
+  const [updateHint, setUpdateHint] = useState('Version prüfen und laden')
 
-  const checkForUpdate = () => {
-    void navigator.serviceWorker?.getRegistration().then((registration) => registration?.update())
+  const runUpdateCheck = async () => {
+    setUpdateHint('Suche läuft …')
+    const result = await checkForUpdate()
+    setUpdateHint(
+      {
+        pending: 'Neue Version gefunden, Banner erscheint unten.',
+        current: 'Bereits aktuell.',
+        failed: 'Prüfung fehlgeschlagen, offline?',
+        unsupported: 'Kein Service Worker aktiv.',
+      }[result],
+    )
   }
 
   return (
@@ -169,7 +181,12 @@ function AboutSection() {
         hint="Spikes für Audio, Timer, Health und Spotify"
         onClick={() => navigate('/lab')}
       />
-      <ListRow label="Nach Update suchen" onClick={checkForUpdate} />
+      <ListRow label="Nach Update suchen" hint={updateHint} onClick={() => void runUpdateCheck()} />
+      <ListRow
+        label="App-Cache zurücksetzen"
+        hint="Erzwingt die neueste Version. Logbuch und Einstellungen bleiben erhalten."
+        onClick={() => void resetAppCache()}
+      />
       <ListRow label="Einrichtung erneut starten" onClick={resetOnboarding} />
     </Card>
   )
