@@ -8,3 +8,15 @@ export function appUrl(hashRoute = '/'): string {
 export function appOrigin(): string {
   return `${window.location.origin}${import.meta.env.BASE_URL}`
 }
+
+/**
+ * Läuft die App vom Home-Bildschirm? Wichtig für den Kurzbefehl-Aufruf: Ein
+ * https-Rücksprung öffnet dort immer Safari statt der App, deshalb verzichten
+ * wir in diesem Fall auf x-callback.
+ */
+export function isStandalone(): boolean {
+  return (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (navigator as Navigator & { standalone?: boolean }).standalone === true
+  )
+}

@@ -5,6 +5,7 @@ import { UpdatePrompt } from '@/components/UpdatePrompt'
 import { CatalogPage } from '@/features/catalog/CatalogPage'
 import { PlanDetailPage } from '@/features/catalog/PlanDetailPage'
 import { HealthCallbackHandler } from '@/features/health/HealthCallbackHandler'
+import { HealthReturnPrompt } from '@/features/health/HealthReturnPrompt'
 import { HealthSetupPage } from '@/features/health/HealthSetupPage'
 import { FigureLabPage } from '@/features/figures/FigureLabPage'
 import { LabPage } from '@/features/lab/LabPage'
@@ -32,6 +33,7 @@ export function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <UpdatePrompt />
+      <HealthReturnPrompt />
     </>
   )
 }

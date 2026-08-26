@@ -40,6 +40,10 @@ const STEPS = [
     title: 'Einmal freigeben',
     body: 'Den Kurzbefehl einmal von Hand starten und die Nachfrage bestätigen. Danach läuft er ohne Rückfrage.',
   },
+  {
+    title: 'Zurück zu fitti',
+    body: 'Nach dem Lauf wechselst du selbst zurück zu fitti. iOS kann aus der Kurzbefehle-App nicht automatisch in eine Home-Screen-App zurückspringen, deshalb fragt fitti anschließend kurz nach, ob es geklappt hat.',
+  },
 ]
 
 const KEYS = [

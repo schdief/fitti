@@ -1,4 +1,4 @@
-import { appUrl } from '@/lib/appUrl'
+import { appUrl, isStandalone } from '@/lib/appUrl'
 
 /**
  * Einziges Nutzlastformat. Bewusst ohne Varianten, damit der Kurzbefehl auf der
@@ -23,6 +23,8 @@ export interface ShortcutUrlOptions {
   payload: HealthPayload
   successRoute?: string
   errorRoute?: string
+  /** Ohne Callback kehrt iOS von selbst zur aufrufenden App zurück. */
+  withCallback?: boolean
 }
 
 export function buildShortcutUrl({
@@ -30,21 +32,31 @@ export function buildShortcutUrl({
   payload,
   successRoute = '/settings?health=ok',
   errorRoute = '/settings?health=fail',
+  withCallback = !isStandalone(),
 }: ShortcutUrlOptions): string {
   // Bewusst kein URLSearchParams: das kodiert Leerzeichen als "+", und die
   // Kurzbefehle-App liest das wörtlich. Der Name muss %20 enthalten.
-  const query = Object.entries({
+  const encode = (values: Record<string, string>) =>
+    Object.entries(values)
+      .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+      .join('&')
+
+  const base = {
     name: shortcutName,
     input: 'text',
     text: JSON.stringify(payload),
+  }
+
+  if (!withCallback) {
+    return `shortcuts://run-shortcut?${encode(base)}`
+  }
+
+  return `shortcuts://x-callback-url/run-shortcut?${encode({
+    ...base,
     'x-success': appUrl(successRoute),
     'x-error': appUrl(errorRoute),
     'x-cancel': appUrl(errorRoute),
-  })
-    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
-    .join('&')
-
-  return `shortcuts://x-callback-url/run-shortcut?${query}`
+  })}`
 }
 
 /**
