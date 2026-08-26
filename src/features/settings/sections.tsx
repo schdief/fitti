@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ComponentType } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -11,6 +11,9 @@ import {
   StatusBadge,
   Toggle,
 } from '@/components/ui'
+import { clearSessions } from '@/features/logbook/db'
+import type { WorkoutSession } from '@/features/logbook/db'
+import { useSessions } from '@/features/logbook/useSessions'
 import { useSettings } from '@/features/settings/settingsStore'
 import {
   playCueElement,
@@ -19,6 +22,7 @@ import {
   unlockAudio,
   WORKOUT_AUDIO_SESSION,
 } from '@/lib/audio'
+import { readTokens } from '@/lib/spotify/auth'
 import { checkForUpdate, resetAppCache } from '@/lib/swUpdate'
 
 export interface SettingsSectionDef {
@@ -31,22 +35,20 @@ export interface SettingsSectionDef {
 function ConnectionsSection() {
   const { spotify, health } = useSettings((state) => state.connections)
   const navigate = useNavigate()
+  const spotifyState = readTokens() ? 'connected' : spotify.state
 
   return (
     <Card>
       <ListRow
         label="Spotify"
         hint="Steuert die Wiedergabe während des Trainings. Benötigt Premium."
-        control={<StatusBadge state={spotify.state} />}
+        control={<StatusBadge state={spotifyState} />}
+        onClick={() => navigate('/lab')}
       />
       <ListRow
         label="Apple Health"
         hint={`Export über den Kurzbefehl „${health.shortcutName}“.`}
         control={<StatusBadge state={health.state} />}
-      />
-      <ListRow
-        label="Einrichten und testen"
-        hint="Aktuell über die Diagnoseseite."
         onClick={() => navigate('/lab')}
       />
     </Card>
@@ -196,12 +198,81 @@ function ProfileSection() {
 }
 
 function DataSection() {
+  const { sessions, loaded, load, importSessions } = useSessions()
+  const [status, setStatus] = useState<string | null>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (!loaded) void load()
+  }, [loaded, load])
+
+  const exportJson = () => {
+    const blob = new Blob([JSON.stringify({ app: 'fitti', version: 1, sessions }, null, 2)], {
+      type: 'application/json',
+    })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = `fitti-logbuch-${new Date().toISOString().slice(0, 10)}.json`
+    anchor.click()
+    URL.revokeObjectURL(url)
+    setStatus(`${sessions.length} Trainings exportiert`)
+  }
+
+  const onFile = async (file: File) => {
+    try {
+      const parsed = JSON.parse(await file.text()) as { sessions?: WorkoutSession[] }
+      if (!Array.isArray(parsed.sessions)) throw new Error('Feld "sessions" fehlt')
+
+      const added = await importSessions(parsed.sessions)
+      setStatus(added === 0 ? 'Nichts Neues dabei' : `${added} Trainings importiert`)
+    } catch (cause) {
+      setStatus(`Import fehlgeschlagen: ${cause instanceof Error ? cause.message : 'Fehler'}`)
+    }
+  }
+
+  const removeAll = async () => {
+    if (!window.confirm(`${sessions.length} Trainings unwiderruflich löschen?`)) return
+    await clearSessions()
+    await load()
+    setStatus('Logbuch geleert')
+  }
+
   return (
     <Card>
       <ListRow
         label="Logbuch exportieren"
-        hint="Noch keine Daten vorhanden."
-        control={<span className="text-xs text-fg-faint">bald</span>}
+        hint={status ?? `${sessions.length} Trainings gespeichert`}
+        control={<ActionButton onClick={exportJson}>Sichern</ActionButton>}
+      />
+      <ListRow
+        label="Logbuch importieren"
+        hint="Vorhandene Einträge bleiben erhalten."
+        control={
+          <>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="application/json"
+              className="hidden"
+              onChange={(event) => {
+                const file = event.target.files?.[0]
+                if (file) void onFile(file)
+                event.target.value = ''
+              }}
+            />
+            <ActionButton onClick={() => fileRef.current?.click()}>Wählen</ActionButton>
+          </>
+        }
+      />
+      <ListRow
+        label="Logbuch löschen"
+        hint="Kann nicht rückgängig gemacht werden."
+        control={
+          <ActionButton variant="danger" onClick={() => void removeAll()} disabled={sessions.length === 0}>
+            Löschen
+          </ActionButton>
+        }
       />
     </Card>
   )

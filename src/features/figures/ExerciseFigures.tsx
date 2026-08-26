@@ -32,8 +32,16 @@ export function ExerciseFigures({
 
   const hasMid = figure.poses.mid !== undefined
 
+  // In der großen Darstellung begrenzt die Breite die Höhe. Bei nur einer Figur
+  // würde eine volle Breite das Quadrat so hoch machen, dass der Trainingsbildschirm
+  // scrollen müsste – deshalb die engere Obergrenze.
+  const frame =
+    size === 'lg'
+      ? `mx-auto flex w-full gap-2 ${hasMid ? 'max-w-[min(100%,52dvh)]' : 'max-w-[min(50%,24dvh)]'}`
+      : 'flex shrink-0 gap-1'
+
   return (
-    <div className={`flex shrink-0 gap-1 ${size === 'lg' ? 'w-full' : ''}`}>
+    <div className={frame}>
       <FigureView
         figure={figure}
         pose="start"

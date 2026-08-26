@@ -23,16 +23,18 @@ function CountdownRing({
   remainingMs,
   totalMs,
   caption,
+  compact = false,
 }: {
   remainingMs: number
   totalMs: number
   caption: string
+  compact?: boolean
 }) {
   const ratio = totalMs > 0 ? Math.max(0, Math.min(1, remainingMs / totalMs)) : 0
   const circumference = 2 * Math.PI * 45
 
   return (
-    <div className="relative mx-auto aspect-square w-56">
+    <div className={`relative mx-auto aspect-square ${compact ? 'w-40' : 'w-56'}`}>
       <svg viewBox="0 0 100 100" className="size-full -rotate-90">
         <circle cx="50" cy="50" r="45" className="fill-none stroke-surface-hi" strokeWidth="6" />
         <circle
@@ -47,7 +49,9 @@ function CountdownRing({
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-5xl font-semibold tabular-nums">
+        <span
+          className={`font-semibold tabular-nums ${compact ? 'text-4xl' : 'text-5xl'}`}
+        >
           {formatClock(remainingMs / 1000)}
         </span>
         <span className="mt-1 text-xs uppercase tracking-wider text-fg-faint">{caption}</span>
@@ -424,7 +428,7 @@ export function WorkoutPage() {
         </div>
       </header>
 
-      <main className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center gap-5 px-4 py-5">
+      <main className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center gap-4 px-4 py-4">
         {phase === 'rest' ? (
           <>
             <CountdownRing
@@ -463,6 +467,7 @@ export function WorkoutPage() {
                 remainingMs={remainingMs}
                 totalMs={(step.set.durationSec ?? 1) * 1000}
                 caption="Halten"
+                compact
               />
             ) : (
               <TargetLine step={step} />
