@@ -22,6 +22,15 @@ export function setAudioSessionType(type: AudioSessionType): boolean {
   return true
 }
 
+/**
+ * `transient` mischt sich mit Spotify und regelt es nur kurz herunter, gehorcht
+ * aber dem Ruheschalter. `playback` ist auch bei Lautlos zu hören, beansprucht
+ * die Audio-Session dann aber exklusiv und stoppt damit die Musik.
+ */
+export function workoutAudioSessionType(forceOverSilent: boolean): AudioSessionType {
+  return forceOverSilent ? 'playback' : 'transient'
+}
+
 let context: AudioContext | null = null
 
 export function getAudioContext(): AudioContext {

@@ -2,8 +2,23 @@ import { useState } from 'react'
 import type { ComponentType } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { Card, ListRow, NumberStepper, SegmentedControl, StatusBadge, Toggle } from '@/components/ui'
+import {
+  ActionButton,
+  Card,
+  ListRow,
+  NumberStepper,
+  SegmentedControl,
+  StatusBadge,
+  Toggle,
+} from '@/components/ui'
 import { useSettings } from '@/features/settings/settingsStore'
+import {
+  playCueElement,
+  setAudioSessionType,
+  speak,
+  unlockAudio,
+  workoutAudioSessionType,
+} from '@/lib/audio'
 import { checkForUpdate, resetAppCache } from '@/lib/swUpdate'
 
 export interface SettingsSectionDef {
@@ -38,6 +53,47 @@ function ConnectionsSection() {
   )
 }
 
+function SoundCheckRow() {
+  const forceAudioOverSilent = useSettings((state) => state.training.forceAudioOverSilent)
+  const [phase, setPhase] = useState<'idle' | 'asking' | 'ok' | 'fail'>('idle')
+
+  const run = async () => {
+    await unlockAudio()
+    setAudioSessionType(workoutAudioSessionType(forceAudioOverSilent))
+    playCueElement()
+    speak('Weitermachen')
+    setPhase('asking')
+  }
+
+  const hint = {
+    idle: 'Spielt einen Ton und eine Ansage ab.',
+    asking: 'Hast du beides gehört?',
+    ok: 'Passt. Ansagen sind während des Trainings hörbar.',
+    fail: 'Prüfe den Ruheschalter und die Lautstärke, oder aktiviere die Option darüber.',
+  }[phase]
+
+  return (
+    <ListRow
+      label="Ton-Check"
+      hint={hint}
+      control={
+        phase === 'asking' ? (
+          <span className="flex gap-2">
+            <ActionButton variant="primary" onClick={() => setPhase('ok')}>
+              Ja
+            </ActionButton>
+            <ActionButton variant="danger" onClick={() => setPhase('fail')}>
+              Nein
+            </ActionButton>
+          </span>
+        ) : (
+          <ActionButton onClick={() => void run()}>Testen</ActionButton>
+        )
+      }
+    />
+  )
+}
+
 function TrainingSection() {
   const training = useSettings((state) => state.training)
   const setTraining = useSettings((state) => state.setTraining)
@@ -56,6 +112,18 @@ function TrainingSection() {
         }
       />
       <ListRow
+        label="Ansagen trotz Lautlos"
+        hint="Übertönt den Ruheschalter, unterbricht dafür aber die Musik."
+        control={
+          <Toggle
+            label="Ansagen trotz Lautlos"
+            checked={training.forceAudioOverSilent}
+            onChange={(forceAudioOverSilent) => setTraining({ forceAudioOverSilent })}
+          />
+        }
+      />
+      <SoundCheckRow />
+      <ListRow
         label="Vorwarnung"
         hint="Countdown vor Ende der Pause."
         control={
@@ -72,7 +140,7 @@ function TrainingSection() {
       />
       <ListRow
         label="Display wachhalten"
-        hint="Verhindert das Sperren während des Trainings."
+        hint="Pflicht: Bei gesperrtem Display friert iOS die App ein, Ansagen entfallen."
         control={
           <Toggle
             label="Display wachhalten"
