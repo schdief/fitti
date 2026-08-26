@@ -33,9 +33,21 @@ export function ShortcutSpike() {
   }
 
   const showUrl = () => {
+    const end = new Date()
     const url = buildShortcutUrl({
       shortcutName: health.shortcutName,
-      payload: { mode: 'test', app: 'fitti', sentAt: new Date().toISOString() },
+      payload: {
+        mode: 'log',
+        app: 'fitti',
+        workoutType: 'traditionalStrengthTraining',
+        start: new Date(end.getTime() - 60_000).toISOString(),
+        end: end.toISOString(),
+        durationSec: 60,
+        activeEnergyKcal: 5,
+        avgHeartRateBpm: 120,
+        title: 'fitti Verbindungstest',
+        sessionId: crypto.randomUUID(),
+      },
       successRoute: '/lab?health=ok',
       errorRoute: '/lab?health=fail',
     })
@@ -53,8 +65,8 @@ export function ShortcutSpike() {
       />
 
       <p className="text-xs text-fg-muted">
-        Der Kurzbefehl muss exakt so heißen. Bei <code className="text-fg">mode=test</code> soll er
-        nichts in Health schreiben, sondern nur eine Mitteilung zeigen.
+        Der Kurzbefehl muss exakt so heißen. Jeder Aufruf hat dieselbe Form, eine Verzweigung
+        braucht er nicht.
       </p>
 
       <div className="flex flex-wrap gap-2">
@@ -66,7 +78,7 @@ export function ShortcutSpike() {
       </div>
 
       <p className="text-xs text-warn">
-        „Workout senden“ schreibt einen echten 15-Minuten-Eintrag in Health.
+        Beide Aufrufe schreiben einen echten Eintrag in Health.
       </p>
     </Card>
   )

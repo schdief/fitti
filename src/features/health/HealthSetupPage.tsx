@@ -22,32 +22,33 @@ const SAMPLE_PAYLOAD = `{
 const STEPS = [
   {
     title: 'Kurzbefehl anlegen',
-    body: 'In der Kurzbefehle-App einen neuen Kurzbefehl erstellen und exakt so benennen wie unten eingetragen.',
+    body: 'In der Kurzbefehle-App einen neuen Kurzbefehl erstellen und exakt so benennen wie im Feld oben.',
   },
   {
     title: 'Eingabe auslesen',
-    body: 'Aktion „Wörterbuch aus Eingabe abrufen“ hinzufügen. Als Eingabe „Kurzbefehleingabe“ wählen.',
+    body: 'Aktion „Wörterbuch aus Eingabe abrufen“ hinzufügen und als Eingabe „Kurzbefehleingabe“ wählen. Damit stehen alle Werte als Wörterbuch bereit.',
   },
   {
-    title: 'Modus prüfen',
-    body: 'Aktion „Wörterbuchwert abrufen“ mit dem Schlüssel mode. Danach „Wenn“ mit der Bedingung „ist gleich test“.',
-  },
-  {
-    title: 'Testfall',
-    body: 'Im Wenn-Zweig nur „Mitteilung zeigen“ mit dem Text „Fitti-Test erfolgreich“. Hier wird bewusst nichts in Health geschrieben.',
-  },
-  {
-    title: 'Echter Eintrag',
-    body: 'Im Andernfalls-Zweig die Health-Aktion deiner iOS-Version einsetzen (Workout protokollieren beziehungsweise Health-Sample protokollieren) und mit start, end, durationSec und activeEnergyKcal füttern.',
+    title: 'Training protokollieren',
+    body: 'Health-Aktion deiner iOS-Version einsetzen („Workout protokollieren“ oder „Health-Sample protokollieren“). Typ: Krafttraining. Start, Ende und Aktivenergie aus dem Wörterbuch einsetzen – dazu im Feld auf die Variable „Wörterbuch“ tippen und den Schlüssel eintragen.',
   },
   {
     title: 'Herzfrequenz mitschreiben',
-    body: 'Zusätzlich ein Health-Sample vom Typ Herzfrequenz mit dem Wert aus avgHeartRateBpm anlegen, Zeitraum von start bis end. Krankenkassen erkennen ein Training oft erst ab einer Mindestfrequenz an.',
+    body: 'Eine zweite Health-Aktion für ein Sample vom Typ Herzfrequenz, Wert aus avgHeartRateBpm, Zeitraum von start bis end. Krankenkassen erkennen ein Training oft erst ab einer Mindestfrequenz an.',
   },
   {
     title: 'Einmal freigeben',
-    body: 'Den Kurzbefehl einmal von Hand starten und die Rückfrage bestätigen. Danach läuft er ohne Nachfrage.',
+    body: 'Den Kurzbefehl einmal von Hand starten und die Nachfrage bestätigen. Danach läuft er ohne Rückfrage.',
   },
+]
+
+const KEYS = [
+  ['start', 'Beginn des Trainings'],
+  ['end', 'Ende des Trainings'],
+  ['durationSec', 'Dauer in Sekunden'],
+  ['activeEnergyKcal', 'Geschätzte Aktivenergie'],
+  ['avgHeartRateBpm', 'Durchschnittliche Herzfrequenz'],
+  ['title', 'Name des Trainings'],
 ]
 
 export function HealthSetupPage() {
@@ -64,7 +65,8 @@ export function HealthSetupPage() {
           <StatusBadge state={health.state} />
           <p className="text-sm text-fg-muted">
             Health ist über keine Web-Schnittstelle erreichbar. Der Umweg führt deshalb über einen
-            Kurzbefehl, den fitti mit den Trainingsdaten aufruft.
+            Kurzbefehl, den fitti mit den Trainingsdaten aufruft. Er braucht keine Verzweigung –
+            jeder Aufruf hat dieselbe Form.
           </p>
         </Card>
 
@@ -92,6 +94,20 @@ export function HealthSetupPage() {
             </li>
           ))}
         </ol>
+
+        <section>
+          <h2 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-fg-faint">
+            Schlüssel im Wörterbuch
+          </h2>
+          <Card className="divide-y divide-line">
+            {KEYS.map(([key, description]) => (
+              <div key={key} className="flex items-baseline gap-3 px-4 py-2">
+                <code className="shrink-0 text-xs text-accent">{key}</code>
+                <span className="text-xs text-fg-muted">{description}</span>
+              </div>
+            ))}
+          </Card>
+        </section>
 
         <section>
           <h2 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-fg-faint">
@@ -129,8 +145,8 @@ export function HealthSetupPage() {
         </ActionButton>
 
         <p className="text-center text-xs text-fg-faint">
-          Der Test sendet <code className="text-fg-muted">mode: "test"</code> und schreibt nichts in
-          Health.
+          Der Test schreibt ein einminütiges Training namens „fitti Verbindungstest“ in Health.
+          Diesen Eintrag kannst du dort danach löschen.
         </p>
       </div>
     </div>

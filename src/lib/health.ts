@@ -1,6 +1,10 @@
 import { appUrl } from '@/lib/appUrl'
 
-export interface HealthWorkoutPayload {
+/**
+ * Einziges Nutzlastformat. Bewusst ohne Varianten, damit der Kurzbefehl auf der
+ * iPhone-Seite keine Fallunterscheidung braucht.
+ */
+export interface HealthPayload {
   mode: 'log'
   app: 'fitti'
   workoutType: 'traditionalStrengthTraining'
@@ -13,14 +17,6 @@ export interface HealthWorkoutPayload {
   title: string
   sessionId: string
 }
-
-export interface HealthTestPayload {
-  mode: 'test'
-  app: 'fitti'
-  sentAt: string
-}
-
-export type HealthPayload = HealthWorkoutPayload | HealthTestPayload
 
 export interface ShortcutUrlOptions {
   shortcutName: string

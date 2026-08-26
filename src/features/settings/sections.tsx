@@ -105,7 +105,7 @@ function HealthRows() {
       />
       <ListRow
         label="Verbindung testen"
-        hint="Ruft den Kurzbefehl im Testmodus auf."
+        hint="Schreibt ein einminütiges Testtraining, das du in Health löschen kannst."
         control={
           <ActionButton onClick={() => sendHealthTest(health.shortcutName, '/settings')}>
             Testen
