@@ -165,3 +165,98 @@ export function NumberStepper({
     </div>
   )
 }
+
+export function TextField({
+  label,
+  value,
+  onChange,
+  placeholder,
+  autoComplete = 'off',
+}: {
+  label: string
+  value: string
+  onChange: (next: string) => void
+  placeholder?: string
+  autoComplete?: string
+}) {
+  return (
+    <label className="block px-4 py-3">
+      <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-fg-faint">
+        {label}
+      </span>
+      <input
+        type="text"
+        value={value}
+        placeholder={placeholder}
+        autoComplete={autoComplete}
+        autoCapitalize="off"
+        autoCorrect="off"
+        spellCheck={false}
+        onChange={(event) => onChange(event.target.value)}
+        className="w-full rounded-lg border border-line bg-surface-hi px-3 py-2 text-fg placeholder:text-fg-faint"
+      />
+    </label>
+  )
+}
+
+export function ActionButton({
+  children,
+  onClick,
+  variant = 'secondary',
+  disabled = false,
+  className = '',
+}: {
+  children: ReactNode
+  onClick: () => void
+  variant?: 'primary' | 'secondary' | 'danger'
+  disabled?: boolean
+  className?: string
+}) {
+  const variants = {
+    primary: 'bg-accent text-accent-fg',
+    secondary: 'bg-surface-hi text-fg',
+    danger: 'bg-danger/15 text-danger',
+  } as const
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={`rounded-lg px-3 py-2 text-sm font-semibold disabled:opacity-40 ${variants[variant]} ${className}`}
+    >
+      {children}
+    </button>
+  )
+}
+
+export function ChipSelect<T extends string>({
+  value,
+  options,
+  onChange,
+  label,
+}: {
+  value: T
+  options: readonly T[]
+  onChange: (next: T) => void
+  label: string
+}) {
+  return (
+    <div role="radiogroup" aria-label={label} className="flex flex-wrap gap-2">
+      {options.map((option) => (
+        <button
+          key={option}
+          type="button"
+          role="radio"
+          aria-checked={value === option}
+          onClick={() => onChange(option)}
+          className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+            value === option ? 'bg-accent text-accent-fg' : 'bg-surface-hi text-fg-muted'
+          }`}
+        >
+          {option}
+        </button>
+      ))}
+    </div>
+  )
+}

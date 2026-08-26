@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import { Card, ListRow, NumberStepper, SegmentedControl, StatusBadge, Toggle } from '@/components/ui'
 import { useSettings } from '@/features/settings/settingsStore'
@@ -12,6 +13,7 @@ export interface SettingsSectionDef {
 
 function ConnectionsSection() {
   const { spotify, health } = useSettings((state) => state.connections)
+  const navigate = useNavigate()
 
   return (
     <Card>
@@ -26,9 +28,9 @@ function ConnectionsSection() {
         control={<StatusBadge state={health.state} />}
       />
       <ListRow
-        label="Einrichtung"
-        hint="Verbinden und Testen folgt in den nächsten Ausbaustufen."
-        control={<span className="text-xs text-fg-faint">bald</span>}
+        label="Einrichten und testen"
+        hint="Aktuell über die Diagnoseseite."
+        onClick={() => navigate('/lab')}
       />
     </Card>
   )
@@ -149,6 +151,7 @@ function DataSection() {
 
 function AboutSection() {
   const resetOnboarding = useSettings((state) => state.resetOnboarding)
+  const navigate = useNavigate()
 
   const checkForUpdate = () => {
     void navigator.serviceWorker?.getRegistration().then((registration) => registration?.update())
@@ -160,6 +163,11 @@ function AboutSection() {
         label="Version"
         hint={`${__APP_VERSION__} · ${__BUILD_SHA__}`}
         control={<span className="text-xs text-fg-faint">fitti</span>}
+      />
+      <ListRow
+        label="Diagnose"
+        hint="Spikes für Audio, Timer, Health und Spotify"
+        onClick={() => navigate('/lab')}
       />
       <ListRow label="Nach Update suchen" onClick={checkForUpdate} />
       <ListRow label="Einrichtung erneut starten" onClick={resetOnboarding} />
