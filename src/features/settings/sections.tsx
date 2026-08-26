@@ -17,7 +17,7 @@ import {
   setAudioSessionType,
   speak,
   unlockAudio,
-  workoutAudioSessionType,
+  WORKOUT_AUDIO_SESSION,
 } from '@/lib/audio'
 import { checkForUpdate, resetAppCache } from '@/lib/swUpdate'
 
@@ -54,22 +54,21 @@ function ConnectionsSection() {
 }
 
 function SoundCheckRow() {
-  const forceAudioOverSilent = useSettings((state) => state.training.forceAudioOverSilent)
   const [phase, setPhase] = useState<'idle' | 'asking' | 'ok' | 'fail'>('idle')
 
   const run = async () => {
     await unlockAudio()
-    setAudioSessionType(workoutAudioSessionType(forceAudioOverSilent))
+    setAudioSessionType(WORKOUT_AUDIO_SESSION)
     playCueElement()
     speak('Weitermachen')
     setPhase('asking')
   }
 
   const hint = {
-    idle: 'Spielt einen Ton und eine Ansage ab.',
+    idle: 'Spielt einen Ton und eine Ansage ab, so wie im Training.',
     asking: 'Hast du beides gehört?',
     ok: 'Passt. Ansagen sind während des Trainings hörbar.',
-    fail: 'Prüfe den Ruheschalter und die Lautstärke, oder aktiviere die Option darüber.',
+    fail: 'Prüfe den Ruheschalter an der linken Geräteseite und die Lautstärke.',
   }[phase]
 
   return (
@@ -102,23 +101,12 @@ function TrainingSection() {
     <Card>
       <ListRow
         label="Sprachausgabe"
-        hint="Kurze Ansagen wie „Pause“ und „Weitermachen“."
+        hint="Kurze Ansagen wie „Pause“ und „Weitermachen“. Die Musik wird dabei nur kurz leiser."
         control={
           <Toggle
             label="Sprachausgabe"
             checked={training.voiceCues}
             onChange={(voiceCues) => setTraining({ voiceCues })}
-          />
-        }
-      />
-      <ListRow
-        label="Ansagen trotz Lautlos"
-        hint="Übertönt den Ruheschalter, unterbricht dafür aber die Musik."
-        control={
-          <Toggle
-            label="Ansagen trotz Lautlos"
-            checked={training.forceAudioOverSilent}
-            onChange={(forceAudioOverSilent) => setTraining({ forceAudioOverSilent })}
           />
         }
       />

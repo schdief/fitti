@@ -12,6 +12,22 @@ export class SpotifyError extends Error {
   }
 }
 
+async function readJson(response: Response): Promise<unknown> {
+  // Die Transport-Endpunkte antworten je nach Fall mit 204, leerem Body oder
+  // Klartext. Nur echtes JSON parsen, sonst gibt es irrefuehrende Parse-Fehler.
+  if (response.status === 204) return null
+  if (!(response.headers.get('content-type') ?? '').includes('application/json')) return null
+
+  const text = await response.text()
+  if (!text.trim()) return null
+
+  try {
+    return JSON.parse(text)
+  } catch {
+    return null
+  }
+}
+
 async function request<T>(path: string, init: RequestInit = {}): Promise<T | null> {
   const token = await getAccessToken()
   if (!token) throw new SpotifyError('Nicht angemeldet.', 401)
@@ -25,22 +41,24 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T | nul
     },
   })
 
-  if (response.status === 204) return null
   if (response.status === 429) {
-    throw new SpotifyError(`Rate Limit, erneut in ${response.headers.get('Retry-After') ?? '?'}s`, 429)
+    throw new SpotifyError(
+      `Rate Limit, erneut in ${response.headers.get('Retry-After') ?? '?'}s`,
+      429,
+    )
   }
 
+  const payload = await readJson(response)
+
   if (!response.ok) {
-    const payload: unknown = await response.json().catch(() => null)
     const message =
       payload && typeof payload === 'object' && 'error' in payload
         ? String((payload as { error: { message?: string } }).error.message ?? response.statusText)
-        : response.statusText
+        : response.statusText || `HTTP ${response.status}`
     throw new SpotifyError(message, response.status)
   }
 
-  const text = await response.text()
-  return text ? (JSON.parse(text) as T) : null
+  return payload as T | null
 }
 
 export interface SpotifyProfile {

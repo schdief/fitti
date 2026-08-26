@@ -25,7 +25,6 @@ export interface SettingsData {
     keepScreenAwake: boolean
     restAdjustPercent: number
     weightStepKg: number
-    forceAudioOverSilent: boolean
   }
   connections: {
     spotify: ConnectionStatus
@@ -52,7 +51,6 @@ const initialData: SettingsData = {
     keepScreenAwake: true,
     restAdjustPercent: 0,
     weightStepKg: 2.5,
-    forceAudioOverSilent: false,
   },
   connections: {
     spotify: { state: 'unconfigured', lastCheckedAt: null, message: null },
