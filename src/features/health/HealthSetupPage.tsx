@@ -22,23 +22,31 @@ const SAMPLE_PAYLOAD = `{
 const STEPS = [
   {
     title: 'Kurzbefehl anlegen',
-    body: 'In der Kurzbefehle-App einen neuen Kurzbefehl erstellen und exakt so benennen wie im Feld oben.',
+    body: 'In der Kurzbefehle-App einen neuen Kurzbefehl erstellen und exakt so benennen wie im Feld oben. Die oberste Zeile „… erhalten“ kannst du unverändert lassen.',
   },
   {
-    title: 'Eingabe auslesen',
-    body: 'Aktion „Wörterbuch aus Eingabe abrufen“ hinzufügen und als Eingabe „Kurzbefehleingabe“ wählen. Damit stehen alle Werte als Wörterbuch bereit.',
+    title: 'Aktion: Wörterbuch aus Eingabe abrufen',
+    body: 'Unten nach „Wörterbuch“ suchen und „Wörterbuch aus Eingabe abrufen“ hinzufügen. Als Eingabe „Kurzbefehleingabe“ wählen. Falls am Ende noch „Stoppen und ausgeben“ steht: diese Aktion löschen, sie wird nicht gebraucht.',
   },
   {
-    title: 'Training protokollieren',
-    body: 'Health-Aktion deiner iOS-Version einsetzen („Workout protokollieren“ oder „Health-Sample protokollieren“). Typ: Krafttraining. Start, Ende und Aktivenergie aus dem Wörterbuch einsetzen – dazu im Feld auf die Variable „Wörterbuch“ tippen und den Schlüssel eintragen.',
+    title: 'Aktion: Wörterbuchwert abrufen – fünfmal',
+    body: 'Nach „Wörterbuchwert“ suchen und die Aktion fünfmal hinzufügen, einmal je Schlüssel: start, end, durationSec, activeEnergyKcal, avgHeartRateBpm. Den Schlüssel jeweils in das Feld „Schlüssel“ tippen.',
   },
   {
-    title: 'Herzfrequenz mitschreiben',
-    body: 'Eine zweite Health-Aktion für ein Sample vom Typ Herzfrequenz, Wert aus avgHeartRateBpm, Zeitraum von start bis end. Krankenkassen erkennen ein Training oft erst ab einer Mindestfrequenz an.',
+    title: 'Wichtig: richtiges Wörterbuch wählen',
+    body: 'Ab der zweiten dieser Aktionen zeigt das Feld dahinter auf die Aktion direkt darüber. Tippe darauf und wähle stattdessen die Variable „Wörterbuch“ aus Schritt 2. Sonst kommen leere Werte heraus.',
   },
   {
-    title: 'Einmal freigeben',
-    body: 'Den Kurzbefehl einmal von Hand starten und die Nachfrage bestätigen. Danach läuft er ohne Rückfrage.',
+    title: 'Aktion: Workout protokollieren',
+    body: 'Nach „Workout“ suchen. Typ auf „Traditionelles Krafttraining“ stellen. Startdatum = Variable von start, Enddatum = Variable von end, Kalorien = Variable von activeEnergyKcal.',
+  },
+  {
+    title: 'Aktion: Health-Sample protokollieren',
+    body: 'Nach „Health-Sample“ suchen. Typ auf „Herzfrequenz“ stellen, Wert = Variable von avgHeartRateBpm, Datum = Variable von start. Das ist der Wert, den Krankenkassen auswerten.',
+  },
+  {
+    title: 'Einmal von Hand starten',
+    body: 'Unten auf das Abspielsymbol tippen und die Nachfrage bestätigen. Ohne diese Freigabe blockiert iOS den Aufruf aus fitti heraus.',
   },
   {
     title: 'Zurück zu fitti',
@@ -101,6 +109,29 @@ export function HealthSetupPage() {
 
         <section>
           <h2 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-fg-faint">
+            Der fertige Kurzbefehl
+          </h2>
+          <Card className="divide-y divide-line">
+            {[
+              'Wörterbuch aus Kurzbefehleingabe abrufen',
+              'Wert für „start“ in Wörterbuch abrufen',
+              'Wert für „end“ in Wörterbuch abrufen',
+              'Wert für „durationSec“ in Wörterbuch abrufen',
+              'Wert für „activeEnergyKcal“ in Wörterbuch abrufen',
+              'Wert für „avgHeartRateBpm“ in Wörterbuch abrufen',
+              'Workout protokollieren (Krafttraining, start – end, Kalorien)',
+              'Health-Sample protokollieren (Herzfrequenz, avgHeartRateBpm)',
+            ].map((line, index) => (
+              <p key={line} className="flex gap-3 px-4 py-2 text-xs">
+                <span className="w-4 shrink-0 tabular-nums text-fg-faint">{index + 1}</span>
+                <span className="text-fg-muted">{line}</span>
+              </p>
+            ))}
+          </Card>
+        </section>
+
+        <section>
+          <h2 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-fg-faint">
             Schlüssel im Wörterbuch
           </h2>
           <Card className="divide-y divide-line">
@@ -152,6 +183,17 @@ export function HealthSetupPage() {
           Der Test schreibt ein einminütiges Training namens „fitti Verbindungstest“ in Health.
           Diesen Eintrag kannst du dort danach löschen.
         </p>
+
+        <Card className="p-4">
+          <h2 className="text-sm font-semibold">Wenn eine Aktion fehlt</h2>
+          <p className="mt-1 text-sm text-fg-muted">
+            Gibt es „Workout protokollieren“ in deiner iOS-Version nicht, reicht auch nur
+            „Health-Sample protokollieren“: einmal für „Aktive Energie“ mit
+            <code className="mx-1 text-fg">activeEnergyKcal</code> und einmal für „Herzfrequenz“
+            mit <code className="mx-1 text-fg">avgHeartRateBpm</code>. Der Eintrag erscheint dann
+            als Datenpunkt statt als Training.
+          </p>
+        </Card>
       </div>
     </div>
   )
