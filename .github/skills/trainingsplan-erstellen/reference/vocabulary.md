@@ -10,17 +10,17 @@ Diese Listen sind abschließend. Werte, die hier nicht stehen, lässt die Validi
 | `upper-back` | Oberer Rücken |
 | `lats` | Latissimus |
 | `lower-back` | Unterer Rücken |
-| `traps` | Nacken/Trapez |
+| `traps` | Nacken |
 | `shoulders` | Schultern |
 | `rear-delts` | Hintere Schulter |
 | `biceps` | Bizeps |
 | `triceps` | Trizeps |
 | `forearms` | Unterarme |
 | `abs` | Bauch |
-| `obliques` | Seitliche Bauchmuskeln |
+| `obliques` | Bauch seitlich |
 | `glutes` | Gesäß |
-| `quads` | Oberschenkelvorderseite |
-| `hamstrings` | Oberschenkelrückseite |
+| `quads` | Quadrizeps |
+| `hamstrings` | Beinbeuger |
 | `adductors` | Adduktoren |
 | `calves` | Waden |
 | `full-body` | Ganzkörper |

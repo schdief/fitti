@@ -33,17 +33,17 @@ export const MUSCLE_LABELS: Record<Muscle, string> = {
   'upper-back': 'Oberer Rücken',
   lats: 'Latissimus',
   'lower-back': 'Unterer Rücken',
-  traps: 'Nacken/Trapez',
+  traps: 'Nacken',
   shoulders: 'Schultern',
   'rear-delts': 'Hintere Schulter',
   biceps: 'Bizeps',
   triceps: 'Trizeps',
   forearms: 'Unterarme',
   abs: 'Bauch',
-  obliques: 'Seitliche Bauchmuskeln',
+  obliques: 'Bauch seitlich',
   glutes: 'Gesäß',
-  quads: 'Oberschenkelvorderseite',
-  hamstrings: 'Oberschenkelrückseite',
+  quads: 'Quadrizeps',
+  hamstrings: 'Beinbeuger',
   adductors: 'Adduktoren',
   calves: 'Waden',
   'full-body': 'Ganzkörper',
@@ -52,15 +52,21 @@ export const MUSCLE_LABELS: Record<Muscle, string> = {
 }
 
 /** Gröbere Bündel für die Filterleiste im Katalog. */
-export const MUSCLE_GROUPS = {
-  Brust: ['chest'],
-  Rücken: ['upper-back', 'lats', 'lower-back', 'traps'],
-  Schultern: ['shoulders', 'rear-delts'],
-  Arme: ['biceps', 'triceps', 'forearms'],
-  Rumpf: ['abs', 'obliques'],
-  Beine: ['glutes', 'quads', 'hamstrings', 'adductors', 'calves'],
-  Ganzkörper: ['full-body', 'cardio', 'mobility'],
-} as const satisfies Record<string, readonly Muscle[]>
+export const MUSCLE_GROUPS = [
+  { id: 'chest', label: 'Brust', muscles: ['chest'] },
+  { id: 'back', label: 'Rücken', muscles: ['upper-back', 'lats', 'lower-back', 'traps'] },
+  { id: 'shoulders', label: 'Schultern', muscles: ['shoulders', 'rear-delts'] },
+  { id: 'arms', label: 'Arme', muscles: ['biceps', 'triceps', 'forearms'] },
+  { id: 'core', label: 'Rumpf', muscles: ['abs', 'obliques'] },
+  {
+    id: 'legs',
+    label: 'Beine',
+    muscles: ['glutes', 'quads', 'hamstrings', 'adductors', 'calves'],
+  },
+  { id: 'general', label: 'Ganzkörper', muscles: ['full-body', 'cardio', 'mobility'] },
+] as const satisfies readonly { id: string; label: string; muscles: readonly Muscle[] }[]
+
+export type MuscleGroupId = (typeof MUSCLE_GROUPS)[number]['id']
 
 export const EQUIPMENT = [
   'none',
