@@ -1,0 +1,32 @@
+name: Validate plans
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Schema und Querverweise prüfen
+        run: npm run validate
+
+      - name: Katalog-Index aktuell?
+        run: |
+          npm run catalog
+          git diff --exit-code public/plans/index.json \
+            || (echo "::error::index.json ist veraltet. Bitte 'npm run catalog' ausführen und committen." && exit 1)
+
+      - name: Typen prüfen
+        run: npm run typecheck

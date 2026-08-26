@@ -24,13 +24,29 @@ npm run dev
 | Befehl | Zweck |
 | --- | --- |
 | `npm run dev` | Dev-Server auf http://localhost:5173/fitti/ |
-| `npm run build` | Typecheck und Produktionsbuild nach `dist/` |
+| `npm run build` | Katalog-Index, Typecheck und Produktionsbuild nach `dist/` |
 | `npm run preview` | Produktionsbuild lokal testen (inkl. Service Worker) |
 | `npm run typecheck` | nur Typprüfung |
+| `npm run validate` | Pläne und Figuren gegen das Schema und die Querverweise prüfen |
+| `npm run catalog` | `public/plans/index.json` neu erzeugen |
+| `npm run schema` | JSON Schema und Vokabular für den Copilot-Skill exportieren |
 | `npm run icons` | App-Icons neu rendern |
 
 Der Service Worker ist im Dev-Modus deaktiviert. Zum Testen des Offline-Verhaltens `npm run build`
 und `npm run preview` verwenden.
+
+## Trainingspläne
+
+Pläne liegen als JSON in `public/plans/`, die Strichfiguren der Übungen in `public/figures/`.
+Beides erzeugt der Copilot-Skill unter `.github/skills/trainingsplan-erstellen/` aus natürlicher
+Sprache. Das Zod-Schema in `src/lib/plan/schema.ts` ist die einzige Wahrheit; JSON Schema und
+Vokabular für den Skill werden daraus generiert.
+
+Nach jeder Änderung an Plänen:
+
+```bash
+npm run validate && npm run catalog
+```
 
 ## Deployment
 

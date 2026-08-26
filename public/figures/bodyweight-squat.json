@@ -1,0 +1,38 @@
+{
+  "id": "bodyweight-squat",
+  "view": "side",
+  "facing": "right",
+  "props": [],
+  "poses": {
+    "start": {
+      "head": [50, 10],
+      "neck": [50, 19],
+      "shoulderR": [51, 23],
+      "shoulderL": [49, 23],
+      "elbowR": [52, 35],
+      "elbowL": [50, 35],
+      "handR": [53, 47],
+      "handL": [51, 47],
+      "hip": [50, 52],
+      "kneeR": [51, 71],
+      "kneeL": [49, 71],
+      "footR": [51, 90],
+      "footL": [49, 90]
+    },
+    "mid": {
+      "head": [44, 22],
+      "neck": [45, 30],
+      "shoulderR": [46, 34],
+      "shoulderL": [44, 34],
+      "elbowR": [56, 33],
+      "elbowL": [54, 33],
+      "handR": [66, 32],
+      "handL": [64, 32],
+      "hip": [40, 58],
+      "kneeR": [56, 70],
+      "kneeL": [54, 70]
+    }
+  },
+  "arrowJoint": "hip",
+  "emphasis": ["quads", "glutes"]
+}

@@ -1,0 +1,29 @@
+{
+  "id": "dumbbell-row",
+  "view": "side",
+  "facing": "right",
+  "props": [{ "type": "dumbbell", "attachTo": "handR" }],
+  "poses": {
+    "start": {
+      "head": [70, 34],
+      "neck": [66, 37],
+      "shoulderR": [61, 40],
+      "shoulderL": [61, 42],
+      "elbowR": [61, 55],
+      "elbowL": [59, 52],
+      "handR": [61, 70],
+      "handL": [57, 62],
+      "hip": [40, 46],
+      "kneeR": [38, 68],
+      "kneeL": [36, 68],
+      "footR": [37, 90],
+      "footL": [35, 90]
+    },
+    "mid": {
+      "elbowR": [50, 44],
+      "handR": [56, 54]
+    }
+  },
+  "arrowJoint": "handR",
+  "emphasis": ["lats", "upper-back"]
+}

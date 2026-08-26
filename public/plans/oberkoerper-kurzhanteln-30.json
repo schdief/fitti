@@ -1,0 +1,129 @@
+{
+  "schemaVersion": 1,
+  "id": "oberkoerper-kurzhanteln-30",
+  "title": "Oberkörper mit Kurzhanteln",
+  "description": "Drücken und Ziehen im Wechsel, mit Rumpfabschluss.",
+  "estimatedDurationMin": 30,
+  "level": "intermediate",
+  "equipment": ["dumbbells", "mat"],
+  "targetMuscles": [
+    "chest",
+    "lats",
+    "shoulders",
+    "triceps",
+    "upper-back",
+    "abs",
+    "mobility"
+  ],
+  "tags": ["oberkörper", "hantel"],
+  "metValue": 5,
+  "blocks": [
+    {
+      "type": "warmup",
+      "title": "Aufwärmen",
+      "rounds": 2,
+      "restBetweenRoundsSec": 30,
+      "exercises": [
+        {
+          "exerciseId": "push-up",
+          "name": "Liegestütz",
+          "mode": "reps",
+          "usesWeight": false,
+          "primaryMuscles": ["chest"],
+          "secondaryMuscles": ["triceps"],
+          "equipment": ["mat"],
+          "cues": ["Locker und zügig"],
+          "sets": [{ "reps": 8, "restSec": 30 }]
+        }
+      ]
+    },
+    {
+      "type": "main",
+      "title": "Hauptteil",
+      "rounds": 1,
+      "restBetweenRoundsSec": 0,
+      "exercises": [
+        {
+          "exerciseId": "dumbbell-shoulder-press",
+          "name": "Schulterdrücken",
+          "mode": "reps",
+          "usesWeight": true,
+          "primaryMuscles": ["shoulders"],
+          "secondaryMuscles": ["triceps", "traps"],
+          "equipment": ["dumbbells"],
+          "tempo": "2-0-1",
+          "cues": ["Rippenbogen unten lassen", "Nicht ins Hohlkreuz gehen"],
+          "sets": [
+            { "reps": 12, "targetWeightKg": 10, "restSec": 90 },
+            { "reps": 10, "targetWeightKg": 12, "restSec": 90 },
+            { "reps": 8, "targetWeightKg": 12, "restSec": 120 }
+          ]
+        },
+        {
+          "exerciseId": "dumbbell-row",
+          "name": "Einarmiges Rudern",
+          "mode": "reps",
+          "usesWeight": true,
+          "primaryMuscles": ["lats", "upper-back"],
+          "secondaryMuscles": ["biceps", "rear-delts"],
+          "equipment": ["dumbbells"],
+          "tempo": "2-1-1",
+          "cues": ["Schulterblatt zuerst bewegen", "Rücken bleibt gerade"],
+          "sets": [
+            { "reps": 12, "targetWeightKg": 14, "restSec": 90 },
+            { "reps": 10, "targetWeightKg": 16, "restSec": 90 },
+            { "reps": 10, "targetWeightKg": 16, "restSec": 120 }
+          ]
+        },
+        {
+          "exerciseId": "push-up",
+          "name": "Liegestütz",
+          "mode": "reps",
+          "usesWeight": false,
+          "primaryMuscles": ["chest"],
+          "secondaryMuscles": ["triceps", "shoulders"],
+          "equipment": ["mat"],
+          "tempo": "3-1-1",
+          "cues": ["Langsam ablassen"],
+          "sets": [
+            { "reps": 10, "restSec": 75 },
+            { "reps": 8, "restSec": 75 }
+          ]
+        },
+        {
+          "exerciseId": "plank",
+          "name": "Unterarmstütz",
+          "mode": "time",
+          "usesWeight": false,
+          "primaryMuscles": ["abs"],
+          "secondaryMuscles": ["obliques"],
+          "equipment": ["mat"],
+          "cues": ["Gesäß anspannen"],
+          "sets": [
+            { "durationSec": 45, "restSec": 45 },
+            { "durationSec": 45, "restSec": 60 }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "cooldown",
+      "title": "Abwärmen",
+      "rounds": 1,
+      "restBetweenRoundsSec": 0,
+      "exercises": [
+        {
+          "exerciseId": "child-pose",
+          "name": "Kindhaltung",
+          "mode": "time",
+          "usesWeight": false,
+          "primaryMuscles": ["mobility"],
+          "secondaryMuscles": ["lower-back"],
+          "equipment": ["mat"],
+          "cues": ["Schultern sinken lassen"],
+          "sets": [{ "durationSec": 90, "restSec": 0 }]
+        }
+      ]
+    }
+  ]
+}

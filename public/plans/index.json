@@ -1,0 +1,79 @@
+{
+  "generatedAt": "2026-08-26T11:22:58.517Z",
+  "plans": [
+    {
+      "id": "ganzkoerper-ohne-geraete-25",
+      "title": "Ganzkörper ohne Geräte",
+      "description": "Kurze Einheit für zu Hause. Nur Körpergewicht und eine Matte.",
+      "estimatedDurationMin": 25,
+      "level": "beginner",
+      "equipment": [
+        "none",
+        "mat"
+      ],
+      "targetMuscles": [
+        "chest",
+        "quads",
+        "glutes",
+        "abs",
+        "triceps",
+        "mobility"
+      ],
+      "tags": [
+        "zuhause",
+        "kurz"
+      ],
+      "exerciseCount": 5,
+      "setCount": 11
+    },
+    {
+      "id": "huefte-beine-15",
+      "title": "Hüfte und Beine kompakt",
+      "description": "Kurzes Programm für Gesäß und Oberschenkel, ohne Geräte.",
+      "estimatedDurationMin": 15,
+      "level": "beginner",
+      "equipment": [
+        "none",
+        "mat"
+      ],
+      "targetMuscles": [
+        "glutes",
+        "quads",
+        "hamstrings",
+        "mobility"
+      ],
+      "tags": [
+        "kurz",
+        "beine"
+      ],
+      "exerciseCount": 3,
+      "setCount": 7
+    },
+    {
+      "id": "oberkoerper-kurzhanteln-30",
+      "title": "Oberkörper mit Kurzhanteln",
+      "description": "Drücken und Ziehen im Wechsel, mit Rumpfabschluss.",
+      "estimatedDurationMin": 30,
+      "level": "intermediate",
+      "equipment": [
+        "dumbbells",
+        "mat"
+      ],
+      "targetMuscles": [
+        "chest",
+        "lats",
+        "shoulders",
+        "triceps",
+        "upper-back",
+        "abs",
+        "mobility"
+      ],
+      "tags": [
+        "oberkörper",
+        "hantel"
+      ],
+      "exerciseCount": 6,
+      "setCount": 13
+    }
+  ]
+}

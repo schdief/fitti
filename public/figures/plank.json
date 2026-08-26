@@ -1,0 +1,24 @@
+{
+  "id": "plank",
+  "view": "side",
+  "facing": "right",
+  "props": [{ "type": "mat", "x": 10, "y": 89, "w": 78, "h": 3 }],
+  "poses": {
+    "start": {
+      "head": [72, 60],
+      "neck": [68, 63],
+      "shoulderR": [63, 66],
+      "shoulderL": [63, 68],
+      "elbowR": [63, 82],
+      "elbowL": [63, 84],
+      "handR": [74, 88],
+      "handL": [74, 90],
+      "hip": [45, 72],
+      "kneeR": [30, 79],
+      "kneeL": [30, 81],
+      "footR": [16, 89],
+      "footL": [16, 90]
+    }
+  },
+  "emphasis": ["abs", "obliques"]
+}

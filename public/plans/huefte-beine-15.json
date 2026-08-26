@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "id": "huefte-beine-15",
+  "title": "Hüfte und Beine kompakt",
+  "description": "Kurzes Programm für Gesäß und Oberschenkel, ohne Geräte.",
+  "estimatedDurationMin": 15,
+  "level": "beginner",
+  "equipment": ["none", "mat"],
+  "targetMuscles": ["glutes", "quads", "hamstrings", "mobility"],
+  "tags": ["kurz", "beine"],
+  "metValue": 3.8,
+  "blocks": [
+    {
+      "type": "main",
+      "title": "Hauptteil",
+      "rounds": 3,
+      "restBetweenRoundsSec": 60,
+      "exercises": [
+        {
+          "exerciseId": "bodyweight-squat",
+          "name": "Kniebeuge",
+          "mode": "reps",
+          "usesWeight": false,
+          "primaryMuscles": ["quads", "glutes"],
+          "secondaryMuscles": ["hamstrings"],
+          "equipment": ["none"],
+          "cues": ["Gleichmäßiges Tempo"],
+          "sets": [{ "reps": 15, "restSec": 30 }]
+        },
+        {
+          "exerciseId": "glute-bridge",
+          "name": "Beckenheben",
+          "mode": "reps",
+          "usesWeight": false,
+          "primaryMuscles": ["glutes"],
+          "secondaryMuscles": ["hamstrings", "lower-back"],
+          "equipment": ["mat"],
+          "tempo": "2-1-1",
+          "cues": ["Oben kurz halten", "Rippen unten lassen"],
+          "sets": [{ "reps": 15, "restSec": 30 }]
+        }
+      ]
+    },
+    {
+      "type": "cooldown",
+      "title": "Abwärmen",
+      "rounds": 1,
+      "restBetweenRoundsSec": 0,
+      "exercises": [
+        {
+          "exerciseId": "child-pose",
+          "name": "Kindhaltung",
+          "mode": "time",
+          "usesWeight": false,
+          "primaryMuscles": ["mobility"],
+          "equipment": ["mat"],
+          "cues": ["Ruhig atmen"],
+          "sets": [{ "durationSec": 60, "restSec": 0 }]
+        }
+      ]
+    }
+  ]
+}

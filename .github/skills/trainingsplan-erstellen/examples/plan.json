@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "id": "ganzkoerper-ohne-geraete-25",
+  "title": "Ganzkörper ohne Geräte",
+  "description": "Kurze Einheit für zu Hause. Nur Körpergewicht und eine Matte.",
+  "estimatedDurationMin": 25,
+  "level": "beginner",
+  "equipment": ["none", "mat"],
+  "targetMuscles": ["chest", "quads", "glutes", "abs", "triceps", "mobility"],
+  "tags": ["zuhause", "kurz"],
+  "metValue": 4,
+  "blocks": [
+    {
+      "type": "warmup",
+      "title": "Aufwärmen",
+      "rounds": 1,
+      "restBetweenRoundsSec": 0,
+      "exercises": [
+        {
+          "exerciseId": "bodyweight-squat",
+          "name": "Kniebeuge",
+          "mode": "reps",
+          "usesWeight": false,
+          "primaryMuscles": ["quads"],
+          "secondaryMuscles": ["glutes"],
+          "equipment": ["none"],
+          "cues": ["Fersen bleiben am Boden", "Knie zeigen nach außen"],
+          "sets": [{ "reps": 12, "restSec": 30 }]
+        }
+      ]
+    },
+    {
+      "type": "main",
+      "title": "Hauptteil",
+      "rounds": 1,
+      "restBetweenRoundsSec": 0,
+      "exercises": [
+        {
+          "exerciseId": "push-up",
+          "name": "Liegestütz",
+          "mode": "reps",
+          "usesWeight": false,
+          "primaryMuscles": ["chest"],
+          "secondaryMuscles": ["triceps", "shoulders"],
+          "equipment": ["mat"],
+          "tempo": "2-0-1",
+          "cues": ["Körper bleibt eine Linie", "Ellbogen dicht am Körper"],
+          "sets": [
+            { "reps": 10, "restSec": 75 },
+            { "reps": 8, "restSec": 75 },
+            { "reps": 8, "restSec": 90 }
+          ]
+        },
+        {
+          "exerciseId": "bodyweight-squat",
+          "name": "Kniebeuge",
+          "mode": "reps",
+          "usesWeight": false,
+          "primaryMuscles": ["quads", "glutes"],
+          "secondaryMuscles": ["hamstrings"],
+          "equipment": ["none"],
+          "tempo": "3-0-1",
+          "cues": ["Hüfte zuerst nach hinten", "Brust bleibt aufrecht"],
+          "sets": [
+            { "reps": 15, "restSec": 60 },
+            { "reps": 15, "restSec": 60 },
+            { "reps": 12, "restSec": 90 }
+          ]
+        },
+        {
+          "exerciseId": "plank",
+          "name": "Unterarmstütz",
+          "mode": "time",
+          "usesWeight": false,
+          "primaryMuscles": ["abs"],
+          "secondaryMuscles": ["obliques", "shoulders"],
+          "equipment": ["mat"],
+          "cues": ["Becken leicht einrollen", "Ruhig weiteratmen"],
+          "sets": [
+            { "durationSec": 40, "restSec": 45 },
+            { "durationSec": 40, "restSec": 45 },
+            { "durationSec": 30, "restSec": 60 }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "cooldown",
+      "title": "Abwärmen",
+      "rounds": 1,
+      "restBetweenRoundsSec": 0,
+      "exercises": [
+        {
+          "exerciseId": "child-pose",
+          "name": "Kindhaltung",
+          "mode": "time",
+          "usesWeight": false,
+          "primaryMuscles": ["mobility"],
+          "secondaryMuscles": ["lower-back"],
+          "equipment": ["mat"],
+          "cues": ["Tief in den Bauch atmen"],
+          "sets": [{ "durationSec": 60, "restSec": 0 }]
+        }
+      ]
+    }
+  ]
+}

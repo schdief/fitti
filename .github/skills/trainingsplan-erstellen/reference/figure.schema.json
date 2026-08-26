@@ -1,0 +1,256 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 60,
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "view": {
+      "type": "string",
+      "enum": [
+        "side",
+        "front",
+        "back",
+        "three-quarter"
+      ]
+    },
+    "facing": {
+      "default": "right",
+      "type": "string",
+      "enum": [
+        "left",
+        "right"
+      ]
+    },
+    "props": {
+      "default": [],
+      "maxItems": 8,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "bench",
+              "mat",
+              "box",
+              "chair",
+              "wall",
+              "ground",
+              "dumbbell",
+              "barbell",
+              "kettlebell",
+              "band",
+              "pullup-bar",
+              "cable",
+              "plate",
+              "ball"
+            ]
+          },
+          "x": {
+            "type": "number",
+            "minimum": -20,
+            "maximum": 120
+          },
+          "y": {
+            "type": "number",
+            "minimum": -20,
+            "maximum": 120
+          },
+          "w": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 140
+          },
+          "h": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 140
+          },
+          "rot": {
+            "default": 0,
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180
+          },
+          "attachTo": {
+            "type": "string",
+            "enum": [
+              "head",
+              "neck",
+              "shoulderL",
+              "shoulderR",
+              "elbowL",
+              "elbowR",
+              "handL",
+              "handR",
+              "hip",
+              "kneeL",
+              "kneeR",
+              "footL",
+              "footR"
+            ]
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "poses": {
+      "type": "object",
+      "properties": {
+        "start": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "enum": [
+              "head",
+              "neck",
+              "shoulderL",
+              "shoulderR",
+              "elbowL",
+              "elbowR",
+              "handL",
+              "handR",
+              "hip",
+              "kneeL",
+              "kneeR",
+              "footL",
+              "footR"
+            ]
+          },
+          "additionalProperties": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number",
+                "minimum": -20,
+                "maximum": 120
+              },
+              {
+                "type": "number",
+                "minimum": -20,
+                "maximum": 120
+              }
+            ]
+          },
+          "required": [
+            "head",
+            "neck",
+            "shoulderL",
+            "shoulderR",
+            "elbowL",
+            "elbowR",
+            "handL",
+            "handR",
+            "hip",
+            "kneeL",
+            "kneeR",
+            "footL",
+            "footR"
+          ]
+        },
+        "mid": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "enum": [
+              "head",
+              "neck",
+              "shoulderL",
+              "shoulderR",
+              "elbowL",
+              "elbowR",
+              "handL",
+              "handR",
+              "hip",
+              "kneeL",
+              "kneeR",
+              "footL",
+              "footR"
+            ]
+          },
+          "additionalProperties": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number",
+                "minimum": -20,
+                "maximum": 120
+              },
+              {
+                "type": "number",
+                "minimum": -20,
+                "maximum": 120
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "start"
+      ],
+      "additionalProperties": false
+    },
+    "arrowJoint": {
+      "type": "string",
+      "enum": [
+        "head",
+        "neck",
+        "shoulderL",
+        "shoulderR",
+        "elbowL",
+        "elbowR",
+        "handL",
+        "handR",
+        "hip",
+        "kneeL",
+        "kneeR",
+        "footL",
+        "footR"
+      ]
+    },
+    "emphasis": {
+      "default": [],
+      "maxItems": 4,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "chest",
+          "upper-back",
+          "lats",
+          "lower-back",
+          "traps",
+          "shoulders",
+          "rear-delts",
+          "biceps",
+          "triceps",
+          "forearms",
+          "abs",
+          "obliques",
+          "glutes",
+          "quads",
+          "hamstrings",
+          "adductors",
+          "calves",
+          "full-body",
+          "cardio",
+          "mobility"
+        ]
+      }
+    }
+  },
+  "required": [
+    "id",
+    "view",
+    "poses"
+  ],
+  "additionalProperties": false
+}

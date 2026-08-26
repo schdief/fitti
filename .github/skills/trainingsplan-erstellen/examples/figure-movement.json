@@ -1,0 +1,36 @@
+{
+  "id": "push-up",
+  "view": "side",
+  "facing": "right",
+  "props": [{ "type": "mat", "x": 10, "y": 89, "w": 78, "h": 3 }],
+  "poses": {
+    "start": {
+      "head": [72, 55],
+      "neck": [68, 58],
+      "shoulderR": [63, 61],
+      "shoulderL": [63, 63],
+      "elbowR": [63, 75],
+      "elbowL": [63, 77],
+      "handR": [63, 89],
+      "handL": [63, 90],
+      "hip": [45, 68],
+      "kneeR": [30, 77],
+      "kneeL": [30, 79],
+      "footR": [16, 89],
+      "footL": [16, 90]
+    },
+    "mid": {
+      "head": [70, 72],
+      "neck": [66, 74],
+      "shoulderR": [61, 76],
+      "shoulderL": [61, 78],
+      "elbowR": [73, 84],
+      "elbowL": [73, 86],
+      "hip": [44, 78],
+      "kneeR": [30, 83],
+      "kneeL": [30, 85]
+    }
+  },
+  "arrowJoint": "shoulderR",
+  "emphasis": ["chest", "triceps"]
+}

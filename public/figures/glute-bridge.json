@@ -1,0 +1,30 @@
+{
+  "id": "glute-bridge",
+  "view": "side",
+  "facing": "right",
+  "props": [{ "type": "mat", "x": 12, "y": 89, "w": 76, "h": 3 }],
+  "poses": {
+    "start": {
+      "head": [22, 83],
+      "neck": [27, 84],
+      "shoulderR": [33, 84],
+      "shoulderL": [33, 86],
+      "elbowR": [40, 86],
+      "elbowL": [40, 88],
+      "handR": [47, 88],
+      "handL": [47, 90],
+      "hip": [55, 84],
+      "kneeR": [70, 72],
+      "kneeL": [70, 74],
+      "footR": [78, 89],
+      "footL": [78, 90]
+    },
+    "mid": {
+      "hip": [55, 71],
+      "kneeR": [70, 65],
+      "kneeL": [70, 67]
+    }
+  },
+  "arrowJoint": "hip",
+  "emphasis": ["glutes", "hamstrings"]
+}

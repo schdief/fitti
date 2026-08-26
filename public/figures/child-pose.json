@@ -1,0 +1,24 @@
+{
+  "id": "child-pose",
+  "view": "side",
+  "facing": "right",
+  "props": [{ "type": "mat", "x": 18, "y": 89, "w": 70, "h": 3 }],
+  "poses": {
+    "start": {
+      "head": [66, 76],
+      "neck": [62, 76],
+      "shoulderR": [56, 74],
+      "shoulderL": [56, 76],
+      "elbowR": [68, 78],
+      "elbowL": [68, 80],
+      "handR": [80, 82],
+      "handL": [80, 84],
+      "hip": [38, 76],
+      "kneeR": [44, 87],
+      "kneeL": [44, 89],
+      "footR": [28, 87],
+      "footL": [28, 89]
+    }
+  },
+  "emphasis": ["mobility", "lower-back"]
+}
