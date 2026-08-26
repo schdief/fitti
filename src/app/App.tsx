@@ -1,0 +1,23 @@
+import { Navigate, Route, Routes } from 'react-router-dom'
+
+import { TabLayout } from '@/app/TabLayout'
+import { UpdatePrompt } from '@/components/UpdatePrompt'
+import { CatalogPage } from '@/features/catalog/CatalogPage'
+import { LogbookPage } from '@/features/logbook/LogbookPage'
+import { SettingsPage } from '@/features/settings/SettingsPage'
+
+export function App() {
+  return (
+    <>
+      <Routes>
+        <Route element={<TabLayout />}>
+          <Route path="/" element={<CatalogPage />} />
+          <Route path="/logbook" element={<LogbookPage />} />
+        </Route>
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      <UpdatePrompt />
+    </>
+  )
+}

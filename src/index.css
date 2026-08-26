@@ -1,0 +1,64 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-bg: #0b0f14;
+  --color-surface: #141a21;
+  --color-surface-hi: #1c242d;
+  --color-line: #26313b;
+  --color-fg: #e9eff5;
+  --color-fg-muted: #93a3b2;
+  --color-fg-faint: #64748b;
+  --color-accent: #2fe3a0;
+  --color-accent-fg: #06231a;
+  --color-warn: #ffc65c;
+  --color-danger: #ff6b6b;
+
+  --font-sans:
+    ui-rounded, 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui,
+    sans-serif;
+
+  --radius-card: 1.125rem;
+}
+
+@layer base {
+  html {
+    background-color: var(--color-bg);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    background-color: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  /* Eingaben nie unter 16px, sonst zoomt iOS beim Fokus. */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+}
+
+@utility pad-safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+@utility pad-safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
