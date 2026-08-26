@@ -113,31 +113,76 @@ function writeAscii(view: DataView, offset: number, text: string): void {
   for (let i = 0; i < text.length; i += 1) view.setUint8(offset + i, text.charCodeAt(i))
 }
 
-/** Sehr leises Rauschen als WAV. Komplett stille Spuren stoppt iOS teilweise. */
-function createQuietWavUrl(seconds = 2, sampleRate = 22_050, amplitude = 40): string {
-  const samples = seconds * sampleRate
-  const buffer = new ArrayBuffer(44 + samples * 2)
+const SAMPLE_RATE = 22_050
+
+/** Baut aus 16-Bit-Samples eine WAV-Datei und gibt eine Object-URL zurück. */
+function encodeWavUrl(samples: Int16Array): string {
+  const buffer = new ArrayBuffer(44 + samples.length * 2)
   const view = new DataView(buffer)
 
   writeAscii(view, 0, 'RIFF')
-  view.setUint32(4, 36 + samples * 2, true)
+  view.setUint32(4, 36 + samples.length * 2, true)
   writeAscii(view, 8, 'WAVE')
   writeAscii(view, 12, 'fmt ')
   view.setUint32(16, 16, true)
   view.setUint16(20, 1, true)
   view.setUint16(22, 1, true)
-  view.setUint32(24, sampleRate, true)
-  view.setUint32(28, sampleRate * 2, true)
+  view.setUint32(24, SAMPLE_RATE, true)
+  view.setUint32(28, SAMPLE_RATE * 2, true)
   view.setUint16(32, 2, true)
   view.setUint16(34, 16, true)
   writeAscii(view, 36, 'data')
-  view.setUint32(40, samples * 2, true)
+  view.setUint32(40, samples.length * 2, true)
 
-  for (let i = 0; i < samples; i += 1) {
-    view.setInt16(44 + i * 2, Math.round((Math.random() * 2 - 1) * amplitude), true)
-  }
+  for (let i = 0; i < samples.length; i += 1) view.setInt16(44 + i * 2, samples[i]!, true)
 
   return URL.createObjectURL(new Blob([buffer], { type: 'audio/wav' }))
+}
+
+function generateSine(frequency: number, seconds: number, amplitude: number): Int16Array {
+  const length = Math.floor(SAMPLE_RATE * seconds)
+  const samples = new Int16Array(length)
+  const fade = Math.min(Math.floor(SAMPLE_RATE * 0.03), Math.floor(length / 2))
+
+  for (let i = 0; i < length; i += 1) {
+    const envelope = Math.min(1, i / fade, (length - i) / fade)
+    samples[i] = Math.round(Math.sin((2 * Math.PI * frequency * i) / SAMPLE_RATE) * amplitude * envelope)
+  }
+
+  return samples
+}
+
+/**
+ * 20 Hz liegt unter dem, was ein Telefonlautsprecher wiedergeben kann, das
+ * Signal ist aber nicht digital still. iOS ignoriert die volume-Eigenschaft von
+ * Audio-Elementen, deshalb muss die Datei selbst leise sein.
+ */
+function keepAliveWavUrl(): string {
+  keepAliveUrl ??= encodeWavUrl(generateSine(20, 2, 500))
+  return keepAliveUrl
+}
+
+let cueUrl: string | null = null
+
+function cueWavUrl(): string {
+  cueUrl ??= encodeWavUrl(generateSine(880, 0.8, 11_000))
+  return cueUrl
+}
+
+/**
+ * Spielt einen Ton über ein Audio-Element statt über Web Audio. Nur dieser Weg
+ * hat im Spike den Hintergrund erreicht, solange eine Medienwiedergabe läuft.
+ */
+export function playCueElement(onResult?: (info: string) => void): void {
+  const element = new Audio(cueWavUrl())
+  element.setAttribute('playsinline', '')
+  element.addEventListener('ended', () => onResult?.('Audio-Element: Wiedergabe beendet'), {
+    once: true,
+  })
+  void element.play().then(
+    () => onResult?.('Audio-Element: play() aufgelöst'),
+    (cause: unknown) => onResult?.(`Audio-Element: play() abgelehnt (${String(cause)})`),
+  )
 }
 
 /**
@@ -159,10 +204,8 @@ export function startKeepAlive(mode: KeepAliveMode): void {
     return
   }
 
-  keepAliveUrl ??= createQuietWavUrl()
-  const element = new Audio(keepAliveUrl)
+  const element = new Audio(keepAliveWavUrl())
   element.loop = true
-  element.volume = 0.05
   element.setAttribute('playsinline', '')
   void element.play().catch(() => undefined)
   keepAliveElement = element

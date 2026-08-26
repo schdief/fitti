@@ -33,7 +33,9 @@ export function buildShortcutUrl({
   successRoute = '/settings?health=ok',
   errorRoute = '/settings?health=fail',
 }: ShortcutUrlOptions): string {
-  const params = new URLSearchParams({
+  // Bewusst kein URLSearchParams: das kodiert Leerzeichen als "+", und die
+  // Kurzbefehle-App liest das wörtlich. Der Name muss %20 enthalten.
+  const query = Object.entries({
     name: shortcutName,
     input: 'text',
     text: JSON.stringify(payload),
@@ -41,8 +43,10 @@ export function buildShortcutUrl({
     'x-error': appUrl(errorRoute),
     'x-cancel': appUrl(errorRoute),
   })
+    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+    .join('&')
 
-  return `shortcuts://x-callback-url/run-shortcut?${params.toString()}`
+  return `shortcuts://x-callback-url/run-shortcut?${query}`
 }
 
 /**

@@ -3,15 +3,18 @@ import { useEffect, useRef, useState } from 'react'
 import { ActionButton, Card, ChipSelect, NumberStepper, Toggle } from '@/components/ui'
 import { labLog } from '@/features/lab/labLog'
 import {
+  audioSessionTypes,
   DUCKING_LEAD_IN_SEC,
   getAudioContext,
+  playCueElement,
   scheduleBeep,
+  setAudioSessionType,
   speak,
   startKeepAlive,
   stopKeepAlive,
   unlockAudio,
 } from '@/lib/audio'
-import type { KeepAliveMode } from '@/lib/audio'
+import type { AudioSessionType, KeepAliveMode } from '@/lib/audio'
 import { isWakeLockActive, releaseWakeLock, requestWakeLock, supportsWakeLock } from '@/lib/wakeLock'
 
 const keepAliveModes: readonly KeepAliveMode[] = ['off', 'webaudio', 'element']
@@ -19,7 +22,8 @@ const keepAliveModes: readonly KeepAliveMode[] = ['off', 'webaudio', 'element']
 export function TimerSpike() {
   const [durationSec, setDurationSec] = useState(30)
   const [useWakeLock, setUseWakeLock] = useState(false)
-  const [keepAlive, setKeepAlive] = useState<KeepAliveMode>('off')
+  const [keepAlive, setKeepAlive] = useState<KeepAliveMode>('element')
+  const [sessionType, setSessionType] = useState<AudioSessionType>('ambient')
   const [endsAt, setEndsAt] = useState<number | null>(null)
   const [remainingMs, setRemainingMs] = useState(0)
 
@@ -90,6 +94,7 @@ export function TimerSpike() {
     stop()
 
     const ctx = await unlockAudio()
+    setAudioSessionType(sessionType)
     const startedAt = Date.now()
     const target = startedAt + durationSec * 1000
     setEndsAt(target)
@@ -117,15 +122,32 @@ export function TimerSpike() {
     // Weg B: klassisches setTimeout. Zum Vergleich, wie stark iOS drosselt.
     timeoutRef.current = window.setTimeout(() => {
       labLog('info', `setTimeout gefeuert, Abweichung ${Date.now() - target} ms`)
+
+      // Weg C: Ton über ein Audio-Element. Im Hintergrund der aussichtsreichste Kanal.
+      playCueElement((info) => labLog('info', info))
       speak('Weitermachen', { onEnd: () => labLog('ok', 'Ansage beendet') })
-      stop()
+
+      if (intervalRef.current) window.clearInterval(intervalRef.current)
+      intervalRef.current = null
+      timeoutRef.current = null
+      setEndsAt(null)
+      setRemainingMs(0)
+
+      // Keep-Alive erst nach den Cues beenden, sonst bricht die Audio-Session zu früh weg.
+      window.setTimeout(() => {
+        stopKeepAlive()
+        void releaseWakeLock()
+      }, 4000)
     }, durationSec * 1000)
 
     intervalRef.current = window.setInterval(() => {
       setRemainingMs(Math.max(0, target - Date.now()))
     }, 250)
 
-    labLog('info', `Timer ${durationSec} s, Keep-Alive ${keepAlive}, Wake Lock ${useWakeLock}`)
+    labLog(
+      'info',
+      `Timer ${durationSec} s, Keep-Alive ${keepAlive}, audioSession ${sessionType}, Wake Lock ${useWakeLock}`,
+    )
   }
 
   const running = endsAt !== null
@@ -135,8 +157,8 @@ export function TimerSpike() {
       <div>
         <h3 className="text-[15px] font-semibold">2 · Timer bei gesperrtem Display</h3>
         <p className="mt-1 text-xs text-fg-muted">
-          Starten, Display sperren, warten. Keep-Alive spielt währenddessen ein kaum hörbares
-          Rauschen – die Frage ist, ob iOS die Seite dadurch am Leben lässt.
+          Starten, Display sperren, warten. Am Ende laufen drei Ausgabewege gleichzeitig: Web-Audio-Ton,
+          Audio-Element und Sprachausgabe. Notiere, welchen davon du gehört hast.
         </p>
       </div>
 
@@ -167,6 +189,16 @@ export function TimerSpike() {
           value={keepAlive}
           options={keepAliveModes}
           onChange={setKeepAlive}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <span className="text-sm text-fg-muted">audioSession</span>
+        <ChipSelect
+          label="audioSession-Typ"
+          value={sessionType}
+          options={audioSessionTypes}
+          onChange={setSessionType}
         />
       </div>
 
