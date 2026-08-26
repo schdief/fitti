@@ -1,42 +1,75 @@
 import { useEffect, useRef, useState } from 'react'
 
-import { ActionButton, Card, NumberStepper, Toggle } from '@/components/ui'
+import { ActionButton, Card, ChipSelect, NumberStepper, Toggle } from '@/components/ui'
 import { labLog } from '@/features/lab/labLog'
-import { getAudioContext, scheduleBeep, speak, unlockAudio } from '@/lib/audio'
+import {
+  DUCKING_LEAD_IN_SEC,
+  getAudioContext,
+  scheduleBeep,
+  speak,
+  startKeepAlive,
+  stopKeepAlive,
+  unlockAudio,
+} from '@/lib/audio'
+import type { KeepAliveMode } from '@/lib/audio'
 import { isWakeLockActive, releaseWakeLock, requestWakeLock, supportsWakeLock } from '@/lib/wakeLock'
+
+const keepAliveModes: readonly KeepAliveMode[] = ['off', 'webaudio', 'element']
 
 export function TimerSpike() {
   const [durationSec, setDurationSec] = useState(30)
   const [useWakeLock, setUseWakeLock] = useState(false)
+  const [keepAlive, setKeepAlive] = useState<KeepAliveMode>('off')
   const [endsAt, setEndsAt] = useState<number | null>(null)
   const [remainingMs, setRemainingMs] = useState(0)
 
   const timeoutRef = useRef<number | null>(null)
   const intervalRef = useRef<number | null>(null)
+  const hiddenAtRef = useRef<{ wall: number; audio: number } | null>(null)
 
-  // Zustandswechsel der Seite protokollieren – das ist der eigentliche Erkenntnisgewinn.
+  /**
+   * Beim Verstecken Wanduhr und Audio-Uhr merken, beim Zurückkommen vergleichen.
+   * Läuft die Audio-Uhr langsamer, war der AudioContext eingefroren – dann kann
+   * auch ein geplanter Ton nicht gespielt worden sein.
+   */
   useEffect(() => {
-    const log = (event: string) => () =>
-      labLog('info', `Seitenereignis: ${event} (visibility=${document.visibilityState})`)
+    const onVisibilityChange = () => {
+      const ctx = getAudioContext()
 
-    const handlers: [string, EventListener][] = [
-      ['visibilitychange', log('visibilitychange')],
-      ['pagehide', log('pagehide')],
-      ['pageshow', log('pageshow')],
-      ['freeze', log('freeze')],
-      ['resume', log('resume')],
-    ]
+      if (document.visibilityState === 'hidden') {
+        hiddenAtRef.current = { wall: Date.now(), audio: ctx.currentTime }
+        labLog('info', 'Seite versteckt, Uhren notiert')
+        return
+      }
 
-    for (const [event, handler] of handlers) document.addEventListener(event, handler)
-    return () => {
-      for (const [event, handler] of handlers) document.removeEventListener(event, handler)
+      const before = hiddenAtRef.current
+      hiddenAtRef.current = null
+
+      if (!before) {
+        labLog('info', 'Seite sichtbar')
+        return
+      }
+
+      const wallSec = (Date.now() - before.wall) / 1000
+      const audioSec = ctx.currentTime - before.audio
+      const frozen = wallSec - audioSec
+
+      labLog(
+        frozen > 1 ? 'warn' : 'ok',
+        `Zurück nach ${wallSec.toFixed(1)} s Wanduhr, Audio-Uhr lief ${audioSec.toFixed(1)} s ` +
+          `(${frozen.toFixed(1)} s eingefroren, Context: ${ctx.state})`,
+      )
     }
+
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange)
   }, [])
 
   useEffect(
     () => () => {
       if (timeoutRef.current) window.clearTimeout(timeoutRef.current)
       if (intervalRef.current) window.clearInterval(intervalRef.current)
+      stopKeepAlive()
       void releaseWakeLock()
     },
     [],
@@ -49,6 +82,7 @@ export function TimerSpike() {
     intervalRef.current = null
     setEndsAt(null)
     setRemainingMs(0)
+    stopKeepAlive()
     void releaseWakeLock()
   }
 
@@ -61,20 +95,22 @@ export function TimerSpike() {
     setEndsAt(target)
     setRemainingMs(durationSec * 1000)
 
+    startKeepAlive(keepAlive)
+
     if (useWakeLock) {
       const granted = await requestWakeLock(() => labLog('warn', 'Wake Lock wurde freigegeben'))
       labLog(granted ? 'ok' : 'warn', granted ? 'Wake Lock aktiv' : 'Wake Lock abgelehnt')
     }
 
     // Weg A: auf der Audio-Uhr geplant. Sollte gedrosseltes JS überleben.
-    scheduleBeep(getAudioContext(), {
-      at: ctx.currentTime + durationSec,
+    scheduleBeep(ctx, {
+      at: ctx.currentTime + durationSec - DUCKING_LEAD_IN_SEC,
       frequency: 660,
-      durationMs: 250,
+      durationMs: 900,
       onEnded: () =>
         labLog(
           'ok',
-          `Web-Audio-Beep beendet, Abweichung ${Date.now() - target} ms (Sound sollte hörbar gewesen sein)`,
+          `Web-Audio-Ton beendet, Abweichung ${Date.now() - target} ms (Sound sollte hörbar gewesen sein)`,
         ),
     })
 
@@ -89,7 +125,7 @@ export function TimerSpike() {
       setRemainingMs(Math.max(0, target - Date.now()))
     }, 250)
 
-    labLog('info', `Timer über ${durationSec} s gestartet. Jetzt Display sperren.`)
+    labLog('info', `Timer ${durationSec} s, Keep-Alive ${keepAlive}, Wake Lock ${useWakeLock}`)
   }
 
   const running = endsAt !== null
@@ -99,8 +135,8 @@ export function TimerSpike() {
       <div>
         <h3 className="text-[15px] font-semibold">2 · Timer bei gesperrtem Display</h3>
         <p className="mt-1 text-xs text-fg-muted">
-          Starten, sofort das Display sperren und warten. Danach zurückkommen und prüfen, ob der Ton
-          pünktlich kam und wie stark setTimeout abgewichen ist.
+          Starten, Display sperren, warten. Keep-Alive spielt währenddessen ein kaum hörbares
+          Rauschen – die Frage ist, ob iOS die Seite dadurch am Leben lässt.
         </p>
       </div>
 
@@ -122,6 +158,16 @@ export function TimerSpike() {
           Wake Lock {supportsWakeLock ? '' : '(nicht unterstützt)'}
         </span>
         <Toggle label="Wake Lock" checked={useWakeLock} onChange={setUseWakeLock} />
+      </div>
+
+      <div className="space-y-2">
+        <span className="text-sm text-fg-muted">Keep-Alive</span>
+        <ChipSelect
+          label="Keep-Alive"
+          value={keepAlive}
+          options={keepAliveModes}
+          onChange={setKeepAlive}
+        />
       </div>
 
       {running ? (

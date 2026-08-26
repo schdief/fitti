@@ -5,6 +5,7 @@ import { labLog } from '@/features/lab/labLog'
 import {
   audioSessionTypes,
   cancelSpeech,
+  DUCKING_LEAD_IN_SEC,
   getAudioContext,
   scheduleBeep,
   setAudioSessionType,
@@ -36,10 +37,14 @@ export function AudioSpike() {
     }
   }
 
-  const beep = () => {
+  const beep = (durationMs: number) => {
     const ctx = getAudioContext()
-    labLog('info', `Beep gesendet (Context: ${ctx.state})`)
-    scheduleBeep(ctx, { frequency: 880, durationMs: 200 })
+    labLog('info', `Beep ${durationMs} ms mit ${DUCKING_LEAD_IN_SEC * 1000} ms Vorlauf`)
+    scheduleBeep(ctx, {
+      at: ctx.currentTime + DUCKING_LEAD_IN_SEC,
+      frequency: 880,
+      durationMs,
+    })
   }
 
   const voice = (text: string) => {
@@ -87,8 +92,11 @@ export function AudioSpike() {
         <ActionButton variant="primary" onClick={() => void unlock()}>
           Audio freischalten
         </ActionButton>
-        <ActionButton onClick={beep} disabled={!unlocked}>
-          Beep
+        <ActionButton onClick={() => beep(700)} disabled={!unlocked}>
+          Beep 0,7 s
+        </ActionButton>
+        <ActionButton onClick={() => beep(1500)} disabled={!unlocked}>
+          Beep 1,5 s
         </ActionButton>
         <ActionButton onClick={() => voice('Pause')} disabled={!supportsSpeech}>
           „Pause“
