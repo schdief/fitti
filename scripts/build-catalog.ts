@@ -55,3 +55,17 @@ await writeFile(
 )
 
 console.log(`✓  index.json mit ${entries.length} Plänen geschrieben`)
+
+const figuresDir = resolve(root, 'public/figures')
+const figures = (await readdir(figuresDir))
+  .filter((file) => file.endsWith('.json') && file !== 'index.json')
+  .map((file) => file.replace(/\.json$/, ''))
+  .sort()
+
+await writeFile(
+  resolve(figuresDir, 'index.json'),
+  `${JSON.stringify({ generatedAt: new Date().toISOString(), figures }, null, 2)}\n`,
+  'utf8',
+)
+
+console.log(`✓  figures/index.json mit ${figures.length} Figuren geschrieben`)

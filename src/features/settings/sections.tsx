@@ -237,6 +237,11 @@ function AboutSection() {
         hint="Spikes für Audio, Timer, Health und Spotify"
         onClick={() => navigate('/lab')}
       />
+      <ListRow
+        label="Figuren-Labor"
+        hint="Übungsposen prüfen und nachjustieren"
+        onClick={() => navigate('/figure-lab')}
+      />
       <ListRow label="Nach Update suchen" hint={updateHint} onClick={() => void runUpdateCheck()} />
       <ListRow
         label="App-Cache zurücksetzen"

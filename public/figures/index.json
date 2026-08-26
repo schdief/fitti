@@ -1,0 +1,12 @@
+{
+  "generatedAt": "2026-08-26T11:30:47.909Z",
+  "figures": [
+    "bodyweight-squat",
+    "child-pose",
+    "dumbbell-row",
+    "dumbbell-shoulder-press",
+    "glute-bridge",
+    "plank",
+    "push-up"
+  ]
+}

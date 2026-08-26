@@ -25,7 +25,7 @@ jobs:
       - name: Katalog-Index aktuell?
         run: |
           npm run catalog
-          git diff --exit-code public/plans/index.json \
+          git diff --exit-code public/plans/index.json public/figures/index.json \
             || (echo "::error::index.json ist veraltet. Bitte 'npm run catalog' ausführen und committen." && exit 1)
 
       - name: Typen prüfen
