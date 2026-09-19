@@ -1,4 +1,4 @@
-import { Check, ChevronRight, Clock, CornerDownRight, Plus, SkipForward, X } from 'lucide-react'
+import { Check, Clock, FastForward, Plus, SkipForward, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
@@ -615,17 +615,6 @@ export function WorkoutPage() {
             />
             <NextUp step={nextStep} />
 
-            {canDefer ? (
-              <button
-                type="button"
-                onClick={deferExercise}
-                className="mx-auto flex items-center gap-1.5 rounded-full bg-surface-hi px-3 py-1.5 text-xs font-medium text-fg-muted active:bg-line"
-              >
-                <CornerDownRight size={14} aria-hidden />
-                Gerät belegt, diese Übung später
-              </button>
-            ) : null}
-
             <div className="flex justify-center gap-2">
               <ActionButton onClick={() => useWorkout.getState().extendRest(30)}>
                 <span className="flex items-center gap-1">
@@ -646,6 +635,17 @@ export function WorkoutPage() {
                 </span>
               </ActionButton>
             </div>
+
+            {canDefer ? (
+              <div className="flex justify-center">
+                <ActionButton onClick={deferExercise}>
+                  <span className="flex items-center gap-1.5">
+                    <FastForward size={16} aria-hidden />
+                    Überspringen
+                  </span>
+                </ActionButton>
+              </div>
+            ) : null}
           </>
         ) : (
           <>
@@ -708,7 +708,7 @@ export function WorkoutPage() {
                 className="flex flex-1 items-center justify-center gap-2 py-4 text-base"
               >
                 <Check size={20} aria-hidden />
-                Satz erledigt
+                Fertig
               </ActionButton>
 
               {canDefer ? (
@@ -716,25 +716,20 @@ export function WorkoutPage() {
                   onClick={deferExercise}
                   className="flex shrink-0 items-center gap-1.5 px-3 py-4"
                 >
-                  <CornerDownRight size={18} aria-hidden />
-                  Später
+                  <FastForward size={18} aria-hidden />
+                  Überspringen
                 </ActionButton>
               ) : null}
             </div>
           ) : null}
 
-          <dl className="flex items-center justify-between text-xs text-fg-muted">
-            <div className="flex items-center gap-1.5">
-              <Clock size={14} aria-hidden />
-              <dt className="sr-only">Vergangen</dt>
-              <dd className="tabular-nums">{Math.floor(elapsedSec / 60)} min gelaufen</dd>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <ChevronRight size={14} aria-hidden />
-              <dt className="sr-only">Verbleibend</dt>
-              <dd className="tabular-nums">noch etwa {Math.ceil(leftSec / 60)} min</dd>
-            </div>
-          </dl>
+          <p className="flex items-center justify-center gap-1.5 text-xs text-fg-muted">
+            <Clock size={14} aria-hidden />
+            <span className="sr-only">Minuten</span>
+            <span className="tabular-nums">
+              {Math.floor(elapsedSec / 60)} von {Math.floor(elapsedSec / 60) + Math.ceil(leftSec / 60)}
+            </span>
+          </p>
 
           <MusicBar />
         </div>
