@@ -5,8 +5,8 @@ import {
   Flame,
   PartyPopper,
   Plus,
-  Share2,
   SkipForward,
+  Sparkles,
   X,
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -561,8 +561,8 @@ export function WorkoutPage() {
         </ActionButton>
 
         <ActionButton onClick={share} className="flex w-full items-center justify-center gap-2 py-3">
-          <Share2 size={18} aria-hidden />
-          {shared ? 'In die Zwischenablage kopiert' : 'Auswertung von einer KI bewerten lassen'}
+          <Sparkles size={18} aria-hidden />
+          {shared ? 'In die Zwischenablage kopiert' : 'Analyse anfordern'}
         </ActionButton>
 
         {health.autoExport === 'ask' && health.state === 'connected' && sessionRef.current ? (

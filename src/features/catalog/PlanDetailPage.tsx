@@ -228,8 +228,11 @@ export function PlanDetailPage() {
         </p>
       </div>
 
-      {/* Klebend statt fest: sonst schwebt die Leiste in Safari bis zum ersten Scrollen. */}
-      <div className="pad-safe-bottom sticky bottom-0 z-40 border-t border-line bg-bg/90 px-4 py-3 backdrop-blur-xl">
+      {/* Klebend statt fest, deckend statt unscharf: siehe TabLayout. */}
+      <div
+        style={{ boxShadow: '0 80px 0 0 var(--color-bg)' }}
+        className="pad-safe-bottom sticky bottom-0 z-40 border-t border-line bg-bg px-4 py-3"
+      >
         <div className="mx-auto max-w-lg">
           <ActionButton
             variant="primary"

@@ -15,10 +15,17 @@ export function TabLayout() {
 
       {/*
         Klebend statt fest positioniert: Safari berechnet `position: fixed`
-        erst nach der ersten Scrollbewegung neu, dadurch schwebte die Leiste
-        beim Start über dem unteren Rand.
+        erst nach der ersten Scrollbewegung neu.
+
+        Deckend und ohne backdrop-filter: Safari lässt den unscharfen Hintergrund
+        im Bereich des Home-Indikators aus, dort blieb ein dunkler Streifen
+        stehen. Der Schlagschatten füllt zur Sicherheit alles darunter mit
+        derselben Farbe, ohne das Layout anzufassen.
       */}
-      <nav className="pad-safe-bottom sticky bottom-0 z-40 border-t border-line bg-surface/95 backdrop-blur-xl">
+      <nav
+        style={{ boxShadow: '0 80px 0 0 var(--color-surface)' }}
+        className="pad-safe-bottom sticky bottom-0 z-40 border-t border-line bg-surface"
+      >
         <ul className="mx-auto flex max-w-lg">
           {tabs.map(({ to, label, Icon }) => (
             <li key={to} className="flex-1">
