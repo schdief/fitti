@@ -9,7 +9,15 @@
  */
 export function trackAppHeight(): void {
   const apply = () => {
-    const height = window.visualViewport?.height ?? window.innerHeight
+    // Die größte der drei Angaben nehmen: eine zu kleine Höhe lässt die untere
+    // Leiste über dem Bildschirmrand schweben, was deutlich störender ist als
+    // ein paar Pixel zu viel.
+    const height = Math.max(
+      window.innerHeight,
+      document.documentElement.clientHeight,
+      window.visualViewport?.height ?? 0,
+    )
+
     document.documentElement.style.setProperty('--app-height', `${Math.round(height)}px`)
   }
 

@@ -45,11 +45,12 @@ function measure(value: string): string {
 }
 
 /**
- * Zeigt die Viewportwerte, mit denen das Layout rechnet. Dient der Suche nach
- * der schwebenden unteren Leiste auf dem iPhone.
+ * Zeigt die Viewportwerte, mit denen das Layout rechnet, und deutet sie. Dient
+ * der Suche nach der schwebenden unteren Leiste auf dem iPhone.
  */
 export function ViewportSpike() {
   const [readings, setReadings] = useState<Reading[]>([])
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     const update = () => setReadings(read())
@@ -59,11 +60,32 @@ export function ViewportSpike() {
     return () => window.clearInterval(timer)
   }, [])
 
+  const copy = () => {
+    const text = [
+      `userAgent: ${navigator.userAgent}`,
+      ...readings.map((reading) => `${reading.label}: ${reading.value}`),
+    ].join('\n')
+
+    void navigator.clipboard
+      ?.writeText(text)
+      .then(() => setCopied(true))
+      .catch(() => undefined)
+  }
+
+  const verdict = interpret()
+
   return (
     <section>
-      <h2 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-fg-faint">
-        Viewport
-      </h2>
+      <div className="mb-2 flex items-center justify-between px-1">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-fg-faint">Viewport</h2>
+        <button type="button" onClick={copy} className="text-xs text-accent">
+          {copied ? 'Kopiert' : 'Kopieren'}
+        </button>
+      </div>
+
+      {verdict ? (
+        <Card className="mb-2 border-warn/40 p-3 text-xs text-warn">{verdict}</Card>
+      ) : null}
 
       <Card className="divide-y divide-line">
         {readings.map((reading) => (
@@ -75,9 +97,24 @@ export function ViewportSpike() {
       </Card>
 
       <p className="mt-2 px-1 text-[11px] text-fg-faint">
-        Die Werte aktualisieren sich laufend. Weichen „--app-height“ und „innerHeight“ voneinander
-        ab, rechnet das Layout mit einer falschen Höhe.
+        Die Werte aktualisieren sich laufend. „Kopieren“ legt sie samt Gerätekennung in die
+        Zwischenablage.
       </p>
     </section>
   )
+}
+
+/** Deutet die Werte, damit niemand Zahlen abtippen muss. */
+function interpret(): string | null {
+  const lost = window.screen.height - window.innerHeight
+
+  if (lost > 5) {
+    return `Die Seite ist ${lost} px kürzer als der Bildschirm. Der Streifen unter der Leiste gehört nicht zur Seite – iOS füllt ihn selbst. Ursache liegt außerhalb des Layouts.`
+  }
+
+  if (lost < -5) {
+    return `Die Seite ist ${-lost} px länger als der Bildschirm.`
+  }
+
+  return null
 }
