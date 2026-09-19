@@ -172,12 +172,14 @@ export function TextField({
   onChange,
   placeholder,
   autoComplete = 'off',
+  type = 'text',
 }: {
   label: string
   value: string
   onChange: (next: string) => void
   placeholder?: string
   autoComplete?: string
+  type?: 'text' | 'password'
 }) {
   return (
     <label className="block px-4 py-3">
@@ -185,7 +187,7 @@ export function TextField({
         {label}
       </span>
       <input
-        type="text"
+        type={type}
         value={value}
         placeholder={placeholder}
         autoComplete={autoComplete}

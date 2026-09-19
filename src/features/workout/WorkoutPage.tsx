@@ -6,7 +6,6 @@ import {
   PartyPopper,
   Plus,
   SkipForward,
-  Sparkles,
   X,
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -18,6 +17,7 @@ import { Confetti } from '@/components/Confetti'
 import { usePlan } from '@/features/catalog/useCatalog'
 import { AnimatedFigure } from '@/features/figures/AnimatedFigure'
 import { MusicBar } from '@/features/music/MusicBar'
+import { AnalysisButton } from '@/features/workout/AnalysisButton'
 import { loadPreviousResults, saveSession } from '@/features/logbook/db'
 import type { SetResult, WorkoutSession } from '@/features/logbook/db'
 import { useSessions } from '@/features/logbook/useSessions'
@@ -190,7 +190,6 @@ export function WorkoutPage() {
   const [askAbort, setAskAbort] = useState(false)
   const [reps, setReps] = useState(0)
   const [weightKg, setWeightKg] = useState(0)
-  const [shared, setShared] = useState(false)
   const sessions = useSessions((state) => state.sessions)
   const savedRef = useRef(false)
   const sessionRef = useRef<WorkoutSession | null>(null)
@@ -469,23 +468,6 @@ export function WorkoutPage() {
 
     const analysis = analyseSession(active.results, earlier?.results ?? null)
 
-    const share = () => {
-      const session = sessionRef.current
-      if (!session) return
-
-      const text = buildCoachPrompt(session, plan, analysis)
-
-      if (navigator.share) {
-        void navigator.share({ title: 'fitti Training', text }).catch(() => undefined)
-        return
-      }
-
-      void navigator.clipboard
-        ?.writeText(text)
-        .then(() => setShared(true))
-        .catch(() => undefined)
-    }
-
     return (
       <div className="mx-auto flex min-h-app max-w-lg flex-col justify-center gap-5 px-4 py-6">
         <Confetti />
@@ -560,10 +542,11 @@ export function WorkoutPage() {
           Ins Logbuch
         </ActionButton>
 
-        <ActionButton onClick={share} className="flex w-full items-center justify-center gap-2 py-3">
-          <Sparkles size={18} aria-hidden />
-          {shared ? 'In die Zwischenablage kopiert' : 'Analyse anfordern'}
-        </ActionButton>
+        <AnalysisButton
+          buildPrompt={() =>
+            sessionRef.current ? buildCoachPrompt(sessionRef.current, plan, analysis) : ''
+          }
+        />
 
         {health.autoExport === 'ask' && health.state === 'connected' && sessionRef.current ? (
           <ActionButton

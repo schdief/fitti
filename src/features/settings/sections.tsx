@@ -17,6 +17,8 @@ import type { WorkoutSession } from '@/features/logbook/db'
 import { sendHealthTest } from '@/features/health/healthExport'
 import { useSessions } from '@/features/logbook/useSessions'
 import { useSettings } from '@/features/settings/settingsStore'
+import { AI_DEFAULT_MODEL } from '@/features/settings/settingsStore'
+import { AI_LABELS, AiError, hasAiKey, requestAnalysis } from '@/lib/ai/client'
 import {
   playCueElement,
   setAudioSessionType,
@@ -132,11 +134,104 @@ function HealthRows() {
   )
 }
 
+function AiRows() {
+  const ai = useSettings((state) => state.connections.ai)
+  const setAi = useSettings((state) => state.setAi)
+  const navigate = useNavigate()
+  const [testing, setTesting] = useState(false)
+
+  const configured = hasAiKey(ai)
+
+  const test = async () => {
+    setTesting(true)
+    try {
+      await requestAnalysis('Antworte mit genau einem Wort: bereit', ai)
+      setAi({ lastCheckedAt: new Date().toISOString(), message: 'Schlüssel funktioniert.' })
+    } catch (cause) {
+      const error = cause instanceof AiError ? cause : null
+      setAi({
+        message: [error?.message ?? String(cause), error?.hint].filter(Boolean).join(' '),
+      })
+    } finally {
+      setTesting(false)
+    }
+  }
+
+  return (
+    <>
+      <ListRow
+        label="KI-Analyse"
+        hint={
+          ai.message ??
+          (configured
+            ? `${AI_LABELS[ai.provider]} beantwortet direkt in der App.`
+            : 'Ohne Schlüssel wird die Auswertung zum Teilen angeboten.')
+        }
+        control={
+          <StatusBadge
+            state={configured ? 'connected' : 'unconfigured'}
+            detail={
+              ai.lastCheckedAt
+                ? new Date(ai.lastCheckedAt).toLocaleDateString('de-DE')
+                : undefined
+            }
+          />
+        }
+        onClick={() => navigate('/ai-setup')}
+      />
+
+      <ListRow
+        label="Anbieter"
+        hint="Beide brauchen einen eigenen Schlüssel."
+        control={
+          <SegmentedControl
+            label="KI-Anbieter"
+            value={ai.provider}
+            onChange={(provider) =>
+              setAi({ provider, model: AI_DEFAULT_MODEL[provider], message: null })
+            }
+            options={[
+              { value: 'gemini', label: 'Gemini' },
+              { value: 'openai', label: 'ChatGPT' },
+            ]}
+          />
+        }
+      />
+
+      <TextField
+        label="API-Schlüssel"
+        value={ai.apiKey}
+        onChange={(apiKey) => setAi({ apiKey, message: null })}
+        placeholder={ai.provider === 'gemini' ? 'AIza…' : 'sk-…'}
+        type="password"
+      />
+
+      <TextField
+        label="Modell"
+        value={ai.model}
+        onChange={(model) => setAi({ model, message: null })}
+        placeholder={AI_DEFAULT_MODEL[ai.provider]}
+      />
+
+      <ListRow
+        label="Schlüssel prüfen"
+        hint="Stellt eine winzige Testfrage."
+        control={
+          <ActionButton disabled={!configured || testing} onClick={() => void test()}>
+            {testing ? 'Prüft …' : 'Testen'}
+          </ActionButton>
+        }
+      />
+    </>
+  )
+}
+
 function ConnectionsSection() {
   return (
     <Card>
       <SpotifyRows />
       <HealthRows />
+      <AiRows />
     </Card>
   )
 }
