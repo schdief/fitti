@@ -38,6 +38,17 @@ function setSummary(exercise: PlanExercise): string {
   return `${work}${weight}${rest}`
 }
 
+function timingLabel(exercise: PlanExercise): string {
+  const { toMidSec, holdMidSec, toStartSec, holdStartSec } = exercise.timing
+  const parts = [`${toMidSec} s hin`]
+
+  if (holdMidSec > 0) parts.push(`${holdMidSec} s halten`)
+  parts.push(`${toStartSec} s zurück`)
+  if (holdStartSec > 0) parts.push(`${holdStartSec} s Pause`)
+
+  return parts.join(' · ')
+}
+
 export function PlanDetailPage() {
   const { planId } = useParams()
   const navigate = useNavigate()
@@ -138,6 +149,7 @@ export function PlanDetailPage() {
                   <div className="min-w-0 flex-1">
                     <p className="text-[15px] font-medium leading-snug">{exercise.name}</p>
                     <p className="mt-0.5 text-xs text-fg-muted">{setSummary(exercise)}</p>
+                    <p className="mt-0.5 text-xs text-fg-faint">{timingLabel(exercise)}</p>
                     {exercise.cues.length > 0 ? (
                       <p className="mt-1 line-clamp-2 text-xs text-fg-faint">
                         {exercise.cues.join(' · ')}

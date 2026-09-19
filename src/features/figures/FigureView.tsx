@@ -1,4 +1,5 @@
 import type { Figure, JointMap } from '@/lib/plan/schema'
+import { JOINTS } from '@/lib/plan/enums'
 import type { Joint, PropType } from '@/lib/plan/enums'
 
 const BONES: readonly (readonly [Joint, Joint])[] = [
@@ -23,6 +24,28 @@ const GROUND_Y = 90
 export function resolvePose(figure: Figure, pose: 'start' | 'mid'): JointMap {
   if (pose === 'start' || !figure.poses.mid) return figure.poses.start
   return { ...figure.poses.start, ...figure.poses.mid }
+}
+
+/** Zwischenstand der Bewegung. 0 ist die Ausgangs-, 1 die Mittelposition. */
+export function lerpPose(figure: Figure, mix: number): JointMap {
+  const start = figure.poses.start
+  if (!figure.poses.mid || mix <= 0) return start
+
+  const mid = resolvePose(figure, 'mid')
+  if (mix >= 1) return mid
+
+  // Start enthält laut Schema alle Gelenke, die Schleife füllt die Karte vollständig.
+  const blended = {} as JointMap
+
+  for (const joint of JOINTS) {
+    const from = start[joint]
+    if (!from) continue
+
+    const to = mid[joint] ?? from
+    blended[joint] = [from[0] + (to[0] - from[0]) * mix, from[1] + (to[1] - from[1]) * mix]
+  }
+
+  return blended
 }
 
 export interface FigureBox {
@@ -237,13 +260,16 @@ function HeldProp({ type, at }: { type: PropType; at: [number, number] }) {
 export function FigureContent({
   figure,
   pose,
+  mix,
   showArrow = false,
 }: {
   figure: Figure
   pose: 'start' | 'mid'
+  /** Wenn gesetzt, wird zwischen den Posen interpoliert statt eine zu zeigen. */
+  mix?: number
   showArrow?: boolean
 }) {
-  const joints = resolvePose(figure, pose)
+  const joints = mix === undefined ? resolvePose(figure, pose) : lerpPose(figure, mix)
   const box = figureBounds(figure)
   const stroke = box.size * 0.032
   const headRadius = box.size * 0.055
@@ -353,11 +379,13 @@ export function FigureContent({
 export function FigureView({
   figure,
   pose,
+  mix,
   showArrow = false,
   className = '',
 }: {
   figure: Figure
   pose: 'start' | 'mid'
+  mix?: number
   showArrow?: boolean
   className?: string
 }) {
@@ -370,7 +398,7 @@ export function FigureView({
       role="img"
       aria-label={figure.id}
     >
-      <FigureContent figure={figure} pose={pose} showArrow={showArrow} />
+      <FigureContent figure={figure} pose={pose} mix={mix} showArrow={showArrow} />
     </svg>
   )
 }

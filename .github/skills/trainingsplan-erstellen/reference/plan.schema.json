@@ -259,9 +259,43 @@
                     ]
                   }
                 },
-                "tempo": {
-                  "type": "string",
-                  "pattern": "^\\d-\\d-\\d$"
+                "timing": {
+                  "default": {
+                    "toMidSec": 2,
+                    "holdMidSec": 0,
+                    "toStartSec": 2,
+                    "holdStartSec": 0
+                  },
+                  "type": "object",
+                  "properties": {
+                    "toMidSec": {
+                      "type": "number",
+                      "minimum": 0.2,
+                      "maximum": 30
+                    },
+                    "holdMidSec": {
+                      "default": 0,
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 120
+                    },
+                    "toStartSec": {
+                      "type": "number",
+                      "minimum": 0.2,
+                      "maximum": 30
+                    },
+                    "holdStartSec": {
+                      "default": 0,
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 120
+                    }
+                  },
+                  "required": [
+                    "toMidSec",
+                    "toStartSec"
+                  ],
+                  "additionalProperties": false
                 },
                 "cues": {
                   "default": [],

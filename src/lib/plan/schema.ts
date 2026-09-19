@@ -33,6 +33,26 @@ export const setSchema = z
   })
   .strict()
 
+/**
+ * Bewegungszeiten einer Wiederholung. Bewusst nicht als Tempo-String wie
+ * "2-1-1": daraus geht nicht hervor, welche Phase zur Mittelposition der Figur
+ * führt. Diese Angaben treiben die Animation im Trainingsbildschirm.
+ */
+export const timingSchema = z
+  .object({
+    /** Weg von der Ausgangs- zur Mittelposition. */
+    toMidSec: z.number().min(0.2).max(30),
+    /** Halten in der Mittelposition. */
+    holdMidSec: z.number().min(0).max(120).default(0),
+    /** Rückweg zur Ausgangsposition. */
+    toStartSec: z.number().min(0.2).max(30),
+    /** Pause in der Ausgangsposition vor der nächsten Wiederholung. */
+    holdStartSec: z.number().min(0).max(120).default(0),
+  })
+  .strict()
+
+const DEFAULT_TIMING = { toMidSec: 2, holdMidSec: 0, toStartSec: 2, holdStartSec: 0 }
+
 export const exerciseSchema = z
   .object({
     exerciseId: idSchema,
@@ -42,11 +62,7 @@ export const exerciseSchema = z
     primaryMuscles: z.array(muscleSchema).min(1).max(4),
     secondaryMuscles: z.array(muscleSchema).max(6).default([]),
     equipment: z.array(equipmentSchema).default([]),
-    /** Bewegungstempo als exzentrisch-pause-konzentrisch, z. B. "2-0-1". */
-    tempo: z
-      .string()
-      .regex(/^\d-\d-\d$/)
-      .optional(),
+    timing: timingSchema.default(DEFAULT_TIMING),
     cues: z.array(z.string().max(90)).max(4).default([]),
     sets: z.array(setSchema).min(1).max(20),
   })
@@ -114,6 +130,7 @@ export type PlanSet = z.infer<typeof setSchema>
 export type PlanExercise = z.infer<typeof exerciseSchema>
 export type PlanBlock = z.infer<typeof blockSchema>
 export type Plan = z.infer<typeof planSchema>
+export type MovementTiming = z.infer<typeof timingSchema>
 
 export const catalogEntrySchema = z
   .object({

@@ -34,7 +34,7 @@
           "primaryMuscles": ["glutes"],
           "secondaryMuscles": ["hamstrings", "quads"],
           "equipment": ["machine"],
-          "tempo": "2-1-1",
+          "timing": { "toMidSec": 1, "holdMidSec": 1, "toStartSec": 2 },
           "cues": [
             "Oben kurz halten und Gesäß fest anspannen",
             "Rippen unten lassen, kein Hohlkreuz"
@@ -53,7 +53,7 @@
           "primaryMuscles": ["shoulders", "traps"],
           "secondaryMuscles": ["upper-back", "rear-delts"],
           "equipment": ["dumbbells", "bench"],
-          "tempo": "2-1-2",
+          "timing": { "toMidSec": 2, "holdMidSec": 1, "toStartSec": 2 },
           "cues": [
             "Arme im Y nach oben führen, Daumen zeigen nach außen",
             "Sehr leicht wählen, Technik geht vor Gewicht"
@@ -72,7 +72,7 @@
           "primaryMuscles": ["hamstrings"],
           "secondaryMuscles": ["calves"],
           "equipment": ["machine"],
-          "tempo": "2-1-2",
+          "timing": { "toMidSec": 2, "holdMidSec": 1, "toStartSec": 2 },
           "cues": ["Hüfte bleibt auf dem Polster", "Langsam ablassen, nicht fallen lassen"],
           "sets": [
             { "reps": 12, "targetWeightKg": 25, "restSec": 90 },
@@ -88,7 +88,7 @@
           "primaryMuscles": ["upper-back", "lats"],
           "secondaryMuscles": ["biceps", "rear-delts"],
           "equipment": ["machine"],
-          "tempo": "2-1-2",
+          "timing": { "toMidSec": 2, "holdMidSec": 1, "toStartSec": 2 },
           "cues": [
             "Schulterblätter zuerst zusammenziehen",
             "Ellbogen eng am Körper nach hinten führen"
@@ -107,7 +107,7 @@
           "primaryMuscles": ["glutes", "lower-back"],
           "secondaryMuscles": ["hamstrings"],
           "equipment": ["machine"],
-          "tempo": "2-1-2",
+          "timing": { "toMidSec": 2, "holdMidSec": 0, "toStartSec": 2, "holdStartSec": 1 },
           "cues": [
             "Hände vor der Brust verschränken",
             "Bewegung aus der Hüfte, Rücken bleibt lang"
@@ -126,7 +126,7 @@
           "primaryMuscles": ["rear-delts"],
           "secondaryMuscles": ["upper-back", "traps"],
           "equipment": ["machine"],
-          "tempo": "2-1-2",
+          "timing": { "toMidSec": 2, "holdMidSec": 1, "toStartSec": 2 },
           "cues": ["Ellbogen leicht gebeugt lassen", "Nicht mit Schwung arbeiten"],
           "sets": [
             { "reps": 15, "targetWeightKg": 20, "restSec": 75 },

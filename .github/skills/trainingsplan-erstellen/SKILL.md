@@ -39,6 +39,13 @@ Wandelt eine Trainingsbeschreibung in gültige JSON-Dateien um. Ein Plan liegt i
   Zirkeltraining 120–135, Ausdauerbetontes 135–150. Ohne Angabe gilt 120.
 - `metValue` passend zur Intensität wählen: 3–4 locker, 4–6 normal, 6–8 intensiv.
 - `mode: "reps"` verlangt `reps` in jedem Satz, `mode: "time"` verlangt `durationSec`.
+- `timing` steuert die Bewegungsanimation im Training und bezieht sich **auf die Figur**,
+  nicht auf die übliche Tempo-Schreibweise:
+  `toMidSec` von der Ausgangs- zur Mittelposition, `holdMidSec` Halten dort,
+  `toStartSec` zurück, `holdStartSec` Pause vor der nächsten Wiederholung.
+  Beispiel Hip Thrust (Ausgang unten, Mitte oben): `1` hoch, `1` oben halten, `2` ablassen.
+  Beispiel Back Extension (Ausgang gestreckt, Mitte unten): `2` absenken, `0`, `2` aufrichten,
+  `1` oben halten. Ohne Angabe gilt 2 s hin und 2 s zurück.
 - `targetWeightKg` nur setzen, wenn `usesWeight` true ist. Ist das Gewicht unbekannt, `null`
   eintragen – die App erfasst es dann trotzdem und schlägt beim nächsten Mal den Vorwert vor.
 - `cues` sind kurze Ausführungshinweise, höchstens vier pro Übung, je maximal 90 Zeichen.
@@ -53,6 +60,8 @@ Nie SVG-Pfade schreiben. Die App rendert die Strichfigur aus Gelenkkoordinaten.
 - `poses.mid` enthält **nur die Gelenke, die sich bewegen**. Alles andere wird von `start` geerbt.
 - Bei Halteübungen (`mode: "time"` ohne Bewegung, etwa Plank) `poses.mid` ganz weglassen.
 - `arrowJoint` markiert das Gelenk, dessen Bewegung der Pfeil zeigt. Es muss in `mid` vorkommen.
+- Die App animiert die Bewegung zwischen beiden Posen. Achte deshalb darauf, dass ein direkter
+  Weg zwischen `start` und `mid` anatomisch sinnvoll aussieht – Gelenke bewegen sich linear.
 - Details, Vorlagen und typische Winkel stehen in `reference/pose-guide.md`.
 
 ## Validierung

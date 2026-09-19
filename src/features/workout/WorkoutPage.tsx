@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 
 import { ActionButton, Card } from '@/components/ui'
 import { usePlan } from '@/features/catalog/useCatalog'
-import { ExerciseFigures } from '@/features/figures/ExerciseFigures'
+import { AnimatedFigure } from '@/features/figures/AnimatedFigure'
 import { FigureView } from '@/features/figures/FigureView'
 import { useFigure } from '@/features/figures/useFigure'
 import { MusicBar } from '@/features/music/MusicBar'
@@ -649,7 +649,11 @@ export function WorkoutPage() {
           </>
         ) : (
           <>
-            <ExerciseFigures exerciseId={step.exercise.exerciseId} size="lg" />
+            <AnimatedFigure
+              exerciseId={step.exercise.exerciseId}
+              timing={step.exercise.timing}
+              className="mx-auto w-full max-w-[min(52%,30dvh)]"
+            />
 
             {isTime && endsAt ? (
               <CountdownRing
