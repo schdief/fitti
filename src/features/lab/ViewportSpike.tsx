@@ -28,11 +28,38 @@ function read(): Reading[] {
     { label: '--app-height', value: root.style.getPropertyValue('--app-height') || 'nicht gesetzt' },
     { label: 'safe-area unten', value: insetBottom },
     { label: 'safe-area oben', value: insetTop },
+    { label: 'Dokumenthöhe', value: `${root.scrollHeight}` },
+    { label: 'scrollY', value: `${Math.round(window.scrollY)}` },
+    { label: 'Abstand fixed bottom:0', value: `${gapBelow('fixed')} px` },
+    { label: 'Abstand Seitenende', value: `${gapBelow('flow')} px` },
     {
       label: 'Standalone',
       value: window.matchMedia('(display-mode: standalone)').matches ? 'ja' : 'nein',
     },
   ]
+}
+
+/**
+ * Misst, wie viel unterhalb eines unten verankerten Elements frei bleibt.
+ * „fixed“ hängt am Viewport, „flow“ am Ende des Seiteninhalts – genau der
+ * Unterschied, der die schwebende Leiste erklärt oder ausschließt.
+ */
+function gapBelow(mode: 'fixed' | 'flow'): number {
+  const probe = document.createElement('div')
+  probe.style.cssText =
+    mode === 'fixed'
+      ? 'position:fixed;left:0;bottom:0;width:1px;height:1px;visibility:hidden'
+      : 'position:absolute;left:0;top:100%;width:1px;height:1px;visibility:hidden'
+
+  const host = mode === 'fixed' ? document.body : document.querySelector('#root > div')
+  if (!host) return 0
+  if (mode === 'flow') (host as HTMLElement).style.position ||= 'relative'
+
+  host.appendChild(probe)
+  const bottom = probe.getBoundingClientRect().bottom
+  probe.remove()
+
+  return Math.round(window.innerHeight - bottom)
 }
 
 function measure(value: string): string {
