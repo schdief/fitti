@@ -403,6 +403,8 @@ export function WorkoutPage() {
   }
 
   if (!active) {
+    // Nur erreichbar, wenn jemand direkt auf diese Adresse springt. Der normale
+    // Weg startet das Training bereits in der Plan-Detailansicht.
     return (
       <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center gap-6 px-4">
         <div className="text-center">
@@ -411,10 +413,6 @@ export function WorkoutPage() {
             {steps.length} Sätze · etwa {plan.estimatedDurationMin} Minuten
           </p>
         </div>
-
-        <Card className="p-4 text-sm text-fg-muted">
-          Das Display bleibt während des Trainings an. Ansagen mischen sich mit deiner Musik.
-        </Card>
 
         <ActionButton
           variant="primary"
@@ -596,7 +594,7 @@ export function WorkoutPage() {
             type="button"
             aria-label="Training beenden"
             onClick={() => setAskAbort(true)}
-            className="-mr-2 flex size-9 shrink-0 items-center justify-center rounded-full text-fg-muted active:bg-surface"
+            className="-mr-1 flex size-9 shrink-0 items-center justify-center rounded-full bg-danger/15 text-danger active:opacity-70"
           >
             <X size={20} aria-hidden />
           </button>

@@ -5,6 +5,9 @@ import { PageHeader } from '@/components/PageHeader'
 import { ActionButton, Card } from '@/components/ui'
 import { usePlan } from '@/features/catalog/useCatalog'
 import { ExerciseFigures } from '@/features/figures/ExerciseFigures'
+import { primeWorkoutAudio } from '@/features/workout/cues'
+import { buildSteps } from '@/features/workout/steps'
+import { useWorkout } from '@/features/workout/workoutStore'
 import { countExercises, countSets, estimatePlanSeconds } from '@/lib/plan/analysis'
 import {
   BLOCK_TYPE_LABELS,
@@ -77,6 +80,34 @@ export function PlanDetailPage() {
   }
 
   const realMinutes = Math.round(estimatePlanSeconds(plan) / 60)
+
+  /**
+   * Startet direkt aus dieser Geste heraus – iOS gibt die Audioausgabe nur
+   * innerhalb einer Nutzerinteraktion frei.
+   */
+  const begin = async () => {
+    const state = useWorkout.getState()
+
+    // Laufendes Training nicht überschreiben, der Trainingsbildschirm klärt den Rest.
+    if (state.active) {
+      navigate(`/workout/${plan.id}`)
+      return
+    }
+
+    await primeWorkoutAudio()
+
+    const steps = buildSteps(plan)
+    state.start(
+      plan.id,
+      plan.title,
+      steps.map((entry) => entry.key),
+    )
+
+    const first = steps[0]!
+    state.beginWork(first.exercise.mode === 'time' ? (first.set.durationSec ?? null) : null)
+
+    navigate(`/workout/${plan.id}`)
+  }
 
   return (
     <div className="min-h-dvh pb-28">
@@ -171,11 +202,11 @@ export function PlanDetailPage() {
         <div className="mx-auto max-w-lg">
           <ActionButton
             variant="primary"
-            onClick={() => navigate(`/workout/${plan.id}`)}
+            onClick={() => void begin()}
             className="flex w-full items-center justify-center gap-2 py-3.5 text-base"
           >
             <Play size={18} aria-hidden />
-            Training starten
+            Los geht’s
           </ActionButton>
         </div>
       </div>
