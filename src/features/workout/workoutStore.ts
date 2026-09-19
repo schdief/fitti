@@ -111,6 +111,10 @@ export const useWorkout = create<{ active: ActiveWorkout | null } & WorkoutActio
                   ...state.active,
                   phase: 'work',
                   endsAt: durationSec ? Date.now() + durationSec * 1000 : null,
+                  // Die Trainingszeit läuft erst ab dem ersten Satz, nicht schon
+                  // in der Startansicht.
+                  startedAt:
+                    state.active.phase === 'ready' ? Date.now() : state.active.startedAt,
                 },
               }
             : state,

@@ -103,9 +103,7 @@ export function PlanDetailPage() {
       steps.map((entry) => entry.key),
     )
 
-    const first = steps[0]!
-    state.beginWork(first.exercise.mode === 'time' ? (first.set.durationSec ?? null) : null)
-
+    // Der Trainingsbildschirm zeigt zuerst die Startansicht, losgelegt wird dort.
     navigate(`/workout/${plan.id}`)
   }
 

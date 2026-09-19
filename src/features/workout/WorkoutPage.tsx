@@ -1,4 +1,4 @@
-import { Check, Clock, FastForward, Plus, SkipForward, X } from 'lucide-react'
+import { Check, Clock, FastForward, Flame, Plus, SkipForward, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
@@ -375,8 +375,6 @@ export function WorkoutPage() {
     await primeWorkoutAudio()
     const state = useWorkout.getState()
     state.start(plan.id, plan.title, steps.map((entry) => entry.key))
-    const first = steps[0]!
-    state.beginWork(first.exercise.mode === 'time' ? (first.set.durationSec ?? null) : null)
   }
 
   const leaveWorkout = async (keepProgress: boolean) => {
@@ -535,6 +533,7 @@ export function WorkoutPage() {
 
   // Während der Pause betrifft das Verschieben die nächste Übung, sonst die laufende.
   const resting = phase === 'rest'
+  const ready = phase === 'ready'
   const deferTarget = resting ? nextStep : step
   const deferFrom = resting ? active.stepIndex + 1 : active.stepIndex
 
@@ -567,8 +566,9 @@ export function WorkoutPage() {
     const state = useWorkout.getState()
     state.deferSteps(deferKeys)
 
-    // In der Pause läuft der Timer weiter, nur die Vorschau ändert sich.
-    if (resting) return
+    // In der Pause läuft der Timer weiter, in der Startansicht wurde noch nicht
+    // begonnen – beides Mal ändert sich nur die Vorschau.
+    if (resting || ready) return
 
     const current = state.active
     if (!current) return
@@ -577,6 +577,21 @@ export function WorkoutPage() {
     const upcoming = byKey.get(current.order[current.stepIndex] ?? '')
     state.beginWork(upcoming?.exercise.mode === 'time' ? (upcoming.set.durationSec ?? null) : null)
   }
+
+  /** Startet den anstehenden Satz aus der Startansicht heraus. */
+  const ignite = () => {
+    void primeWorkoutAudio()
+    useWorkout.getState().beginWork(isTime ? (step.set.durationSec ?? null) : null)
+  }
+
+  const cueList =
+    step.exercise.cues.length > 0 ? (
+      <ul className="space-y-1 text-center text-sm text-fg-muted">
+        {step.exercise.cues.map((hint) => (
+          <li key={hint}>{hint}</li>
+        ))}
+      </ul>
+    ) : null
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -604,7 +619,28 @@ export function WorkoutPage() {
       </header>
 
       <main className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center gap-3 px-4 py-3">
-        {phase === 'rest' ? (
+        {ready ? (
+          <>
+            <AnimatedFigure
+              exerciseId={step.exercise.exerciseId}
+              timing={step.exercise.timing}
+              className="mx-auto w-full max-w-[min(52%,30dvh)]"
+            />
+
+            <div className="text-center">
+              <p className="text-[11px] uppercase tracking-wider text-fg-faint">Los geht’s mit</p>
+              <p className="mt-0.5 text-sm text-fg-muted">
+                Satz {step.setIndex + 1}/{step.setCount} ·{' '}
+                {isTime ? `${step.set.durationSec} s` : `${step.set.reps} Wdh`}
+                {step.exercise.usesWeight && step.set.targetWeightKg != null
+                  ? ` · ${step.set.targetWeightKg} kg`
+                  : ''}
+              </p>
+            </div>
+
+            {cueList}
+          </>
+        ) : phase === 'rest' ? (
           <>
             <CountdownRing
               remainingMs={remainingMs}
@@ -689,20 +725,36 @@ export function WorkoutPage() {
               ) : null}
             </div>
 
-            {step.exercise.cues.length > 0 ? (
-              <ul className="space-y-1 text-center text-sm text-fg-muted">
-                {step.exercise.cues.map((hint) => (
-                  <li key={hint}>{hint}</li>
-                ))}
-              </ul>
-            ) : null}
+            {cueList}
           </>
         )}
       </main>
 
       <footer className="pad-safe-bottom border-t border-line px-4 py-3">
         <div className="mx-auto max-w-lg space-y-3">
-          {phase !== 'rest' ? (
+          {ready ? (
+            <div className="flex gap-2">
+              <ActionButton
+                variant="primary"
+                onClick={ignite}
+                className="flex flex-1 items-center justify-center gap-2 py-4 text-base"
+              >
+                <Flame size={20} aria-hidden />
+                Zündung
+              </ActionButton>
+
+              {canDefer ? (
+                <ActionButton
+                  variant="warn"
+                  onClick={deferExercise}
+                  className="flex shrink-0 items-center gap-1.5 px-3 py-4"
+                >
+                  <FastForward size={18} aria-hidden />
+                  Überspringen
+                </ActionButton>
+              ) : null}
+            </div>
+          ) : phase !== 'rest' ? (
             <div className="flex gap-2">
               <ActionButton
                 variant="primary"
