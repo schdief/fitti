@@ -13,8 +13,6 @@ import type { SetResult, WorkoutSession } from '@/features/logbook/db'
 import { useSessions } from '@/features/logbook/useSessions'
 import { sendHealthWorkout } from '@/features/health/healthExport'
 import { useSettings } from '@/features/settings/settingsStore'
-import { SetInputSheet } from '@/features/workout/SetInputSheet'
-import type { SetInputValues } from '@/features/workout/SetInputSheet'
 import { cue, primeWorkoutAudio, signal } from '@/features/workout/cues'
 import { buildSteps, formatClock, remainingSeconds, resultKey } from '@/features/workout/steps'
 import type { WorkoutStep } from '@/features/workout/steps'
@@ -63,18 +61,63 @@ function CountdownRing({
   )
 }
 
-function TargetLine({ step }: { step: WorkoutStep }) {
+function TargetLine({ step, previousLabel }: { step: WorkoutStep; previousLabel: string | null }) {
   const target =
     step.exercise.mode === 'time'
       ? `${step.set.durationSec} s`
-      : `${step.set.reps} Wiederholungen`
+      : `${step.set.reps} Wdh`
   const weight = step.set.targetWeightKg != null ? ` · ${step.set.targetWeightKg} kg` : ''
 
   return (
-    <p className="text-center text-xl font-semibold">
-      {target}
-      <span className="font-normal text-fg-muted">{weight}</span>
+    <p className="text-center text-xs text-fg-faint">
+      Ziel {target}
+      {weight}
+      {previousLabel ? ` · letztes Mal ${previousLabel}` : ''}
     </p>
+  )
+}
+
+/** Große Tasten, damit die Eingabe zwischen zwei Sätzen mit einem Daumen klappt. */
+function InlineStepper({
+  label,
+  value,
+  step,
+  min,
+  max,
+  onChange,
+}: {
+  label: string
+  value: number
+  step: number
+  min: number
+  max: number
+  onChange: (next: number) => void
+}) {
+  const clamp = (next: number) => Math.min(max, Math.max(min, Math.round(next * 100) / 100))
+
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <span className="text-[11px] uppercase tracking-wider text-fg-faint">{label}</span>
+      <div className="flex items-center gap-1.5">
+        <button
+          type="button"
+          aria-label={`${label} verringern`}
+          onClick={() => onChange(clamp(value - step))}
+          className="size-11 shrink-0 rounded-xl bg-surface-hi text-xl leading-none text-fg-muted active:bg-line"
+        >
+          −
+        </button>
+        <output className="min-w-14 text-center text-2xl font-semibold tabular-nums">{value}</output>
+        <button
+          type="button"
+          aria-label={`${label} erhöhen`}
+          onClick={() => onChange(clamp(value + step))}
+          className="size-11 shrink-0 rounded-xl bg-surface-hi text-xl leading-none text-fg-muted active:bg-line"
+        >
+          +
+        </button>
+      </div>
+    </div>
   )
 }
 
@@ -114,6 +157,8 @@ export function WorkoutPage() {
 
   const [previous, setPrevious] = useState<Map<string, SetResult>>(new Map())
   const [askAbort, setAskAbort] = useState(false)
+  const [reps, setReps] = useState(0)
+  const [weightKg, setWeightKg] = useState(0)
   const savedRef = useRef(false)
   const sessionRef = useRef<WorkoutSession | null>(null)
 
@@ -129,6 +174,14 @@ export function WorkoutPage() {
   useEffect(() => {
     void loadPreviousResults().then(setPrevious)
   }, [])
+
+  // Eingabefelder auf den Vorschlagswert des anstehenden Satzes setzen.
+  useEffect(() => {
+    if (!step) return
+    const last = previous.get(resultKey(step.exercise.exerciseId, step.setIndex))
+    setReps(last?.reps ?? step.set.reps ?? 0)
+    setWeightKg(last?.weightKg ?? step.set.targetWeightKg ?? 0)
+  }, [step?.key, previous])
 
   // Display wachhalten. iOS gibt die Sperre beim Wechsel in den Hintergrund frei,
   // deshalb wird sie beim Zurückkommen neu angefordert.
@@ -398,16 +451,24 @@ export function WorkoutPage() {
         .join(' · ')
     : null
 
-  const submit = (values: SetInputValues) => {
+  const isTime = step.exercise.mode === 'time'
+  const plannedSec = step.set.durationSec ?? 0
+
+  const submit = () => {
     const state = useWorkout.getState()
+
+    // Bei Zeitübungen zählt, was tatsächlich gehalten wurde – auch bei frühem Abbruch.
+    const heldSec = endsAt
+      ? Math.max(0, Math.round(plannedSec - Math.max(0, endsAt - Date.now()) / 1000))
+      : plannedSec
 
     state.submitResult({
       exerciseId: step.exercise.exerciseId,
       exerciseName: step.exercise.name,
       setIndex: step.setIndex,
-      reps: values.reps,
-      durationSec: values.durationSec,
-      weightKg: values.weightKg,
+      reps: isTime ? null : reps,
+      durationSec: isTime ? heldSec : null,
+      weightKg: step.exercise.usesWeight ? weightKg : null,
       at: new Date().toISOString(),
     })
 
@@ -459,7 +520,7 @@ export function WorkoutPage() {
         </div>
       </header>
 
-      <main className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center gap-4 px-4 py-4">
+      <main className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center gap-3 px-4 py-3">
         {phase === 'rest' ? (
           <>
             <CountdownRing
@@ -493,20 +554,43 @@ export function WorkoutPage() {
           <>
             <ExerciseFigures exerciseId={step.exercise.exerciseId} size="lg" />
 
-            {step.exercise.mode === 'time' && endsAt ? (
+            {isTime && endsAt ? (
               <CountdownRing
                 remainingMs={remainingMs}
                 totalMs={(step.set.durationSec ?? 1) * 1000}
                 caption="Halten"
                 compact
               />
-            ) : (
-              <TargetLine step={step} />
-            )}
-
-            {step.exercise.tempo ? (
-              <p className="text-center text-xs text-fg-faint">Tempo {step.exercise.tempo}</p>
             ) : null}
+
+            {isTime && !endsAt ? (
+              <p className="text-center text-2xl font-semibold tabular-nums">Zeit um</p>
+            ) : null}
+
+            <div className="flex flex-wrap items-end justify-center gap-x-3 gap-y-2">
+              {isTime ? null : (
+                <InlineStepper
+                  label="Wdh"
+                  value={reps}
+                  step={1}
+                  min={0}
+                  max={500}
+                  onChange={setReps}
+                />
+              )}
+              {step.exercise.usesWeight ? (
+                <InlineStepper
+                  label="kg"
+                  value={weightKg}
+                  step={training.weightStepKg}
+                  min={0}
+                  max={500}
+                  onChange={setWeightKg}
+                />
+              ) : null}
+            </div>
+
+            <TargetLine step={step} previousLabel={previousLabel} />
 
             {step.exercise.cues.length > 0 ? (
               <ul className="space-y-1 text-center text-sm text-fg-muted">
@@ -514,10 +598,6 @@ export function WorkoutPage() {
                   <li key={hint}>{hint}</li>
                 ))}
               </ul>
-            ) : null}
-
-            {previousLabel ? (
-              <p className="text-center text-xs text-fg-faint">Letztes Mal: {previousLabel}</p>
             ) : null}
           </>
         )}
@@ -528,7 +608,7 @@ export function WorkoutPage() {
           {phase !== 'rest' ? (
             <ActionButton
               variant="primary"
-              onClick={() => useWorkout.getState().finishWork()}
+              onClick={submit}
               className="flex w-full items-center justify-center gap-2 py-4 text-base"
             >
               <Check size={20} aria-hidden />
@@ -552,26 +632,6 @@ export function WorkoutPage() {
           <MusicBar />
         </div>
       </footer>
-
-      {phase === 'input' ? (
-        <SetInputSheet
-          step={step}
-          previousLabel={previousLabel}
-          weightStepKg={training.weightStepKg}
-          defaults={{
-            reps: previousResult?.reps ?? step.set.reps ?? 0,
-            durationSec: previousResult?.durationSec ?? step.set.durationSec ?? 0,
-            weightKg: previousResult?.weightKg ?? step.set.targetWeightKg ?? 0,
-          }}
-          onSubmit={submit}
-          onCancel={() => {
-            const state = useWorkout.getState()
-            state.beginWork(
-              step.exercise.mode === 'time' ? (step.set.durationSec ?? null) : null,
-            )
-          }}
-        />
-      ) : null}
 
       {askAbort ? (
         <div className="fixed inset-0 z-50 flex flex-col justify-end">
