@@ -1,26 +1,9 @@
-import type { Plan, PlanExercise } from './schema.ts'
+import type { Plan } from './schema.ts'
+import { buildSteps, remainingSeconds } from './steps.ts'
 
-/** Grobe Annahme für eine Wiederholung, wenn kein Tempo angegeben ist. */
-const SECONDS_PER_REP = 3
-const TRANSITION_SECONDS = 15
-
-export function estimateExerciseSeconds(exercise: PlanExercise): number {
-  return exercise.sets.reduce((total, set) => {
-    const work = exercise.mode === 'time' ? (set.durationSec ?? 0) : (set.reps ?? 0) * SECONDS_PER_REP
-    return total + work + set.restSec
-  }, 0)
-}
-
+/** Gleiche Rechnung wie im Training, damit überall dieselbe Dauer steht. */
 export function estimatePlanSeconds(plan: Plan): number {
-  return plan.blocks.reduce((total, block) => {
-    const perRound = block.exercises.reduce(
-      (sum, exercise) => sum + estimateExerciseSeconds(exercise) + TRANSITION_SECONDS,
-      0,
-    )
-    const rounds = block.rounds * perRound
-    const betweenRounds = (block.rounds - 1) * block.restBetweenRoundsSec
-    return total + rounds + betweenRounds
-  }, 0)
+  return remainingSeconds(buildSteps(plan))
 }
 
 export function countExercises(plan: Plan): number {

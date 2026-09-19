@@ -29,7 +29,7 @@ export function LabPage() {
   }
 
   return (
-    <div className="min-h-dvh">
+    <div className="min-h-app">
       <PageHeader
         title="Diagnose"
         subtitle="Spikes für Audio, Timer, Health und Spotify"

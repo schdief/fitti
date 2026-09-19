@@ -108,7 +108,7 @@ export function PlanDetailPage() {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className="flex min-h-app flex-col">
       <PageHeader title={plan.title} subtitle={LEVEL_LABELS[plan.level]} back />
 
       <div className="mx-auto w-full max-w-lg flex-1 space-y-4 px-4 py-4">

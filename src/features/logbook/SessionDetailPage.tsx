@@ -101,7 +101,7 @@ export function SessionDetailPage() {
   }
 
   return (
-    <div className="min-h-dvh">
+    <div className="min-h-app">
       <PageHeader
         title={session.planTitle}
         subtitle={started.toLocaleString('de-DE', {

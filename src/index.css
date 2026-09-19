@@ -28,7 +28,7 @@
 
   body {
     margin: 0;
-    min-height: 100dvh;
+    min-height: var(--app-height, 100dvh);
     background-color: var(--color-bg);
     color: var(--color-fg);
     font-family: var(--font-sans);
@@ -57,6 +57,11 @@
 
 @utility pad-safe-top {
   padding-top: env(safe-area-inset-top);
+}
+
+/* Gemessene Viewporthöhe, siehe lib/appHeight.ts. */
+@utility min-h-app {
+  min-height: var(--app-height, 100dvh);
 }
 
 @utility pad-safe-bottom {

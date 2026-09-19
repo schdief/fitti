@@ -1,5 +1,6 @@
 import { Check, Clock, FastForward, Flame, Plus, SkipForward, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import type { TouchEvent as ReactTouchEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { ActionButton, Card } from '@/components/ui'
@@ -404,7 +405,7 @@ export function WorkoutPage() {
     // Nur erreichbar, wenn jemand direkt auf diese Adresse springt. Der normale
     // Weg startet das Training bereits in der Plan-Detailansicht.
     return (
-      <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center gap-6 px-4">
+      <div className="mx-auto flex min-h-app max-w-lg flex-col justify-center gap-6 px-4">
         <div className="text-center">
           <h1 className="text-2xl font-semibold">{plan.title}</h1>
           <p className="mt-1 text-sm text-fg-muted">
@@ -438,7 +439,7 @@ export function WorkoutPage() {
     )
 
     return (
-      <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center gap-6 px-4">
+      <div className="mx-auto flex min-h-app max-w-lg flex-col justify-center gap-6 px-4">
         <div className="text-center">
           <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-accent/15">
             <Check size={32} className="text-accent" aria-hidden />
@@ -551,6 +552,26 @@ export function WorkoutPage() {
   const canDefer =
     deferTarget !== undefined && orderedSteps.length - deferFrom > deferKeys.length
 
+  // Gegenstück: die zuletzt ans Ende geschobene Übung wieder nach vorn holen.
+  const recallTarget =
+    orderedSteps.length - 1 > deferFrom ? orderedSteps[orderedSteps.length - 1] : undefined
+
+  const recallKeys = recallTarget
+    ? orderedSteps
+        .slice(deferFrom)
+        .filter(
+          (entry) =>
+            entry.blockIndex === recallTarget.blockIndex &&
+            entry.exerciseIndex === recallTarget.exerciseIndex,
+        )
+        .map((entry) => entry.key)
+    : []
+
+  const canRecall =
+    recallTarget !== undefined &&
+    (active.deferred ?? []).includes(recallTarget.key) &&
+    !recallKeys.includes(deferTarget?.key ?? '')
+
   // In der Pause gilt der gerade beendete Satz bereits als erledigt.
   const doneUpTo = resting ? active.stepIndex + 1 : active.stepIndex
 
@@ -562,20 +583,61 @@ export function WorkoutPage() {
     return active.deferred?.includes(stepKey) ? 'deferred' : 'pending'
   }
 
-  const deferExercise = () => {
-    const state = useWorkout.getState()
-    state.deferSteps(deferKeys)
-
-    // In der Pause läuft der Timer weiter, in der Startansicht wurde noch nicht
-    // begonnen – beides Mal ändert sich nur die Vorschau.
+  /**
+   * Nach dem Umsortieren steht an der aktuellen Stelle ein anderer Satz. In der
+   * Pause läuft der Timer weiter und in der Startansicht wurde noch nicht
+   * begonnen – dort ändert sich nur die Vorschau.
+   */
+  const restartCurrentStep = () => {
     if (resting || ready) return
 
-    const current = state.active
+    const current = useWorkout.getState().active
     if (!current) return
 
     const byKey = new Map(steps.map((entry) => [entry.key, entry]))
     const upcoming = byKey.get(current.order[current.stepIndex] ?? '')
-    state.beginWork(upcoming?.exercise.mode === 'time' ? (upcoming.set.durationSec ?? null) : null)
+    useWorkout
+      .getState()
+      .beginWork(upcoming?.exercise.mode === 'time' ? (upcoming.set.durationSec ?? null) : null)
+  }
+
+  const deferExercise = () => {
+    useWorkout.getState().deferSteps(deferKeys)
+    restartCurrentStep()
+  }
+
+  const recallExercise = () => {
+    useWorkout.getState().recallSteps(recallKeys, deferFrom)
+    restartCurrentStep()
+  }
+
+  // Wischen als Abkürzung: nach links die Übung nach hinten schieben, nach
+  // rechts die zuletzt geschobene zurückholen. Die Knöpfe tun dasselbe.
+  const swipeStart = useRef<{ x: number; y: number } | null>(null)
+
+  const onTouchStart = (event: ReactTouchEvent) => {
+    const touch = event.touches[0]
+    swipeStart.current = touch ? { x: touch.clientX, y: touch.clientY } : null
+  }
+
+  const onTouchEnd = (event: ReactTouchEvent) => {
+    const start = swipeStart.current
+    swipeStart.current = null
+
+    const touch = event.changedTouches[0]
+    if (!start || !touch) return
+
+    const dx = touch.clientX - start.x
+    const dy = touch.clientY - start.y
+
+    // Nur eindeutig waagerechte, ausreichend lange Bewegungen zählen.
+    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return
+
+    if (dx < 0) {
+      if (canDefer) deferExercise()
+    } else if (canRecall) {
+      recallExercise()
+    }
   }
 
   /** Startet den anstehenden Satz aus der Startansicht heraus. */
@@ -594,7 +656,7 @@ export function WorkoutPage() {
     ) : null
 
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className="flex min-h-app flex-col">
       <header className="pad-safe-top border-b border-line px-4 py-3">
         <div className="mx-auto flex max-w-lg items-center gap-3">
           <div className="min-w-0 flex-1">
@@ -618,7 +680,11 @@ export function WorkoutPage() {
         <SegmentedProgress groups={progressGroups} stateOf={stepStateOf} />
       </header>
 
-      <main className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center gap-3 px-4 py-3">
+      <main
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+        className="mx-auto flex w-full max-w-lg flex-1 touch-pan-y flex-col justify-center gap-3 px-4 py-3"
+      >
         {ready ? (
           <>
             <AnimatedFigure
@@ -781,8 +847,8 @@ export function WorkoutPage() {
           <p className="flex items-center justify-center gap-1.5 text-xs text-fg-muted">
             <Clock size={14} aria-hidden />
             <span className="tabular-nums">
-              {Math.floor(elapsedSec / 60)} von{' '}
-              {Math.floor(elapsedSec / 60) + Math.ceil(leftSec / 60)} min
+              {/* Gleich gerundet wie in den Plandetails, sonst stehen dort zwei Zahlen. */}
+              {Math.floor(elapsedSec / 60)} von {Math.round((elapsedSec + leftSec) / 60)} min
             </span>
           </p>
 

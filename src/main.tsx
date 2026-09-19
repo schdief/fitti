@@ -4,8 +4,11 @@ import { HashRouter } from 'react-router-dom'
 
 import { App } from '@/app/App'
 import { labLog } from '@/features/lab/labLog'
+import { trackAppHeight } from '@/lib/appHeight'
 import { bootstrapSpotifyAuth } from '@/lib/spotify/auth'
 import '@/index.css'
+
+trackAppHeight()
 
 // Vor dem Rendern: OAuth-Rücksprung genau einmal auswerten und die URL bereinigen.
 // Bewusst außerhalb von React, damit StrictMode den Authorization Code nicht doppelt einlöst.

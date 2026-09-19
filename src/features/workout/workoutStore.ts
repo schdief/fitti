@@ -29,6 +29,7 @@ interface WorkoutActions {
   start: (planId: string, planTitle: string, order: string[]) => void
   setOrder: (order: string[]) => void
   deferSteps: (keys: string[]) => void
+  recallSteps: (keys: string[], fromIndex: number) => void
   beginWork: (durationSec: number | null) => void
   finishWork: () => void
   submitResult: (result: SetResult) => void
@@ -99,6 +100,31 @@ export const useWorkout = create<{ active: ActiveWorkout | null } & WorkoutActio
               ...state.active,
               order: [...done, ...stays, ...moved],
               deferred: nextDeferred,
+            },
+          }
+        }),
+
+      /**
+       * Gegenstück zu deferSteps: holt verschobene Sätze wieder nach vorn und
+       * nimmt die Markierung zurück.
+       */
+      recallSteps: (keys, fromIndex) =>
+        set((state) => {
+          if (!state.active) return state
+
+          const { order, deferred } = state.active
+          const head = order.slice(0, fromIndex)
+          const tail = order.slice(fromIndex)
+          const moved = tail.filter((key) => keys.includes(key))
+          const stays = tail.filter((key) => !keys.includes(key))
+
+          if (moved.length === 0) return state
+
+          return {
+            active: {
+              ...state.active,
+              order: [...head, ...moved, ...stays],
+              deferred: deferred.filter((key) => !keys.includes(key)),
             },
           }
         }),

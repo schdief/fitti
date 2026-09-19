@@ -69,7 +69,7 @@ export function HealthSetupPage() {
   const [copied, setCopied] = useState(false)
 
   return (
-    <div className="min-h-dvh">
+    <div className="min-h-app">
       <PageHeader title="Apple Health" subtitle="Einrichtung des Kurzbefehls" back />
 
       <div className="pad-safe-bottom mx-auto max-w-lg space-y-4 px-4 py-4">

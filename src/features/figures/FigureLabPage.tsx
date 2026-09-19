@@ -97,7 +97,7 @@ export function FigureLabPage() {
   const positions = draft ? resolvePose(draft, editing) : null
 
   return (
-    <div className="min-h-dvh">
+    <div className="min-h-app">
       <PageHeader title="Figuren-Labor" subtitle="Posen prüfen und nachjustieren" back />
 
       <div className="pad-safe-bottom mx-auto max-w-lg space-y-4 px-4 py-4">
