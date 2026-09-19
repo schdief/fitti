@@ -61,22 +61,6 @@ function CountdownRing({
   )
 }
 
-function TargetLine({ step, previousLabel }: { step: WorkoutStep; previousLabel: string | null }) {
-  const target =
-    step.exercise.mode === 'time'
-      ? `${step.set.durationSec} s`
-      : `${step.set.reps} Wdh`
-  const weight = step.set.targetWeightKg != null ? ` · ${step.set.targetWeightKg} kg` : ''
-
-  return (
-    <p className="text-center text-xs text-fg-faint">
-      Ziel {target}
-      {weight}
-      {previousLabel ? ` · letztes Mal ${previousLabel}` : ''}
-    </p>
-  )
-}
-
 /** Große Tasten, damit die Eingabe zwischen zwei Sätzen mit einem Daumen klappt. */
 function InlineStepper({
   label,
@@ -440,17 +424,6 @@ export function WorkoutPage() {
 
   if (!step) return null
 
-  const previousResult = previous.get(resultKey(step.exercise.exerciseId, step.setIndex))
-  const previousLabel = previousResult
-    ? [
-        previousResult.reps != null ? `${previousResult.reps} Wdh` : null,
-        previousResult.durationSec != null ? `${previousResult.durationSec} s` : null,
-        previousResult.weightKg ? `${previousResult.weightKg} kg` : null,
-      ]
-        .filter(Boolean)
-        .join(' · ')
-    : null
-
   const isTime = step.exercise.mode === 'time'
   const plannedSec = step.set.durationSec ?? 0
 
@@ -567,7 +540,7 @@ export function WorkoutPage() {
               <p className="text-center text-2xl font-semibold tabular-nums">Zeit um</p>
             ) : null}
 
-            <div className="flex flex-wrap items-end justify-center gap-x-3 gap-y-2">
+            <div className="flex flex-col items-center gap-2">
               {isTime ? null : (
                 <InlineStepper
                   label="Wdh"
@@ -589,8 +562,6 @@ export function WorkoutPage() {
                 />
               ) : null}
             </div>
-
-            <TargetLine step={step} previousLabel={previousLabel} />
 
             {step.exercise.cues.length > 0 ? (
               <ul className="space-y-1 text-center text-sm text-fg-muted">
