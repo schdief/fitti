@@ -64,6 +64,23 @@
   min-height: var(--app-height, 100dvh);
 }
 
+@keyframes confetti-fall {
+  0% {
+    transform: translate3d(0, -10vh, 0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(var(--drift, 0), 105vh, 0) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+@utility animate-confetti {
+  animation-name: confetti-fall;
+  animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1);
+  animation-fill-mode: forwards;
+}
+
 @utility pad-safe-bottom {
   padding-bottom: env(safe-area-inset-bottom);
 }

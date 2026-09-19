@@ -1,11 +1,12 @@
-import { Search, Settings, SlidersHorizontal, X } from 'lucide-react'
-import { useMemo, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Search, Settings, Shuffle, SlidersHorizontal, X } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { PageHeader } from '@/components/PageHeader'
 import { Card } from '@/components/ui'
 import { FilterChip, FilterSheet } from '@/features/catalog/FilterSheet'
 import { PlanCard } from '@/features/catalog/PlanCard'
+import { pickSurprise } from '@/features/catalog/surprise'
 import {
   activeFilterCount,
   availableEquipment,
@@ -17,12 +18,24 @@ import {
 } from '@/features/catalog/filters'
 import type { CatalogFilters } from '@/features/catalog/filters'
 import { useCatalog } from '@/features/catalog/useCatalog'
+import { historyByPlan } from '@/features/logbook/history'
+import { useSessions } from '@/features/logbook/useSessions'
 import { EQUIPMENT_LABELS, LEVEL_LABELS, MUSCLE_GROUPS } from '@/lib/plan/enums'
 
 export function CatalogPage() {
   const { entries, error, loading } = useCatalog()
   const [searchParams, setSearchParams] = useSearchParams()
   const [sheetOpen, setSheetOpen] = useState(false)
+  const navigate = useNavigate()
+
+  const sessions = useSessions((state) => state.sessions)
+  const sessionsLoaded = useSessions((state) => state.loaded)
+
+  useEffect(() => {
+    if (!sessionsLoaded) void useSessions.getState().load()
+  }, [sessionsLoaded])
+
+  const history = useMemo(() => historyByPlan(sessions), [sessions])
 
   const filters = useMemo(() => filtersFromParams(searchParams), [searchParams])
 
@@ -148,13 +161,25 @@ export function CatalogPage() {
 
         {visible.length > 0 ? (
           <>
+            <button
+              type="button"
+              onClick={() => {
+                const pick = pickSurprise(visible, history)
+                if (pick) navigate(`/plan/${pick.id}`)
+              }}
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-card border border-line bg-surface py-3 text-sm font-semibold text-accent active:bg-surface-hi"
+            >
+              <Shuffle size={18} aria-hidden />
+              Überrasch mich
+            </button>
+
             <p className="mt-4 text-xs text-fg-faint">
               {visible.length === 1 ? '1 Plan' : `${visible.length} Pläne`}
             </p>
             <ul className="mt-2 space-y-3">
               {visible.map((entry) => (
                 <li key={entry.id}>
-                  <PlanCard entry={entry} />
+                  <PlanCard entry={entry} history={history.get(entry.id)} />
                 </li>
               ))}
             </ul>

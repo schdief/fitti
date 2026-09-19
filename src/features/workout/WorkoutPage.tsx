@@ -1,9 +1,20 @@
-import { Check, Clock, FastForward, Flame, Plus, SkipForward, X } from 'lucide-react'
+import {
+  Check,
+  Clock,
+  FastForward,
+  Flame,
+  PartyPopper,
+  Plus,
+  Share2,
+  SkipForward,
+  X,
+} from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { TouchEvent as ReactTouchEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { ActionButton, Card } from '@/components/ui'
+import { Confetti } from '@/components/Confetti'
 import { usePlan } from '@/features/catalog/useCatalog'
 import { AnimatedFigure } from '@/features/figures/AnimatedFigure'
 import { MusicBar } from '@/features/music/MusicBar'
@@ -12,6 +23,8 @@ import type { SetResult, WorkoutSession } from '@/features/logbook/db'
 import { useSessions } from '@/features/logbook/useSessions'
 import { sendHealthWorkout } from '@/features/health/healthExport'
 import { useSettings } from '@/features/settings/settingsStore'
+import { adviseSet, analyseSession } from '@/features/workout/advice'
+import { buildCoachPrompt, formatDelta } from '@/features/workout/coachPrompt'
 import { cue, primeWorkoutAudio, signal } from '@/features/workout/cues'
 import { buildSteps, formatClock, remainingSeconds, resultKey } from '@/features/workout/steps'
 import type { WorkoutStep } from '@/features/workout/steps'
@@ -177,6 +190,8 @@ export function WorkoutPage() {
   const [askAbort, setAskAbort] = useState(false)
   const [reps, setReps] = useState(0)
   const [weightKg, setWeightKg] = useState(0)
+  const [shared, setShared] = useState(false)
+  const sessions = useSessions((state) => state.sessions)
   const savedRef = useRef(false)
   const sessionRef = useRef<WorkoutSession | null>(null)
   // Muss vor allen vorzeitigen Rückgaben stehen, sonst bricht React ab, sobald
@@ -444,11 +459,40 @@ export function WorkoutPage() {
       0,
     )
 
+    // Letztes abgeschlossenes Training desselben Plans als Vergleich.
+    const earlier = sessions
+      .filter(
+        (entry) =>
+          entry.completed && entry.planId === active.planId && entry.sessionId !== active.sessionId,
+      )
+      .sort((a, b) => b.endedAt.localeCompare(a.endedAt))[0]
+
+    const analysis = analyseSession(active.results, earlier?.results ?? null)
+
+    const share = () => {
+      const session = sessionRef.current
+      if (!session) return
+
+      const text = buildCoachPrompt(session, plan, analysis)
+
+      if (navigator.share) {
+        void navigator.share({ title: 'fitti Training', text }).catch(() => undefined)
+        return
+      }
+
+      void navigator.clipboard
+        ?.writeText(text)
+        .then(() => setShared(true))
+        .catch(() => undefined)
+    }
+
     return (
-      <div className="mx-auto flex min-h-app max-w-lg flex-col justify-center gap-6 px-4">
+      <div className="mx-auto flex min-h-app max-w-lg flex-col justify-center gap-5 px-4 py-6">
+        <Confetti />
+
         <div className="text-center">
           <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-accent/15">
-            <Check size={32} className="text-accent" aria-hidden />
+            <PartyPopper size={32} className="text-accent" aria-hidden />
           </div>
           <h1 className="mt-4 text-2xl font-semibold">Geschafft</h1>
           <p className="mt-1 text-sm text-fg-muted">{active.planTitle}</p>
@@ -471,6 +515,40 @@ export function WorkoutPage() {
           </div>
         </Card>
 
+        {analysis.hasComparison ? (
+          <Card className="space-y-2 p-4">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-fg-faint">
+              Gegenüber dem letzten Mal
+            </h2>
+
+            {analysis.better.length === 0 && analysis.worse.length === 0 ? (
+              <p className="text-sm text-fg-muted">Alles auf dem Niveau vom letzten Mal.</p>
+            ) : null}
+
+            {analysis.better.map((entry) => (
+              <p key={entry.exerciseId} className="flex justify-between gap-3 text-sm">
+                <span className="truncate">{entry.exerciseName}</span>
+                <span className="shrink-0 font-semibold text-accent">
+                  {formatDelta(entry.deltaPercent)}
+                </span>
+              </p>
+            ))}
+
+            {analysis.worse.map((entry) => (
+              <p key={entry.exerciseId} className="flex justify-between gap-3 text-sm">
+                <span className="truncate">{entry.exerciseName}</span>
+                <span className="shrink-0 font-semibold text-warn">
+                  {formatDelta(entry.deltaPercent)}
+                </span>
+              </p>
+            ))}
+          </Card>
+        ) : (
+          <p className="text-center text-sm text-fg-muted">
+            Beim nächsten Mal vergleicht fitti dieses Training mit dem heutigen.
+          </p>
+        )}
+
         <ActionButton
           variant="primary"
           onClick={() => {
@@ -480,6 +558,11 @@ export function WorkoutPage() {
           className="w-full py-4 text-base"
         >
           Ins Logbuch
+        </ActionButton>
+
+        <ActionButton onClick={share} className="flex w-full items-center justify-center gap-2 py-3">
+          <Share2 size={18} aria-hidden />
+          {shared ? 'In die Zwischenablage kopiert' : 'Auswertung von einer KI bewerten lassen'}
         </ActionButton>
 
         {health.autoExport === 'ask' && health.state === 'connected' && sessionRef.current ? (
@@ -659,6 +742,25 @@ export function WorkoutPage() {
       </ul>
     ) : null
 
+  // Empfehlung aus dem letzten Ergebnis desselben Satzes.
+  const suggestion = inputStep
+    ? adviseSet(inputStep, previous.get(resultKey(inputStep.exercise.exerciseId, inputStep.setIndex)))
+    : { advice: 'unknown' as const, text: '' }
+
+  const suggestionNote = suggestion.text ? (
+    <p
+      className={`text-center text-xs ${
+        suggestion.advice === 'increase'
+          ? 'text-accent'
+          : suggestion.advice === 'decrease'
+            ? 'text-warn'
+            : 'text-fg-muted'
+      }`}
+    >
+      {suggestion.text}
+    </p>
+  ) : null
+
   return (
     <div className="flex min-h-app flex-col">
       <header className="pad-safe-top border-b border-line px-4 py-3">
@@ -725,6 +827,7 @@ export function WorkoutPage() {
               </p>
             </div>
 
+            {suggestionNote}
             {cueList}
           </>
         ) : phase === 'rest' ? (
@@ -750,6 +853,8 @@ export function WorkoutPage() {
                 }
               />
             ) : null}
+
+            {suggestionNote}
 
             <div className="flex justify-center gap-2">
               <ActionButton onClick={() => useWorkout.getState().extendRest(30)}>
@@ -825,6 +930,7 @@ export function WorkoutPage() {
               ) : null}
             </div>
 
+            {suggestionNote}
             {cueList}
           </>
         )}

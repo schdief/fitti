@@ -1,6 +1,7 @@
 import { useSettings } from '@/features/settings/settingsStore'
 import {
   playCueElement,
+  primeCueElement,
   setAudioSessionType,
   speak,
   unlockAudio,
@@ -12,6 +13,7 @@ import {
  * iOS gesperrt. Deshalb startet jedes Training mit einem Tippen.
  */
 export async function primeWorkoutAudio(): Promise<void> {
+  primeCueElement()
   await unlockAudio()
   setAudioSessionType(WORKOUT_AUDIO_SESSION)
 }

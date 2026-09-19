@@ -1,10 +1,13 @@
 import { Clock, Dumbbell, Layers, Play } from 'lucide-react'
+import { useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { PageHeader } from '@/components/PageHeader'
 import { ActionButton, Card } from '@/components/ui'
 import { usePlan } from '@/features/catalog/useCatalog'
 import { AnimatedFigure } from '@/features/figures/AnimatedFigure'
+import { describeCount, describeSince, planHistory } from '@/features/logbook/history'
+import { useSessions } from '@/features/logbook/useSessions'
 import { primeWorkoutAudio } from '@/features/workout/cues'
 import { buildSteps } from '@/features/workout/steps'
 import { useWorkout } from '@/features/workout/workoutStore'
@@ -57,6 +60,15 @@ export function PlanDetailPage() {
   const navigate = useNavigate()
   const { plan, loading } = usePlan(planId)
 
+  const sessions = useSessions((state) => state.sessions)
+  const sessionsLoaded = useSessions((state) => state.loaded)
+
+  useEffect(() => {
+    if (!sessionsLoaded) void useSessions.getState().load()
+  }, [sessionsLoaded])
+
+  const history = planHistory(sessions, planId)
+
   if (loading) {
     return (
       <>
@@ -80,6 +92,11 @@ export function PlanDetailPage() {
   }
 
   const realMinutes = Math.round(estimatePlanSeconds(plan) / 60)
+
+  // Erfahrung schlaegt Schaetzung: der Schnitt der letzten Trainings.
+  const durationMin = history.averageDurationSec
+    ? Math.round(history.averageDurationSec / 60)
+    : plan.estimatedDurationMin
 
   /**
    * Startet direkt aus dieser Geste heraus – iOS gibt die Audioausgabe nur
@@ -115,7 +132,11 @@ export function PlanDetailPage() {
         {plan.description ? <p className="text-sm text-fg-muted">{plan.description}</p> : null}
 
         <Card className="grid grid-cols-3 divide-x divide-line">
-          <Metric icon={<Clock size={16} aria-hidden />} value={`${plan.estimatedDurationMin} min`} label="Dauer" />
+          <Metric
+            icon={<Clock size={16} aria-hidden />}
+            value={`${durationMin} min`}
+            label={history.averageDurationSec ? 'Dein Schnitt' : 'Dauer'}
+          />
           <Metric
             icon={<Layers size={16} aria-hidden />}
             value={String(countSets(plan))}
@@ -127,6 +148,13 @@ export function PlanDetailPage() {
             label="Übungen"
           />
         </Card>
+
+        {history.count > 0 ? (
+          <p className="px-1 text-xs text-accent">
+            Schon {describeCount(history.count)} absolviert
+            {history.lastAt ? ` · zuletzt ${describeSince(history.lastAt)}` : ''}
+          </p>
+        ) : null}
 
         <section>
           <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-fg-faint">

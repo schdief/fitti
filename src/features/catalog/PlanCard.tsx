@@ -1,14 +1,21 @@
-import { ChevronRight, Clock, Dumbbell, Layers } from 'lucide-react'
+import { CheckCircle2, ChevronRight, Clock, Dumbbell, Layers } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
+import { describeCount, describeSince } from '@/features/logbook/history'
+import type { PlanHistory } from '@/features/logbook/history'
 import { LEVEL_LABELS, MUSCLE_LABELS } from '@/lib/plan/enums'
 import type { CatalogEntry } from '@/lib/plan/schema'
 
 const MAX_CHIPS = 4
 
-export function PlanCard({ entry }: { entry: CatalogEntry }) {
+export function PlanCard({ entry, history }: { entry: CatalogEntry; history?: PlanHistory }) {
   const shown = entry.targetMuscles.slice(0, MAX_CHIPS)
   const rest = entry.targetMuscles.length - shown.length
+
+  // Erfahrungswert schlaegt Schaetzung: der Schnitt der letzten Trainings.
+  const minutes = history?.averageDurationSec
+    ? Math.round(history.averageDurationSec / 60)
+    : entry.estimatedDurationMin
 
   return (
     <Link
@@ -29,7 +36,7 @@ export function PlanCard({ entry }: { entry: CatalogEntry }) {
         <div className="flex items-center gap-1.5">
           <Clock size={14} aria-hidden />
           <dt className="sr-only">Dauer</dt>
-          <dd className="tabular-nums">{entry.estimatedDurationMin} min</dd>
+          <dd className="tabular-nums">{minutes} min</dd>
         </div>
         <div className="flex items-center gap-1.5">
           <Layers size={14} aria-hidden />
@@ -43,6 +50,16 @@ export function PlanCard({ entry }: { entry: CatalogEntry }) {
           <dt className="sr-only">Level</dt>
           <dd>{LEVEL_LABELS[entry.level]}</dd>
         </div>
+        {history && history.count > 0 ? (
+          <div className="flex items-center gap-1.5 text-accent">
+            <CheckCircle2 size={14} aria-hidden />
+            <dt className="sr-only">Absolviert</dt>
+            <dd>
+              {describeCount(history.count)}
+              {history.lastAt ? ` · zuletzt ${describeSince(history.lastAt)}` : ''}
+            </dd>
+          </div>
+        ) : null}
       </dl>
 
       <ul className="mt-3 flex flex-wrap gap-1.5">

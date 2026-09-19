@@ -173,8 +173,34 @@ function keepAliveWavUrl(): string {
 let cueUrl: string | null = null
 
 function cueWavUrl(): string {
-  cueUrl ??= encodeWavUrl(generateSine(880, 0.8, 11_000))
+  cueUrl ??= encodeWavUrl(generateSine(880, 0.8, 20_000))
   return cueUrl
+}
+
+let cueElement: HTMLAudioElement | null = null
+
+/**
+ * iOS erlaubt programmatische Wiedergabe nur auf Elementen, die einmal
+ * innerhalb einer Nutzergeste liefen. Ein jedes Mal neu erzeugtes Element ist
+ * nicht freigeschaltet – genau deshalb blieb der Pausenton stumm.
+ * Muss daher aus einer Geste heraus aufgerufen werden.
+ */
+export function primeCueElement(): void {
+  const element = (cueElement ??= new Audio(cueWavUrl()))
+  element.setAttribute('playsinline', '')
+  element.preload = 'auto'
+  element.muted = true
+
+  void element
+    .play()
+    .then(() => {
+      element.pause()
+      element.currentTime = 0
+      element.muted = false
+    })
+    .catch(() => {
+      element.muted = false
+    })
 }
 
 /**
@@ -182,8 +208,11 @@ function cueWavUrl(): string {
  * hat im Spike den Hintergrund erreicht, solange eine Medienwiedergabe läuft.
  */
 export function playCueElement(onResult?: (info: string) => void): void {
-  const element = new Audio(cueWavUrl())
+  const element = cueElement ?? new Audio(cueWavUrl())
   element.setAttribute('playsinline', '')
+  element.muted = false
+  element.currentTime = 0
+
   element.addEventListener('ended', () => onResult?.('Audio-Element: Wiedergabe beendet'), {
     once: true,
   })
