@@ -638,7 +638,7 @@ export function WorkoutPage() {
 
             {canDefer ? (
               <div className="flex justify-center">
-                <ActionButton onClick={deferExercise}>
+                <ActionButton variant="warn" onClick={deferExercise}>
                   <span className="flex items-center gap-1.5">
                     <FastForward size={16} aria-hidden />
                     Überspringen
@@ -713,6 +713,7 @@ export function WorkoutPage() {
 
               {canDefer ? (
                 <ActionButton
+                  variant="warn"
                   onClick={deferExercise}
                   className="flex shrink-0 items-center gap-1.5 px-3 py-4"
                 >
@@ -725,9 +726,9 @@ export function WorkoutPage() {
 
           <p className="flex items-center justify-center gap-1.5 text-xs text-fg-muted">
             <Clock size={14} aria-hidden />
-            <span className="sr-only">Minuten</span>
             <span className="tabular-nums">
-              {Math.floor(elapsedSec / 60)} von {Math.floor(elapsedSec / 60) + Math.ceil(leftSec / 60)}
+              {Math.floor(elapsedSec / 60)} von{' '}
+              {Math.floor(elapsedSec / 60) + Math.ceil(leftSec / 60)} min
             </span>
           </p>
 

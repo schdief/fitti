@@ -208,13 +208,14 @@ export function ActionButton({
 }: {
   children: ReactNode
   onClick: () => void
-  variant?: 'primary' | 'secondary' | 'danger'
+  variant?: 'primary' | 'secondary' | 'warn' | 'danger'
   disabled?: boolean
   className?: string
 }) {
   const variants = {
     primary: 'bg-accent text-accent-fg',
     secondary: 'bg-surface-hi text-fg',
+    warn: 'bg-warn/15 text-warn',
     danger: 'bg-danger/15 text-danger',
   } as const
 
