@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { PageHeader } from '@/components/PageHeader'
 import { ActionButton, Card } from '@/components/ui'
 import { usePlan } from '@/features/catalog/useCatalog'
-import { ExerciseFigures } from '@/features/figures/ExerciseFigures'
+import { AnimatedFigure } from '@/features/figures/AnimatedFigure'
 import { primeWorkoutAudio } from '@/features/workout/cues'
 import { buildSteps } from '@/features/workout/steps'
 import { useWorkout } from '@/features/workout/workoutStore'
@@ -174,7 +174,11 @@ export function PlanDetailPage() {
             <Card className="divide-y divide-line">
               {block.exercises.map((exercise, exerciseIndex) => (
                 <div key={`${exercise.exerciseId}-${exerciseIndex}`} className="flex gap-3 p-3">
-                  <ExerciseFigures exerciseId={exercise.exerciseId} />
+                  <AnimatedFigure
+                    exerciseId={exercise.exerciseId}
+                    timing={exercise.timing}
+                    className="size-14 shrink-0"
+                  />
                   <div className="min-w-0 flex-1">
                     <p className="text-[15px] font-medium leading-snug">{exercise.name}</p>
                     <p className="mt-0.5 text-xs text-fg-muted">{setSummary(exercise)}</p>
