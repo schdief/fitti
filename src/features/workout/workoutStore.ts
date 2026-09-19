@@ -63,8 +63,8 @@ export const useWorkout = create<{ active: ActiveWorkout | null } & WorkoutActio
 
       /**
        * Schiebt die angegebenen Sätze ans Ende der Warteschlange. Bereits
-       * erledigte Sätze bleiben unberührt, `stepIndex` zeigt danach auf die
-       * nächste nicht verschobene Übung.
+       * erledigte Sätze bleiben unberührt. Die Phase bleibt unangetastet, damit
+       * das Verschieben auch während einer laufenden Pause funktioniert.
        */
       deferSteps: (keys) =>
         set((state) => {
@@ -82,8 +82,6 @@ export const useWorkout = create<{ active: ActiveWorkout | null } & WorkoutActio
             active: {
               ...state.active,
               order: [...done, ...stays, ...moved],
-              phase: 'work',
-              endsAt: null,
             },
           }
         }),

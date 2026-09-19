@@ -479,20 +479,31 @@ export function WorkoutPage() {
 
   const remainingMs = endsAt ? Math.max(0, endsAt - now) : 0
 
-  // Alle noch offenen Sätze dieser Übung – die wandern gemeinsam nach hinten.
-  const deferKeys = orderedSteps
-    .slice(active.stepIndex)
-    .filter(
-      (entry) =>
-        entry.blockIndex === step.blockIndex && entry.exerciseIndex === step.exerciseIndex,
-    )
-    .map((entry) => entry.key)
+  // Während der Pause betrifft das Verschieben die nächste Übung, sonst die laufende.
+  const resting = phase === 'rest'
+  const deferTarget = resting ? nextStep : step
+  const deferFrom = resting ? active.stepIndex + 1 : active.stepIndex
 
-  const canDefer = orderedSteps.length - active.stepIndex > deferKeys.length
+  const deferKeys = deferTarget
+    ? orderedSteps
+        .slice(deferFrom)
+        .filter(
+          (entry) =>
+            entry.blockIndex === deferTarget.blockIndex &&
+            entry.exerciseIndex === deferTarget.exerciseIndex,
+        )
+        .map((entry) => entry.key)
+    : []
+
+  const canDefer =
+    deferTarget !== undefined && orderedSteps.length - deferFrom > deferKeys.length
 
   const deferExercise = () => {
     const state = useWorkout.getState()
     state.deferSteps(deferKeys)
+
+    // In der Pause läuft der Timer weiter, nur die Vorschau ändert sich.
+    if (resting) return
 
     const current = state.active
     if (!current) return
@@ -543,6 +554,18 @@ export function WorkoutPage() {
               caption="Pause"
             />
             <NextUp step={nextStep} />
+
+            {canDefer ? (
+              <button
+                type="button"
+                onClick={deferExercise}
+                className="mx-auto flex items-center gap-1.5 rounded-full bg-surface-hi px-3 py-1.5 text-xs font-medium text-fg-muted active:bg-line"
+              >
+                <CornerDownRight size={14} aria-hidden />
+                Gerät belegt, diese Übung später
+              </button>
+            ) : null}
+
             <div className="flex justify-center gap-2">
               <ActionButton onClick={() => useWorkout.getState().extendRest(30)}>
                 <span className="flex items-center gap-1">
