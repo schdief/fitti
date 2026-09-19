@@ -1,14 +1,20 @@
 /**
  * Die Hantel aus dem App-Symbol (assets/icon.svg), ohne Hintergrund und auf das
  * Motiv zugeschnitten, damit sie neben einer Überschrift sitzen kann.
+ *
+ * Breite und Höhe stehen bewusst als Attribute und als feste Klasse: Safari
+ * leitet aus einer reinen viewBox in einem Flex-Container keine Breite ab und
+ * zeichnet das Bild sonst gar nicht.
  */
 export function FittiLogo({ className = '' }: { className?: string }) {
   return (
     <svg
       viewBox="108 188 296 136"
+      width="296"
+      height="136"
       role="img"
       aria-label="fitti"
-      className={`w-auto text-accent ${className}`}
+      className={`text-accent ${className}`}
     >
       <g stroke="currentColor" strokeLinecap="round" fill="none">
         <line x1="188" y1="256" x2="324" y2="256" strokeWidth="26" />

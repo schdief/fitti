@@ -108,10 +108,10 @@ export function PlanDetailPage() {
   }
 
   return (
-    <div className="min-h-dvh pb-28">
+    <div className="flex min-h-dvh flex-col">
       <PageHeader title={plan.title} subtitle={LEVEL_LABELS[plan.level]} back />
 
-      <div className="mx-auto max-w-lg space-y-4 px-4 py-4">
+      <div className="mx-auto w-full max-w-lg flex-1 space-y-4 px-4 py-4">
         {plan.description ? <p className="text-sm text-fg-muted">{plan.description}</p> : null}
 
         <Card className="grid grid-cols-3 divide-x divide-line">
@@ -196,7 +196,8 @@ export function PlanDetailPage() {
         </p>
       </div>
 
-      <div className="pad-safe-bottom fixed inset-x-0 bottom-0 z-40 border-t border-line bg-bg/90 px-4 py-3 backdrop-blur-xl">
+      {/* Klebend statt fest: sonst schwebt die Leiste in Safari bis zum ersten Scrollen. */}
+      <div className="pad-safe-bottom sticky bottom-0 z-40 border-t border-line bg-bg/90 px-4 py-3 backdrop-blur-xl">
         <div className="mx-auto max-w-lg">
           <ActionButton
             variant="primary"

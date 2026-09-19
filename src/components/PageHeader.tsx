@@ -33,7 +33,7 @@ export function PageHeader({
           </button>
         ) : null}
 
-        {logo ? <FittiLogo className="h-5 shrink-0" /> : null}
+        {logo ? <FittiLogo className="h-5 w-11 shrink-0" /> : null}
 
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-[22px] font-semibold tracking-tight">{title}</h1>

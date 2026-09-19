@@ -9,11 +9,16 @@ const tabs = [
 export function TabLayout() {
   return (
     <div className="flex min-h-dvh flex-col">
-      <main className="flex-1 pb-24">
+      <main className="flex-1">
         <Outlet />
       </main>
 
-      <nav className="pad-safe-bottom fixed inset-x-0 bottom-0 z-40 border-t border-line bg-bg/85 backdrop-blur-xl">
+      {/*
+        Klebend statt fest positioniert: Safari berechnet `position: fixed`
+        erst nach der ersten Scrollbewegung neu, dadurch schwebte die Leiste
+        beim Start über dem unteren Rand.
+      */}
+      <nav className="pad-safe-bottom sticky bottom-0 z-40 border-t border-line bg-bg/85 backdrop-blur-xl">
         <ul className="mx-auto flex max-w-lg">
           {tabs.map(({ to, label, Icon }) => (
             <li key={to} className="flex-1">
