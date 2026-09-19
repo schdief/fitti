@@ -61,6 +61,41 @@ function CountdownRing({
   )
 }
 
+/**
+ * Ein Segment je Übung, darin ein Strich je Satz. Damit ist auf einen Blick
+ * ablesbar, bei welcher Übung und bei welchem Satz man steht.
+ */
+function SegmentedProgress({
+  groups,
+  doneUpTo,
+  currentIndex,
+}: {
+  groups: { key: string; indices: number[] }[]
+  doneUpTo: number
+  currentIndex: number
+}) {
+  return (
+    <div className="mx-auto mt-2 flex max-w-lg gap-1.5" aria-hidden>
+      {groups.map((group) => (
+        <div key={group.key} className="flex flex-1 gap-0.5">
+          {group.indices.map((index) => (
+            <span
+              key={index}
+              className={`h-1.5 flex-1 rounded-full transition-colors ${
+                index < doneUpTo
+                  ? 'bg-accent'
+                  : index === currentIndex
+                    ? 'bg-accent/45'
+                    : 'bg-surface-hi'
+              }`}
+            />
+          ))}
+        </div>
+      ))}
+    </div>
+  )
+}
+
 /** Große Tasten, damit die Eingabe zwischen zwei Sätzen mit einem Daumen klappt. */
 function InlineStepper({
   label,
@@ -160,6 +195,20 @@ export function WorkoutPage() {
 
   const step = active ? orderedSteps[active.stepIndex] : undefined
   const nextStep = active ? orderedSteps[active.stepIndex + 1] : undefined
+
+  // Aufeinanderfolgende Sätze derselben Übung bilden ein Segment des Balkens.
+  const progressGroups = useMemo(() => {
+    const groups: { key: string; indices: number[] }[] = []
+
+    orderedSteps.forEach((entry, index) => {
+      const key = `${entry.blockIndex}-${entry.exerciseIndex}-${entry.round}`
+      const last = groups.at(-1)
+      if (last && last.key === key) last.indices.push(index)
+      else groups.push({ key, indices: [index] })
+    })
+
+    return groups
+  }, [orderedSteps])
 
   const phase = active?.phase
   const endsAt = active?.endsAt ?? null
@@ -375,7 +424,6 @@ export function WorkoutPage() {
   }
 
   const completedSets = active.results.length
-  const progress = completedSets / Math.max(1, orderedSteps.length)
   const elapsedSec = (now - active.startedAt) / 1000
   const leftSec = remainingSeconds(orderedSteps, active.stepIndex)
 
@@ -518,15 +566,13 @@ export function WorkoutPage() {
       <header className="pad-safe-top border-b border-line px-4 py-3">
         <div className="mx-auto flex max-w-lg items-center gap-3">
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[11px] uppercase tracking-wider text-fg-faint">
-              {step.blockTitle}
-              {step.rounds > 1 ? ` · Runde ${step.round}/${step.rounds}` : ''}
-            </p>
             <h1 className="truncate text-lg font-semibold">{step.exercise.name}</h1>
+            {step.rounds > 1 ? (
+              <p className="text-[11px] uppercase tracking-wider text-fg-faint">
+                Runde {step.round}/{step.rounds}
+              </p>
+            ) : null}
           </div>
-          <span className="shrink-0 rounded-full bg-surface-hi px-2.5 py-1 text-xs tabular-nums text-fg-muted">
-            Satz {step.setIndex + 1}/{step.setCount}
-          </span>
           <button
             type="button"
             aria-label="Training beenden"
@@ -537,12 +583,11 @@ export function WorkoutPage() {
           </button>
         </div>
 
-        <div className="mx-auto mt-2 h-1 max-w-lg overflow-hidden rounded-full bg-surface-hi">
-          <div
-            className="h-full rounded-full bg-accent transition-[width] duration-300"
-            style={{ width: `${Math.round(progress * 100)}%` }}
-          />
-        </div>
+        <SegmentedProgress
+          groups={progressGroups}
+          doneUpTo={resting ? active.stepIndex + 1 : active.stepIndex}
+          currentIndex={resting ? active.stepIndex + 1 : active.stepIndex}
+        />
       </header>
 
       <main className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center gap-3 px-4 py-3">
