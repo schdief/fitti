@@ -10,8 +10,12 @@ interface ActiveWorkout {
   planTitle: string
   sessionId: string
   startedAt: number
-  /** Schlüssel der Sätze in der aktuellen Reihenfolge. Lässt sich umsortieren. */
+  /** Reihenfolge laut Plan, unveränderlich. Grundlage für die Fortschrittsanzeige. */
+  planOrder: string[]
+  /** Schlüssel der Sätze in der aktuellen Abarbeitungsreihenfolge. */
   order: string[]
+  /** Nach hinten geschobene Sätze, damit sie als übersprungen erkennbar bleiben. */
+  deferred: string[]
   stepIndex: number
   phase: WorkoutPhase
   /** Zielzeitpunkt als Zeitstempel der Wanduhr, nicht als Restdauer. */
@@ -49,7 +53,9 @@ export const useWorkout = create<{ active: ActiveWorkout | null } & WorkoutActio
             planTitle,
             sessionId: crypto.randomUUID(),
             startedAt: Date.now(),
+            planOrder: order,
             order,
+            deferred: [],
             stepIndex: 0,
             phase: 'ready',
             endsAt: null,
@@ -59,29 +65,40 @@ export const useWorkout = create<{ active: ActiveWorkout | null } & WorkoutActio
           },
         }),
 
-      setOrder: (order) => set((state) => (state.active ? { active: { ...state.active, order } } : state)),
+      setOrder: (order) =>
+        set((state) =>
+          state.active
+            ? { active: { ...state.active, planOrder: order, order, deferred: [] } }
+            : state,
+        ),
 
       /**
-       * Schiebt die angegebenen Sätze ans Ende der Warteschlange. Bereits
-       * erledigte Sätze bleiben unberührt. Die Phase bleibt unangetastet, damit
-       * das Verschieben auch während einer laufenden Pause funktioniert.
+       * Schiebt Sätze ans Ende der Warteschlange und merkt sie als übersprungen.
+       * Der Nachzieher wird in Planreihenfolge sortiert, damit mehrere verschobene
+       * Übungen am Ende nicht durcheinandergeraten.
        */
       deferSteps: (keys) =>
         set((state) => {
           if (!state.active) return state
 
-          const { order, stepIndex } = state.active
+          const { order, stepIndex, deferred, planOrder } = state.active
+          const nextDeferred = [...new Set([...deferred, ...keys])]
+
           const done = order.slice(0, stepIndex)
           const upcoming = order.slice(stepIndex)
-          const moved = upcoming.filter((key) => keys.includes(key))
-          const stays = upcoming.filter((key) => !keys.includes(key))
+          const moved = upcoming.filter((key) => nextDeferred.includes(key))
+          const stays = upcoming.filter((key) => !nextDeferred.includes(key))
 
           if (moved.length === 0 || stays.length === 0) return state
+
+          const planPosition = new Map(planOrder.map((key, index) => [key, index]))
+          moved.sort((a, b) => (planPosition.get(a) ?? 0) - (planPosition.get(b) ?? 0))
 
           return {
             active: {
               ...state.active,
               order: [...done, ...stays, ...moved],
+              deferred: nextDeferred,
             },
           }
         }),

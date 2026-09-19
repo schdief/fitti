@@ -61,33 +61,35 @@ function CountdownRing({
   )
 }
 
+type StepState = 'done' | 'current' | 'deferred' | 'pending'
+
+const STEP_COLORS: Record<StepState, string> = {
+  done: 'bg-accent',
+  current: 'bg-accent/45',
+  deferred: 'bg-warn',
+  pending: 'bg-surface-hi',
+}
+
 /**
- * Ein Segment je Übung, darin ein Strich je Satz. Damit ist auf einen Blick
- * ablesbar, bei welcher Übung und bei welchem Satz man steht.
+ * Ein Segment je Übung, darin ein Strich je Satz – immer in Planreihenfolge.
+ * Verschobene Sätze bleiben an ihrem Platz und werden gelb markiert, damit der
+ * Balken beim Umsortieren nicht zerfällt.
  */
 function SegmentedProgress({
   groups,
-  doneUpTo,
-  currentIndex,
+  stateOf,
 }: {
-  groups: { key: string; indices: number[] }[]
-  doneUpTo: number
-  currentIndex: number
+  groups: { key: string; stepKeys: string[] }[]
+  stateOf: (stepKey: string) => StepState
 }) {
   return (
     <div className="mx-auto mt-2 flex max-w-lg gap-1.5" aria-hidden>
       {groups.map((group) => (
         <div key={group.key} className="flex flex-1 gap-0.5">
-          {group.indices.map((index) => (
+          {group.stepKeys.map((stepKey) => (
             <span
-              key={index}
-              className={`h-1.5 flex-1 rounded-full transition-colors ${
-                index < doneUpTo
-                  ? 'bg-accent'
-                  : index === currentIndex
-                    ? 'bg-accent/45'
-                    : 'bg-surface-hi'
-              }`}
+              key={stepKey}
+              className={`h-1.5 flex-1 rounded-full transition-colors ${STEP_COLORS[stateOf(stepKey)]}`}
             />
           ))}
         </div>
@@ -116,22 +118,22 @@ function InlineStepper({
 
   return (
     <div className="flex flex-col items-center gap-1">
-      <span className="text-[11px] uppercase tracking-wider text-fg-faint">{label}</span>
-      <div className="flex items-center gap-1.5">
+      <span className="text-xs uppercase tracking-wider text-fg-faint">{label}</span>
+      <div className="flex items-center gap-2">
         <button
           type="button"
           aria-label={`${label} verringern`}
           onClick={() => onChange(clamp(value - step))}
-          className="size-11 shrink-0 rounded-xl bg-surface-hi text-xl leading-none text-fg-muted active:bg-line"
+          className="size-16 shrink-0 rounded-2xl bg-surface-hi text-3xl leading-none text-fg-muted active:bg-line"
         >
           −
         </button>
-        <output className="min-w-14 text-center text-2xl font-semibold tabular-nums">{value}</output>
+        <output className="min-w-20 text-center text-4xl font-semibold tabular-nums">{value}</output>
         <button
           type="button"
           aria-label={`${label} erhöhen`}
           onClick={() => onChange(clamp(value + step))}
-          className="size-11 shrink-0 rounded-xl bg-surface-hi text-xl leading-none text-fg-muted active:bg-line"
+          className="size-16 shrink-0 rounded-2xl bg-surface-hi text-3xl leading-none text-fg-muted active:bg-line"
         >
           +
         </button>
@@ -197,18 +199,24 @@ export function WorkoutPage() {
   const nextStep = active ? orderedSteps[active.stepIndex + 1] : undefined
 
   // Aufeinanderfolgende Sätze derselben Übung bilden ein Segment des Balkens.
+  // Bewusst über den Plan, nicht über die Warteschlange.
   const progressGroups = useMemo(() => {
-    const groups: { key: string; indices: number[] }[] = []
+    const groups: { key: string; stepKeys: string[] }[] = []
 
-    orderedSteps.forEach((entry, index) => {
+    steps.forEach((entry) => {
       const key = `${entry.blockIndex}-${entry.exerciseIndex}-${entry.round}`
       const last = groups.at(-1)
-      if (last && last.key === key) last.indices.push(index)
-      else groups.push({ key, indices: [index] })
+      if (last && last.key === key) last.stepKeys.push(entry.key)
+      else groups.push({ key, stepKeys: [entry.key] })
     })
 
     return groups
-  }, [orderedSteps])
+  }, [steps])
+
+  const queuePosition = useMemo(
+    () => new Map((active?.order ?? []).map((key, index) => [key, index])),
+    [active?.order],
+  )
 
   const phase = active?.phase
   const endsAt = active?.endsAt ?? null
@@ -222,7 +230,7 @@ export function WorkoutPage() {
   // Aeltere oder fremde Staende ohne gueltige Reihenfolge auf den Plan zuruecksetzen.
   useEffect(() => {
     if (!active || steps.length === 0) return
-    if (active.order?.length === steps.length) return
+    if (active.planOrder?.length === steps.length && active.order?.length === steps.length) return
     useWorkout.getState().setOrder(steps.map((entry) => entry.key))
   }, [active, steps])
 
@@ -546,6 +554,17 @@ export function WorkoutPage() {
   const canDefer =
     deferTarget !== undefined && orderedSteps.length - deferFrom > deferKeys.length
 
+  // In der Pause gilt der gerade beendete Satz bereits als erledigt.
+  const doneUpTo = resting ? active.stepIndex + 1 : active.stepIndex
+
+  const stepStateOf = (stepKey: string): StepState => {
+    const position = queuePosition.get(stepKey)
+    if (position === undefined) return 'pending'
+    if (position < doneUpTo) return 'done'
+    if (position === doneUpTo) return 'current'
+    return active.deferred?.includes(stepKey) ? 'deferred' : 'pending'
+  }
+
   const deferExercise = () => {
     const state = useWorkout.getState()
     state.deferSteps(deferKeys)
@@ -583,11 +602,7 @@ export function WorkoutPage() {
           </button>
         </div>
 
-        <SegmentedProgress
-          groups={progressGroups}
-          doneUpTo={resting ? active.stepIndex + 1 : active.stepIndex}
-          currentIndex={resting ? active.stepIndex + 1 : active.stepIndex}
-        />
+        <SegmentedProgress groups={progressGroups} stateOf={stepStateOf} />
       </header>
 
       <main className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center gap-3 px-4 py-3">
