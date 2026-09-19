@@ -1,12 +1,15 @@
-import { Trash2 } from 'lucide-react'
-import { useEffect, useMemo } from 'react'
+import { Sparkles, Trash2 } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { PageHeader } from '@/components/PageHeader'
 import { ActionButton, Card } from '@/components/ui'
+import { usePlan } from '@/features/catalog/useCatalog'
 import { sendHealthWorkout } from '@/features/health/healthExport'
 import { describeResult, sessionVolume, useSessions } from '@/features/logbook/useSessions'
 import { useSettings } from '@/features/settings/settingsStore'
+import { analyseSession } from '@/features/workout/advice'
+import { buildCoachPrompt } from '@/features/workout/coachPrompt'
 import type { SetResult, WorkoutSession } from '@/features/logbook/db'
 
 /** Jüngstes älteres Ergebnis derselben Übung und Satznummer. */
@@ -51,12 +54,14 @@ export function SessionDetailPage() {
   const { sessions, loaded, load, remove } = useSessions()
   const health = useSettings((state) => state.connections.health)
   const bodyWeightKg = useSettings((state) => state.profile.bodyWeightKg)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     if (!loaded) void load()
   }, [loaded, load])
 
   const session = sessions.find((entry) => entry.sessionId === sessionId)
+  const { plan } = usePlan(session?.planId)
 
   const byExercise = useMemo(() => {
     if (!session) return []
@@ -100,6 +105,34 @@ export function SessionDetailPage() {
     navigate('/logbook', { replace: true })
   }
 
+  // Vorheriges abgeschlossenes Training desselben Plans als Vergleichsgröße.
+  const earlier = sessions
+    .filter(
+      (entry) =>
+        entry.completed &&
+        entry.planId === session.planId &&
+        entry.startedAt < session.startedAt,
+    )
+    .sort((a, b) => b.startedAt.localeCompare(a.startedAt))[0]
+
+  const askAi = () => {
+    const text = buildCoachPrompt(
+      session,
+      plan,
+      analyseSession(session.results, earlier?.results ?? null),
+    )
+
+    if (navigator.share) {
+      void navigator.share({ title: 'fitti Training', text }).catch(() => undefined)
+      return
+    }
+
+    void navigator.clipboard
+      ?.writeText(text)
+      .then(() => setCopied(true))
+      .catch(() => undefined)
+  }
+
   return (
     <div className="min-h-app">
       <PageHeader
@@ -113,18 +146,34 @@ export function SessionDetailPage() {
         })}
         back
         action={
-          <button
-            type="button"
-            aria-label="Eintrag löschen"
-            onClick={() => void onDelete()}
-            className="-mr-2 flex size-10 items-center justify-center rounded-full text-danger active:bg-surface"
-          >
-            <Trash2 size={20} aria-hidden />
-          </button>
+          <div className="-mr-2 flex items-center">
+            <button
+              type="button"
+              aria-label="Von einer KI bewerten lassen"
+              onClick={askAi}
+              className="flex size-10 items-center justify-center rounded-full text-accent active:bg-surface"
+            >
+              <Sparkles size={20} aria-hidden />
+            </button>
+            <button
+              type="button"
+              aria-label="Eintrag löschen"
+              onClick={() => void onDelete()}
+              className="flex size-10 items-center justify-center rounded-full text-danger active:bg-surface"
+            >
+              <Trash2 size={20} aria-hidden />
+            </button>
+          </div>
         }
       />
 
       <div className="pad-safe-bottom mx-auto max-w-lg space-y-4 px-4 py-4">
+        {copied ? (
+          <p className="rounded-card bg-accent/10 px-3 py-2 text-xs text-accent">
+            Auswertung in die Zwischenablage kopiert.
+          </p>
+        ) : null}
+
         {!session.completed ? (
           <p className="rounded-card bg-warn/10 px-3 py-2 text-xs text-warn">
             Dieses Training wurde vorzeitig beendet.

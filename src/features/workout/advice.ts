@@ -18,6 +18,8 @@ export interface SetAdvice {
  * reduzieren. Dazwischen bleibt das Gewicht stehen.
  */
 export function adviseSet(step: WorkoutStep, last: SetResult | undefined): SetAdvice {
+  // Zeitübungen wie Planks lassen sich nicht „schwerer“ machen, da wäre jeder
+  // Hinweis irreführend.
   if (step.exercise.mode !== 'reps' || !last || last.reps == null) {
     return { advice: 'unknown', text: '' }
   }
@@ -28,12 +30,23 @@ export function adviseSet(step: WorkoutStep, last: SetResult | undefined): SetAd
   const done = last.reps
   const weight = last.weightKg
 
+  // Ohne Zusatzgewicht bleibt nur die Wiederholungszahl als Stellschraube.
+  if (!step.exercise.usesWeight) {
+    if (done >= target) {
+      return { advice: 'increase', text: `Letztes Mal ${done} Wdh – versuch eine mehr` }
+    }
+    if (done <= target - 3) {
+      return { advice: 'decrease', text: `Letztes Mal ${done} von ${target} Wdh – sauber bleiben` }
+    }
+    return { advice: 'hold', text: `Letztes Mal ${done} von ${target} Wdh` }
+  }
+
   if (done >= target) {
     return {
       advice: 'increase',
       text: weight
         ? `Letztes Mal ${done} Wdh mit ${weight} kg – leg etwas drauf`
-        : `Letztes Mal ${done} Wdh geschafft – eine Stufe schwerer`,
+        : `Letztes Mal ${done} Wdh geschafft – etwas mehr Gewicht`,
     }
   }
 

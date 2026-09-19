@@ -104,7 +104,7 @@ function SegmentedProgress({
           {group.stepKeys.map((stepKey) => (
             <span
               key={stepKey}
-              className={`h-3 flex-1 rounded-full transition-colors ${STEP_COLORS[stateOf(stepKey)]}`}
+              className={`h-6 flex-1 rounded-full transition-colors ${STEP_COLORS[stateOf(stepKey)]}`}
             />
           ))}
         </div>
@@ -742,6 +742,20 @@ export function WorkoutPage() {
       </ul>
     ) : null
 
+  const titleBlock = (
+    <div className="text-center">
+      <h1 className="truncate text-lg font-semibold">{step.exercise.name}</h1>
+      {step.exercise.setup ? (
+        <p className="truncate text-xs text-warn">{step.exercise.setup}</p>
+      ) : null}
+      {step.rounds > 1 ? (
+        <p className="text-[11px] uppercase tracking-wider text-fg-faint">
+          Runde {step.round}/{step.rounds}
+        </p>
+      ) : null}
+    </div>
+  )
+
   // Empfehlung aus dem letzten Ergebnis desselben Satzes.
   const suggestion = inputStep
     ? adviseSet(inputStep, previous.get(resultKey(inputStep.exercise.exerciseId, inputStep.setIndex)))
@@ -763,30 +777,17 @@ export function WorkoutPage() {
 
   return (
     <div className="flex min-h-app flex-col">
+      {/*
+        Der Übungsname steht über der Animation, nicht hier oben: In der Pause
+        wäre er wertlos, und während des Satzes gehört er zur Figur.
+      */}
       <header className="pad-safe-top border-b border-line px-4 py-3">
-        {/*
-          In der Pause ist der Name des gerade beendeten Satzes wertlos. Dann
-          rückt der Fortschrittsbalken an seine Stelle, auf Höhe des Kreuzes.
-        */}
         <div className="mx-auto flex max-w-lg items-center gap-3">
-          {resting ? (
-            <SegmentedProgress
-              groups={progressGroups}
-              stateOf={stepStateOf}
-              className="min-w-0 flex-1"
-            />
-          ) : (
-            <div className="min-w-0 flex-1">
-              <h1 className="truncate text-lg font-semibold">{step.exercise.name}</h1>
-              {step.exercise.setup ? (
-                <p className="truncate text-xs text-warn">{step.exercise.setup}</p>
-              ) : step.rounds > 1 ? (
-                <p className="text-[11px] uppercase tracking-wider text-fg-faint">
-                  Runde {step.round}/{step.rounds}
-                </p>
-              ) : null}
-            </div>
-          )}
+          <SegmentedProgress
+            groups={progressGroups}
+            stateOf={stepStateOf}
+            className="min-w-0 flex-1"
+          />
 
           <button
             type="button"
@@ -797,10 +798,6 @@ export function WorkoutPage() {
             <X size={20} aria-hidden />
           </button>
         </div>
-
-        {resting ? null : (
-          <SegmentedProgress groups={progressGroups} stateOf={stepStateOf} className="mt-2" />
-        )}
       </header>
 
       <main
@@ -810,6 +807,8 @@ export function WorkoutPage() {
       >
         {ready ? (
           <>
+            {titleBlock}
+
             <AnimatedFigure
               exerciseId={step.exercise.exerciseId}
               timing={step.exercise.timing}
@@ -832,7 +831,10 @@ export function WorkoutPage() {
           </>
         ) : phase === 'rest' ? (
           <>
-            <NextUp step={nextStep} />
+            {/* Doppelter Abstand zur Uhr, damit Vorschau und Pause klar getrennt sind. */}
+            <div className="mb-3">
+              <NextUp step={nextStep} />
+            </div>
 
             <CountdownRing
               remainingMs={remainingMs}
@@ -890,6 +892,8 @@ export function WorkoutPage() {
           </>
         ) : (
           <>
+            {titleBlock}
+
             <AnimatedFigure
               exerciseId={step.exercise.exerciseId}
               timing={step.exercise.timing}

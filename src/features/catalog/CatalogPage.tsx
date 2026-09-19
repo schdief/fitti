@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { PageHeader } from '@/components/PageHeader'
-import { Card } from '@/components/ui'
+import { ActionButton, Card } from '@/components/ui'
 import { FilterChip, FilterSheet } from '@/features/catalog/FilterSheet'
 import { PlanCard } from '@/features/catalog/PlanCard'
 import { pickSurprise } from '@/features/catalog/surprise'
@@ -161,17 +161,17 @@ export function CatalogPage() {
 
         {visible.length > 0 ? (
           <>
-            <button
-              type="button"
+            <ActionButton
+              variant="primary"
               onClick={() => {
                 const pick = pickSurprise(visible, history)
                 if (pick) navigate(`/plan/${pick.id}`)
               }}
-              className="mt-3 flex w-full items-center justify-center gap-2 rounded-card border border-line bg-surface py-3 text-sm font-semibold text-accent active:bg-surface-hi"
+              className="mt-3 flex w-full items-center justify-center gap-2 py-3.5 text-base"
             >
               <Shuffle size={18} aria-hidden />
               Überrasch mich
-            </button>
+            </ActionButton>
 
             <p className="mt-4 text-xs text-fg-faint">
               {visible.length === 1 ? '1 Plan' : `${visible.length} Pläne`}
