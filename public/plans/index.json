@@ -1,79 +1,34 @@
 {
-  "generatedAt": "2026-08-26T13:18:42.298Z",
+  "generatedAt": "2026-09-19T04:09:25.730Z",
   "plans": [
     {
-      "id": "ganzkoerper-ohne-geraete-25",
-      "title": "Ganzkörper ohne Geräte",
-      "description": "Kurze Einheit für zu Hause. Nur Körpergewicht und eine Matte.",
-      "estimatedDurationMin": 25,
+      "id": "ruecken-gesaess-maschinen-40",
+      "title": "Rücken und Gesäß an Maschinen",
+      "description": "Hüftstreckung, Beinbeuger und oberer Rücken. Einsteigergewichte, alles an Maschinen und mit leichten Kurzhanteln.",
+      "estimatedDurationMin": 40,
       "level": "beginner",
       "equipment": [
-        "none",
-        "mat"
-      ],
-      "targetMuscles": [
-        "chest",
-        "quads",
-        "glutes",
-        "abs",
-        "triceps",
-        "mobility"
-      ],
-      "tags": [
-        "zuhause",
-        "kurz"
-      ],
-      "exerciseCount": 5,
-      "setCount": 11
-    },
-    {
-      "id": "huefte-beine-15",
-      "title": "Hüfte und Beine kompakt",
-      "description": "Kurzes Programm für Gesäß und Oberschenkel, ohne Geräte.",
-      "estimatedDurationMin": 15,
-      "level": "beginner",
-      "equipment": [
-        "none",
-        "mat"
-      ],
-      "targetMuscles": [
-        "glutes",
-        "quads",
-        "hamstrings",
-        "mobility"
-      ],
-      "tags": [
-        "kurz",
-        "beine"
-      ],
-      "exerciseCount": 3,
-      "setCount": 7
-    },
-    {
-      "id": "oberkoerper-kurzhanteln-30",
-      "title": "Oberkörper mit Kurzhanteln",
-      "description": "Drücken und Ziehen im Wechsel, mit Rumpfabschluss.",
-      "estimatedDurationMin": 30,
-      "level": "intermediate",
-      "equipment": [
+        "machine",
         "dumbbells",
-        "mat"
+        "bench"
       ],
       "targetMuscles": [
-        "chest",
-        "lats",
-        "shoulders",
-        "triceps",
+        "glutes",
+        "hamstrings",
         "upper-back",
-        "abs",
-        "mobility"
+        "lats",
+        "rear-delts",
+        "shoulders",
+        "traps",
+        "lower-back"
       ],
       "tags": [
-        "oberkörper",
-        "hantel"
+        "gerätetraining",
+        "rückseite",
+        "einsteiger"
       ],
       "exerciseCount": 6,
-      "setCount": 13
+      "setCount": 18
     }
   ]
 }

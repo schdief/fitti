@@ -1,0 +1,32 @@
+{
+  "id": "lying-leg-curl",
+  "view": "side",
+  "facing": "right",
+  "props": [
+    { "type": "bench", "x": 18, "y": 76, "w": 62, "h": 4 },
+    { "type": "plate", "attachTo": "footR" }
+  ],
+  "poses": {
+    "start": {
+      "head": [78, 62],
+      "neck": [74, 64],
+      "shoulderR": [68, 66],
+      "shoulderL": [68, 68],
+      "elbowR": [74, 70],
+      "elbowL": [74, 72],
+      "handR": [80, 72],
+      "handL": [80, 74],
+      "hip": [46, 70],
+      "kneeR": [32, 72],
+      "kneeL": [32, 74],
+      "footR": [18, 73],
+      "footL": [18, 75]
+    },
+    "mid": {
+      "footR": [24, 54],
+      "footL": [24, 56]
+    }
+  },
+  "arrowJoint": "footR",
+  "emphasis": ["hamstrings"]
+}

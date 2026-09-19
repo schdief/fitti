@@ -82,6 +82,9 @@ function FixedProp({ type, x = 50, y = 80, w = 20, h = 4, rot = 0 }: {
   rot?: number
 }) {
   const transform = rot ? `rotate(${rot} ${x + w / 2} ${y + h / 2})` : undefined
+  // Geräte und Auflagen sollen erkennbar sein, aber nicht mit der Figur konkurrieren.
+  const solid = 'fill-fg-faint'
+  const opacity = 0.4
 
   switch (type) {
     case 'mat':
@@ -92,24 +95,35 @@ function FixedProp({ type, x = 50, y = 80, w = 20, h = 4, rot = 0 }: {
           width={w}
           height={h}
           rx={1.5}
-          className="fill-fg-faint"
-          opacity={0.4}
+          className={solid}
+          opacity={opacity}
           transform={transform}
         />
       )
     case 'bench':
       return (
-        <g transform={transform} className="fill-line stroke-line">
+        <g transform={transform} className={`${solid} stroke-fg-faint`} opacity={opacity}>
           <rect x={x} y={y} width={w} height={h} rx={1} />
           <line x1={x + w * 0.15} y1={y + h} x2={x + w * 0.15} y2={GROUND_Y} strokeWidth={2} />
           <line x1={x + w * 0.85} y1={y + h} x2={x + w * 0.85} y2={GROUND_Y} strokeWidth={2} />
         </g>
       )
     case 'box':
-      return <rect x={x} y={y} width={w} height={h} rx={1} className="fill-line" transform={transform} />
+      return (
+        <rect
+          x={x}
+          y={y}
+          width={w}
+          height={h}
+          rx={1}
+          className={solid}
+          opacity={opacity}
+          transform={transform}
+        />
+      )
     case 'chair':
       return (
-        <g transform={transform} className="fill-line stroke-line">
+        <g transform={transform} className={`${solid} stroke-fg-faint`} opacity={opacity}>
           <rect x={x} y={y} width={w} height={2.5} />
           <line x1={x} y1={y} x2={x} y2={y - w * 0.8} strokeWidth={2} />
           <line x1={x + 1} y1={y + 2.5} x2={x + 1} y2={GROUND_Y} strokeWidth={2} />
@@ -117,9 +131,30 @@ function FixedProp({ type, x = 50, y = 80, w = 20, h = 4, rot = 0 }: {
         </g>
       )
     case 'wall':
-      return <rect x={x} y={y} width={2.5} height={h} className="fill-line" transform={transform} />
+      return (
+        <rect
+          x={x}
+          y={y}
+          width={2.5}
+          height={h}
+          className={solid}
+          opacity={opacity}
+          transform={transform}
+        />
+      )
     case 'pullup-bar':
-      return <rect x={x} y={y} width={w} height={2} rx={1} className="fill-line" transform={transform} />
+      return (
+        <rect
+          x={x}
+          y={y}
+          width={w}
+          height={2}
+          rx={1}
+          className={solid}
+          opacity={opacity}
+          transform={transform}
+        />
+      )
     case 'cable':
       return (
         <line
@@ -127,14 +162,26 @@ function FixedProp({ type, x = 50, y = 80, w = 20, h = 4, rot = 0 }: {
           y1={y}
           x2={x + w}
           y2={y + h}
-          className="stroke-line"
+          className="stroke-fg-faint"
+          opacity={opacity}
           strokeWidth={1.2}
           strokeDasharray="3 2"
           transform={transform}
         />
       )
     default:
-      return <rect x={x} y={y} width={w} height={h} rx={1} className="fill-line" transform={transform} />
+      return (
+        <rect
+          x={x}
+          y={y}
+          width={w}
+          height={h}
+          rx={1}
+          className={solid}
+          opacity={opacity}
+          transform={transform}
+        />
+      )
   }
 }
 

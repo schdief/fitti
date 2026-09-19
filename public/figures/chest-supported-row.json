@@ -1,0 +1,35 @@
+{
+  "id": "chest-supported-row",
+  "view": "side",
+  "facing": "right",
+  "props": [
+    { "type": "bench", "x": 34, "y": 54, "w": 30, "h": 4, "rot": -24 },
+    { "type": "plate", "attachTo": "handR" },
+    { "type": "plate", "attachTo": "handL" }
+  ],
+  "poses": {
+    "start": {
+      "head": [66, 36],
+      "neck": [62, 40],
+      "shoulderR": [57, 44],
+      "shoulderL": [57, 46],
+      "elbowR": [57, 58],
+      "elbowL": [55, 58],
+      "handR": [57, 72],
+      "handL": [55, 72],
+      "hip": [40, 58],
+      "kneeR": [36, 72],
+      "kneeL": [34, 72],
+      "footR": [32, 89],
+      "footL": [30, 90]
+    },
+    "mid": {
+      "elbowR": [48, 42],
+      "elbowL": [46, 44],
+      "handR": [56, 54],
+      "handL": [54, 56]
+    }
+  },
+  "arrowJoint": "handR",
+  "emphasis": ["upper-back", "lats"]
+}

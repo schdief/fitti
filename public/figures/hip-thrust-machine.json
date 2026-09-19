@@ -1,0 +1,37 @@
+{
+  "id": "hip-thrust-machine",
+  "view": "side",
+  "facing": "right",
+  "props": [
+    { "type": "bench", "x": 18, "y": 58, "w": 26, "h": 4 },
+    { "type": "barbell", "attachTo": "hip" }
+  ],
+  "poses": {
+    "start": {
+      "head": [22, 52],
+      "neck": [27, 55],
+      "shoulderR": [33, 58],
+      "shoulderL": [33, 60],
+      "elbowR": [40, 64],
+      "elbowL": [40, 66],
+      "handR": [47, 70],
+      "handL": [47, 72],
+      "hip": [52, 82],
+      "kneeR": [68, 70],
+      "kneeL": [68, 72],
+      "footR": [76, 89],
+      "footL": [76, 90]
+    },
+    "mid": {
+      "hip": [52, 64],
+      "kneeR": [68, 64],
+      "kneeL": [68, 66],
+      "elbowR": [40, 60],
+      "elbowL": [40, 62],
+      "handR": [47, 64],
+      "handL": [47, 66]
+    }
+  },
+  "arrowJoint": "hip",
+  "emphasis": ["glutes", "hamstrings"]
+}

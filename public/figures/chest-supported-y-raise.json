@@ -1,0 +1,35 @@
+{
+  "id": "chest-supported-y-raise",
+  "view": "side",
+  "facing": "right",
+  "props": [
+    { "type": "bench", "x": 36, "y": 56, "w": 28, "h": 4, "rot": -24 },
+    { "type": "dumbbell", "attachTo": "handR" },
+    { "type": "dumbbell", "attachTo": "handL" }
+  ],
+  "poses": {
+    "start": {
+      "head": [66, 38],
+      "neck": [62, 42],
+      "shoulderR": [57, 46],
+      "shoulderL": [57, 48],
+      "elbowR": [57, 60],
+      "elbowL": [55, 60],
+      "handR": [57, 74],
+      "handL": [55, 74],
+      "hip": [40, 60],
+      "kneeR": [36, 74],
+      "kneeL": [34, 74],
+      "footR": [32, 89],
+      "footL": [30, 90]
+    },
+    "mid": {
+      "elbowR": [67, 52],
+      "elbowL": [65, 54],
+      "handR": [78, 42],
+      "handL": [76, 44]
+    }
+  },
+  "arrowJoint": "handR",
+  "emphasis": ["shoulders", "traps"]
+}

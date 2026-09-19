@@ -1,12 +1,18 @@
 {
-  "generatedAt": "2026-08-26T13:18:42.305Z",
+  "generatedAt": "2026-09-19T04:09:25.739Z",
   "figures": [
+    "back-extension",
     "bodyweight-squat",
+    "chest-supported-row",
+    "chest-supported-y-raise",
     "child-pose",
     "dumbbell-row",
     "dumbbell-shoulder-press",
     "glute-bridge",
+    "hip-thrust-machine",
+    "lying-leg-curl",
     "plank",
-    "push-up"
+    "push-up",
+    "reverse-pec-deck"
   ]
 }

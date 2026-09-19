@@ -1,0 +1,31 @@
+{
+  "id": "reverse-pec-deck",
+  "view": "front",
+  "facing": "right",
+  "props": [],
+  "poses": {
+    "start": {
+      "head": [50, 14],
+      "neck": [50, 22],
+      "shoulderR": [60, 26],
+      "shoulderL": [40, 26],
+      "elbowR": [57, 34],
+      "elbowL": [43, 34],
+      "handR": [53, 38],
+      "handL": [47, 38],
+      "hip": [50, 54],
+      "kneeR": [58, 70],
+      "kneeL": [42, 70],
+      "footR": [58, 89],
+      "footL": [42, 89]
+    },
+    "mid": {
+      "elbowR": [72, 28],
+      "elbowL": [28, 28],
+      "handR": [86, 26],
+      "handL": [14, 26]
+    }
+  },
+  "arrowJoint": "handR",
+  "emphasis": ["rear-delts", "upper-back"]
+}

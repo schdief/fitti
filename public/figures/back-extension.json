@@ -1,0 +1,38 @@
+{
+  "id": "back-extension",
+  "view": "side",
+  "facing": "right",
+  "props": [
+    { "type": "bench", "x": 40, "y": 60, "w": 16, "h": 4, "rot": -20 },
+    { "type": "box", "x": 24, "y": 78, "w": 10, "h": 12 }
+  ],
+  "poses": {
+    "start": {
+      "head": [64, 80],
+      "neck": [61, 76],
+      "shoulderR": [57, 72],
+      "shoulderL": [57, 74],
+      "elbowR": [52, 75],
+      "elbowL": [52, 77],
+      "handR": [50, 70],
+      "handL": [50, 72],
+      "hip": [48, 62],
+      "kneeR": [36, 68],
+      "kneeL": [36, 70],
+      "footR": [28, 80],
+      "footL": [28, 82]
+    },
+    "mid": {
+      "head": [72, 56],
+      "neck": [68, 57],
+      "shoulderR": [63, 58],
+      "shoulderL": [63, 60],
+      "elbowR": [58, 61],
+      "elbowL": [58, 63],
+      "handR": [55, 57],
+      "handL": [55, 59]
+    }
+  },
+  "arrowJoint": "shoulderR",
+  "emphasis": ["glutes", "lower-back"]
+}
