@@ -1,4 +1,4 @@
-import { Check, ChevronRight, Clock, Plus, SkipForward, X } from 'lucide-react'
+import { Check, ChevronRight, Clock, CornerDownRight, Plus, SkipForward, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
@@ -147,8 +147,19 @@ export function WorkoutPage() {
   const sessionRef = useRef<WorkoutSession | null>(null)
 
   const steps = useMemo(() => (plan ? buildSteps(plan) : []), [plan])
-  const step = active ? steps[active.stepIndex] : undefined
-  const nextStep = active ? steps[active.stepIndex + 1] : undefined
+
+  // Die Reihenfolge lebt im Store, damit eine belegte Station nach hinten wandern kann.
+  const orderedSteps = useMemo(() => {
+    if (steps.length === 0) return []
+    const byKey = new Map(steps.map((entry) => [entry.key, entry]))
+    const fromOrder = (active?.order ?? [])
+      .map((key) => byKey.get(key))
+      .filter((entry): entry is WorkoutStep => entry !== undefined)
+    return fromOrder.length === steps.length ? fromOrder : steps
+  }, [steps, active?.order])
+
+  const step = active ? orderedSteps[active.stepIndex] : undefined
+  const nextStep = active ? orderedSteps[active.stepIndex + 1] : undefined
 
   const phase = active?.phase
   const endsAt = active?.endsAt ?? null
@@ -158,6 +169,13 @@ export function WorkoutPage() {
   useEffect(() => {
     void loadPreviousResults().then(setPrevious)
   }, [])
+
+  // Aeltere oder fremde Staende ohne gueltige Reihenfolge auf den Plan zuruecksetzen.
+  useEffect(() => {
+    if (!active || steps.length === 0) return
+    if (active.order?.length === steps.length) return
+    useWorkout.getState().setOrder(steps.map((entry) => entry.key))
+  }, [active, steps])
 
   // Eingabefelder auf den Vorschlagswert des anstehenden Satzes setzen.
   useEffect(() => {
@@ -190,13 +208,13 @@ export function WorkoutPage() {
     if (!current) return
 
     const nextIndex = current.stepIndex + 1
-    if (nextIndex >= steps.length) {
+    if (nextIndex >= orderedSteps.length) {
       state.finish()
       return
     }
 
     state.goToStep(nextIndex)
-    const upcoming = steps[nextIndex]!
+    const upcoming = orderedSteps[nextIndex]!
     state.beginWork(upcoming.exercise.mode === 'time' ? (upcoming.set.durationSec ?? null) : null)
   }
 
@@ -299,7 +317,7 @@ export function WorkoutPage() {
   const startWorkout = async () => {
     await primeWorkoutAudio()
     const state = useWorkout.getState()
-    state.start(plan.id, plan.title)
+    state.start(plan.id, plan.title, steps.map((entry) => entry.key))
     const first = steps[0]!
     state.beginWork(first.exercise.mode === 'time' ? (first.set.durationSec ?? null) : null)
   }
@@ -357,9 +375,9 @@ export function WorkoutPage() {
   }
 
   const completedSets = active.results.length
-  const progress = completedSets / steps.length
+  const progress = completedSets / Math.max(1, orderedSteps.length)
   const elapsedSec = (now - active.startedAt) / 1000
-  const leftSec = remainingSeconds(steps, active.stepIndex)
+  const leftSec = remainingSeconds(orderedSteps, active.stepIndex)
 
   if (phase === 'done') {
     const volume = active.results.reduce(
@@ -445,7 +463,7 @@ export function WorkoutPage() {
       at: new Date().toISOString(),
     })
 
-    const isLast = state.active!.stepIndex === steps.length - 1
+    const isLast = state.active!.stepIndex === orderedSteps.length - 1
     if (isLast) {
       state.finish()
       return
@@ -460,6 +478,29 @@ export function WorkoutPage() {
   }
 
   const remainingMs = endsAt ? Math.max(0, endsAt - now) : 0
+
+  // Alle noch offenen Sätze dieser Übung – die wandern gemeinsam nach hinten.
+  const deferKeys = orderedSteps
+    .slice(active.stepIndex)
+    .filter(
+      (entry) =>
+        entry.blockIndex === step.blockIndex && entry.exerciseIndex === step.exerciseIndex,
+    )
+    .map((entry) => entry.key)
+
+  const canDefer = orderedSteps.length - active.stepIndex > deferKeys.length
+
+  const deferExercise = () => {
+    const state = useWorkout.getState()
+    state.deferSteps(deferKeys)
+
+    const current = state.active
+    if (!current) return
+
+    const byKey = new Map(steps.map((entry) => [entry.key, entry]))
+    const upcoming = byKey.get(current.order[current.stepIndex] ?? '')
+    state.beginWork(upcoming?.exercise.mode === 'time' ? (upcoming.set.durationSec ?? null) : null)
+  }
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -577,14 +618,26 @@ export function WorkoutPage() {
       <footer className="pad-safe-bottom border-t border-line px-4 py-3">
         <div className="mx-auto max-w-lg space-y-3">
           {phase !== 'rest' ? (
-            <ActionButton
-              variant="primary"
-              onClick={submit}
-              className="flex w-full items-center justify-center gap-2 py-4 text-base"
-            >
-              <Check size={20} aria-hidden />
-              Satz erledigt
-            </ActionButton>
+            <div className="flex gap-2">
+              <ActionButton
+                variant="primary"
+                onClick={submit}
+                className="flex flex-1 items-center justify-center gap-2 py-4 text-base"
+              >
+                <Check size={20} aria-hidden />
+                Satz erledigt
+              </ActionButton>
+
+              {canDefer ? (
+                <ActionButton
+                  onClick={deferExercise}
+                  className="flex shrink-0 items-center gap-1.5 px-3 py-4"
+                >
+                  <CornerDownRight size={18} aria-hidden />
+                  Später
+                </ActionButton>
+              ) : null}
+            </div>
           ) : null}
 
           <dl className="flex items-center justify-between text-xs text-fg-muted">
@@ -618,8 +671,8 @@ export function WorkoutPage() {
               {completedSets === 0
                 ? 'Es ist noch kein Satz erfasst.'
                 : completedSets === 1
-                  ? `1 von ${steps.length} Sätzen ist geschafft.`
-                  : `${completedSets} von ${steps.length} Sätzen sind geschafft.`}
+                  ? `1 von ${orderedSteps.length} Sätzen ist geschafft.`
+                  : `${completedSets} von ${orderedSteps.length} Sätzen sind geschafft.`}
             </p>
 
             <ActionButton

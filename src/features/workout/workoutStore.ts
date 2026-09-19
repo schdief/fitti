@@ -10,6 +10,8 @@ interface ActiveWorkout {
   planTitle: string
   sessionId: string
   startedAt: number
+  /** Schlüssel der Sätze in der aktuellen Reihenfolge. Lässt sich umsortieren. */
+  order: string[]
   stepIndex: number
   phase: WorkoutPhase
   /** Zielzeitpunkt als Zeitstempel der Wanduhr, nicht als Restdauer. */
@@ -20,7 +22,9 @@ interface ActiveWorkout {
 }
 
 interface WorkoutActions {
-  start: (planId: string, planTitle: string) => void
+  start: (planId: string, planTitle: string, order: string[]) => void
+  setOrder: (order: string[]) => void
+  deferSteps: (keys: string[]) => void
   beginWork: (durationSec: number | null) => void
   finishWork: () => void
   submitResult: (result: SetResult) => void
@@ -38,13 +42,14 @@ export const useWorkout = create<{ active: ActiveWorkout | null } & WorkoutActio
     (set) => ({
       active: empty,
 
-      start: (planId, planTitle) =>
+      start: (planId, planTitle, order) =>
         set({
           active: {
             planId,
             planTitle,
             sessionId: crypto.randomUUID(),
             startedAt: Date.now(),
+            order,
             stepIndex: 0,
             phase: 'ready',
             endsAt: null,
@@ -52,6 +57,35 @@ export const useWorkout = create<{ active: ActiveWorkout | null } & WorkoutActio
             results: [],
             endedAt: null,
           },
+        }),
+
+      setOrder: (order) => set((state) => (state.active ? { active: { ...state.active, order } } : state)),
+
+      /**
+       * Schiebt die angegebenen Sätze ans Ende der Warteschlange. Bereits
+       * erledigte Sätze bleiben unberührt, `stepIndex` zeigt danach auf die
+       * nächste nicht verschobene Übung.
+       */
+      deferSteps: (keys) =>
+        set((state) => {
+          if (!state.active) return state
+
+          const { order, stepIndex } = state.active
+          const done = order.slice(0, stepIndex)
+          const upcoming = order.slice(stepIndex)
+          const moved = upcoming.filter((key) => keys.includes(key))
+          const stays = upcoming.filter((key) => !keys.includes(key))
+
+          if (moved.length === 0 || stays.length === 0) return state
+
+          return {
+            active: {
+              ...state.active,
+              order: [...done, ...stays, ...moved],
+              phase: 'work',
+              endsAt: null,
+            },
+          }
         }),
 
       beginWork: (durationSec) =>
