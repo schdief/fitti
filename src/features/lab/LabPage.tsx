@@ -6,6 +6,7 @@ import { AudioSpike } from '@/features/lab/AudioSpike'
 import { ShortcutSpike } from '@/features/lab/ShortcutSpike'
 import { SpotifySpike } from '@/features/lab/SpotifySpike'
 import { TimerSpike } from '@/features/lab/TimerSpike'
+import { ViewportSpike } from '@/features/lab/ViewportSpike'
 import { useLabLog } from '@/features/lab/labLog'
 import type { LogLevel } from '@/features/lab/labLog'
 
@@ -51,6 +52,7 @@ export function LabPage() {
         <TimerSpike />
         <ShortcutSpike />
         <SpotifySpike />
+        <ViewportSpike />
 
         <section>
           <div className="mb-2 flex items-center justify-between px-1">

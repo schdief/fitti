@@ -18,7 +18,7 @@ export function TabLayout() {
         erst nach der ersten Scrollbewegung neu, dadurch schwebte die Leiste
         beim Start über dem unteren Rand.
       */}
-      <nav className="pad-safe-bottom sticky bottom-0 z-40 border-t border-line bg-bg/85 backdrop-blur-xl">
+      <nav className="pad-safe-bottom sticky bottom-0 z-40 border-t border-line bg-surface/95 backdrop-blur-xl">
         <ul className="mx-auto flex max-w-lg">
           {tabs.map(({ to, label, Icon }) => (
             <li key={to} className="flex-1">
