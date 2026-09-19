@@ -3,31 +3,34 @@
   "view": "side",
   "facing": "right",
   "props": [
-    { "type": "bench", "x": 34, "y": 54, "w": 30, "h": 4, "rot": -24 },
+    { "type": "box", "x": 36, "y": 60, "w": 18, "h": 4 },
+    { "type": "wall", "x": 54, "y": 30, "w": 3, "h": 26 },
+    { "type": "pullup-bar", "x": 66, "y": 20, "w": 12, "h": 2 },
+    { "type": "cable", "x": 72, "y": 22, "w": 1, "h": 21 },
     { "type": "plate", "attachTo": "handR" },
     { "type": "plate", "attachTo": "handL" }
   ],
   "poses": {
     "start": {
-      "head": [66, 36],
-      "neck": [62, 40],
-      "shoulderR": [57, 44],
-      "shoulderL": [57, 46],
-      "elbowR": [57, 58],
-      "elbowL": [55, 58],
-      "handR": [57, 72],
-      "handL": [55, 72],
-      "hip": [40, 58],
-      "kneeR": [36, 72],
-      "kneeL": [34, 72],
-      "footR": [32, 89],
-      "footL": [30, 90]
+      "head": [44, 24],
+      "neck": [46, 32],
+      "shoulderR": [48, 38],
+      "shoulderL": [48, 40],
+      "elbowR": [60, 42],
+      "elbowL": [60, 44],
+      "handR": [72, 43],
+      "handL": [72, 45],
+      "hip": [44, 60],
+      "kneeR": [62, 62],
+      "kneeL": [62, 64],
+      "footR": [66, 89],
+      "footL": [66, 90]
     },
     "mid": {
-      "elbowR": [48, 42],
-      "elbowL": [46, 44],
-      "handR": [56, 54],
-      "handL": [54, 56]
+      "elbowR": [40, 44],
+      "elbowL": [40, 46],
+      "handR": [52, 43],
+      "handL": [52, 45]
     }
   },
   "arrowJoint": "handR",
