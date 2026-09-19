@@ -75,23 +75,25 @@ export const useWorkout = create<{ active: ActiveWorkout | null } & WorkoutActio
 
       /**
        * Schiebt Sätze ans Ende der Warteschlange und merkt sie als übersprungen.
-       * Der Nachzieher wird in Planreihenfolge sortiert, damit mehrere verschobene
-       * Übungen am Ende nicht durcheinandergeraten.
+       *
+       * Verschoben wird nur, was jetzt übersprungen wird. Früher wurden alle je
+       * markierten Sätze erneut einsortiert – sobald hinten ausschließlich solche
+       * standen, blieb nichts stehen und das Überspringen tat gar nichts mehr.
        */
       deferSteps: (keys) =>
         set((state) => {
           if (!state.active) return state
 
           const { order, stepIndex, deferred, planOrder } = state.active
-          const nextDeferred = [...new Set([...deferred, ...keys])]
 
           const done = order.slice(0, stepIndex)
           const upcoming = order.slice(stepIndex)
-          const moved = upcoming.filter((key) => nextDeferred.includes(key))
-          const stays = upcoming.filter((key) => !nextDeferred.includes(key))
+          const moved = upcoming.filter((key) => keys.includes(key))
+          const stays = upcoming.filter((key) => !keys.includes(key))
 
           if (moved.length === 0 || stays.length === 0) return state
 
+          // Innerhalb der Übung die Satzreihenfolge des Plans behalten.
           const planPosition = new Map(planOrder.map((key, index) => [key, index]))
           moved.sort((a, b) => (planPosition.get(a) ?? 0) - (planPosition.get(b) ?? 0))
 
@@ -99,7 +101,7 @@ export const useWorkout = create<{ active: ActiveWorkout | null } & WorkoutActio
             active: {
               ...state.active,
               order: [...done, ...stays, ...moved],
-              deferred: nextDeferred,
+              deferred: [...new Set([...deferred, ...keys])],
             },
           }
         }),
