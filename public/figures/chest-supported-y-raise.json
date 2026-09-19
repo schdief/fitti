@@ -24,10 +24,10 @@
       "footL": [30, 90]
     },
     "mid": {
-      "elbowR": [67, 52],
-      "elbowL": [65, 54],
-      "handR": [78, 42],
-      "handL": [76, 44]
+      "elbowR": [63, 33],
+      "elbowL": [63, 35],
+      "handR": [70, 21],
+      "handL": [70, 23]
     }
   },
   "arrowJoint": "handR",
