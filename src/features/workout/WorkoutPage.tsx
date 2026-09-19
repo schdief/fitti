@@ -503,10 +503,6 @@ export function WorkoutPage() {
               Gegenüber dem letzten Mal
             </h2>
 
-            {analysis.better.length === 0 && analysis.worse.length === 0 ? (
-              <p className="text-sm text-fg-muted">Alles auf dem Niveau vom letzten Mal.</p>
-            ) : null}
-
             {analysis.better.map((entry) => (
               <p key={entry.exerciseId} className="flex justify-between gap-3 text-sm">
                 <span className="truncate">{entry.exerciseName}</span>
@@ -522,6 +518,21 @@ export function WorkoutPage() {
                 <span className="shrink-0 font-semibold text-warn">
                   {formatDelta(entry.deltaPercent)}
                 </span>
+              </p>
+            ))}
+
+            {/* Unveränderte und neue Übungen bleiben sichtbar, sonst fehlt der Überblick. */}
+            {analysis.unchanged.map((entry) => (
+              <p key={entry.exerciseId} className="flex justify-between gap-3 text-sm">
+                <span className="truncate text-fg-muted">{entry.exerciseName}</span>
+                <span className="shrink-0 font-semibold text-fg-faint">± 0 %</span>
+              </p>
+            ))}
+
+            {analysis.fresh.map((entry) => (
+              <p key={entry.exerciseId} className="flex justify-between gap-3 text-sm">
+                <span className="truncate text-fg-muted">{entry.exerciseName}</span>
+                <span className="shrink-0 text-fg-faint">neu</span>
               </p>
             ))}
           </Card>

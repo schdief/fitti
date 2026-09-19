@@ -80,6 +80,8 @@ export interface SessionAnalysis {
   better: ExerciseComparison[]
   worse: ExerciseComparison[]
   unchanged: ExerciseComparison[]
+  /** Übungen ohne Vorgeschichte, es gibt also nichts zu vergleichen. */
+  fresh: ExerciseComparison[]
   hasComparison: boolean
 }
 
@@ -127,6 +129,7 @@ export function analyseSession(
     unchanged: comparisons.filter(
       (entry) => entry.previousVolume > 0 && Math.abs(entry.deltaPercent) <= NOISE_PERCENT,
     ),
+    fresh: comparisons.filter((entry) => entry.previousVolume === 0),
     hasComparison,
   }
 }
