@@ -2,16 +2,20 @@ import { ChevronLeft } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { FittiLogo } from '@/components/FittiLogo'
+
 export function PageHeader({
   title,
   subtitle,
   action,
   back = false,
+  logo = false,
 }: {
   title: string
   subtitle?: string
   action?: ReactNode
   back?: boolean
+  logo?: boolean
 }) {
   const navigate = useNavigate()
 
@@ -28,6 +32,8 @@ export function PageHeader({
             <ChevronLeft size={24} aria-hidden />
           </button>
         ) : null}
+
+        {logo ? <FittiLogo className="h-5 shrink-0" /> : null}
 
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-[22px] font-semibold tracking-tight">{title}</h1>

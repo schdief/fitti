@@ -86,6 +86,7 @@ export function LogbookPage() {
     <>
       <PageHeader
         title="Logbuch"
+        logo
         subtitle={
           loaded ? (sessions.length === 1 ? '1 Training' : `${sessions.length} Trainings`) : undefined
         }

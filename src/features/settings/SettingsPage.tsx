@@ -4,7 +4,7 @@ import { settingsSections } from '@/features/settings/sections'
 export function SettingsPage() {
   return (
     <div className="min-h-dvh">
-      <PageHeader title="Einstellungen" back />
+      <PageHeader title="Einstellungen" back logo />
 
       <div className="pad-safe-bottom mx-auto max-w-lg space-y-6 px-4 py-4">
         {settingsSections.map(({ id, title, description, Component }) => (

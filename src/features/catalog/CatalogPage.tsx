@@ -38,6 +38,7 @@ export function CatalogPage() {
     <>
       <PageHeader
         title="Trainingspläne"
+        logo
         action={
           <Link
             to="/settings"
