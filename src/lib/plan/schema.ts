@@ -130,9 +130,12 @@ export const catalogEntrySchema = z
   })
   .strict()
 
+/**
+ * Bewusst ohne Zeitstempel: Die Datei wird generiert und in Git verglichen.
+ * Ein Zeitstempel würde bei jedem Lauf einen Unterschied erzeugen.
+ */
 export const catalogSchema = z
   .object({
-    generatedAt: z.string(),
     plans: z.array(catalogEntrySchema),
   })
   .strict()

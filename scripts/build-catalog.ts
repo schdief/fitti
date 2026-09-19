@@ -50,7 +50,7 @@ entries.sort((a, b) => a.title.localeCompare(b.title, 'de'))
 
 await writeFile(
   resolve(plansDir, 'index.json'),
-  `${JSON.stringify({ generatedAt: new Date().toISOString(), plans: entries }, null, 2)}\n`,
+  `${JSON.stringify({ plans: entries }, null, 2)}\n`,
   'utf8',
 )
 
@@ -64,7 +64,7 @@ const figures = (await readdir(figuresDir))
 
 await writeFile(
   resolve(figuresDir, 'index.json'),
-  `${JSON.stringify({ generatedAt: new Date().toISOString(), figures }, null, 2)}\n`,
+  `${JSON.stringify({ figures }, null, 2)}\n`,
   'utf8',
 )
 
