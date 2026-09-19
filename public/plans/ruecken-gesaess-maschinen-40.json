@@ -27,6 +27,26 @@
       "restBetweenRoundsSec": 0,
       "exercises": [
         {
+          "exerciseId": "back-extension",
+          "name": "Back Extensions mit Hüftfokus",
+          "mode": "reps",
+          "usesWeight": false,
+          "primaryMuscles": ["glutes", "lower-back"],
+          "secondaryMuscles": ["hamstrings"],
+          "equipment": ["machine"],
+          "timing": { "toMidSec": 2, "holdMidSec": 0, "toStartSec": 2, "holdStartSec": 1 },
+          "setup": "Stufe 4",
+          "cues": [
+            "Hände vor der Brust verschränken",
+            "Bewegung aus der Hüfte, Rücken bleibt lang"
+          ],
+          "sets": [
+            { "reps": 12, "restSec": 75 },
+            { "reps": 12, "restSec": 75 },
+            { "reps": 10, "restSec": 90 }
+          ]
+        },
+        {
           "exerciseId": "hip-thrust-machine",
           "name": "Hip Thrust Maschine",
           "mode": "reps",
@@ -42,26 +62,12 @@
           "sets": [
             { "reps": 12, "targetWeightKg": 25, "restSec": 105 },
             { "reps": 11, "targetWeightKg": 30, "restSec": 105 },
-            { "reps": 10, "targetWeightKg": 30, "restSec": 120, "note": "Zzgl. Eigengewicht der Maschine" }
-          ]
-        },
-        {
-          "exerciseId": "chest-supported-y-raise",
-          "name": "Brustgestützte Y-Raises",
-          "mode": "reps",
-          "usesWeight": true,
-          "primaryMuscles": ["shoulders", "traps"],
-          "secondaryMuscles": ["upper-back", "rear-delts"],
-          "equipment": ["dumbbells", "bench"],
-          "timing": { "toMidSec": 2, "holdMidSec": 1, "toStartSec": 2 },
-          "cues": [
-            "Arme im Y nach oben führen, Daumen zeigen nach außen",
-            "Sehr leicht wählen, Technik geht vor Gewicht"
-          ],
-          "sets": [
-            { "reps": 15, "targetWeightKg": 2, "restSec": 75 },
-            { "reps": 14, "targetWeightKg": 2, "restSec": 75 },
-            { "reps": 12, "targetWeightKg": 3, "restSec": 90 }
+            {
+              "reps": 10,
+              "targetWeightKg": 30,
+              "restSec": 120,
+              "note": "Zzgl. Eigengewicht der Maschine"
+            }
           ]
         },
         {
@@ -73,6 +79,7 @@
           "secondaryMuscles": ["calves"],
           "equipment": ["machine"],
           "timing": { "toMidSec": 2, "holdMidSec": 1, "toStartSec": 2 },
+          "setup": "Fuß 1 · Knie 4",
           "cues": ["Hüfte bleibt auf dem Polster", "Langsam ablassen, nicht fallen lassen"],
           "sets": [
             { "reps": 12, "targetWeightKg": 25, "restSec": 90 },
@@ -89,6 +96,7 @@
           "secondaryMuscles": ["biceps", "rear-delts"],
           "equipment": ["machine"],
           "timing": { "toMidSec": 2, "holdMidSec": 1, "toStartSec": 2 },
+          "setup": "Sitz 5 · Arm 2",
           "cues": [
             "Schulterblätter zuerst zusammenziehen",
             "Ellbogen eng am Körper nach hinten führen"
@@ -100,22 +108,23 @@
           ]
         },
         {
-          "exerciseId": "back-extension",
-          "name": "Back Extensions mit Hüftfokus",
+          "exerciseId": "chest-supported-y-raise",
+          "name": "Brustgestützte Y-Raises",
           "mode": "reps",
-          "usesWeight": false,
-          "primaryMuscles": ["glutes", "lower-back"],
-          "secondaryMuscles": ["hamstrings"],
-          "equipment": ["machine"],
-          "timing": { "toMidSec": 2, "holdMidSec": 0, "toStartSec": 2, "holdStartSec": 1 },
+          "usesWeight": true,
+          "primaryMuscles": ["shoulders", "traps"],
+          "secondaryMuscles": ["upper-back", "rear-delts"],
+          "equipment": ["dumbbells", "bench"],
+          "timing": { "toMidSec": 2, "holdMidSec": 1, "toStartSec": 2 },
+          "weightStepKg": 1,
           "cues": [
-            "Hände vor der Brust verschränken",
-            "Bewegung aus der Hüfte, Rücken bleibt lang"
+            "Arme im Y nach oben führen, Daumen zeigen nach außen",
+            "Sehr leicht wählen, Technik geht vor Gewicht"
           ],
           "sets": [
-            { "reps": 12, "restSec": 75 },
-            { "reps": 12, "restSec": 75 },
-            { "reps": 10, "restSec": 90 }
+            { "reps": 15, "targetWeightKg": 2, "restSec": 75 },
+            { "reps": 14, "targetWeightKg": 2, "restSec": 75 },
+            { "reps": 12, "targetWeightKg": 3, "restSec": 90 }
           ]
         },
         {
@@ -127,10 +136,13 @@
           "secondaryMuscles": ["upper-back", "traps"],
           "equipment": ["machine"],
           "timing": { "toMidSec": 2, "holdMidSec": 1, "toStartSec": 2 },
+          "setup": "Sitz 4 · Arme 1",
+          "weightStepKg": 7,
+          "weightOptionsKg": [10, 11, 18, 25],
           "cues": ["Ellbogen leicht gebeugt lassen", "Nicht mit Schwung arbeiten"],
           "sets": [
-            { "reps": 15, "targetWeightKg": 20, "restSec": 75 },
-            { "reps": 14, "targetWeightKg": 20, "restSec": 75 },
+            { "reps": 15, "targetWeightKg": 18, "restSec": 75 },
+            { "reps": 14, "targetWeightKg": 18, "restSec": 75 },
             { "reps": 12, "targetWeightKg": 25, "restSec": 90 }
           ]
         }

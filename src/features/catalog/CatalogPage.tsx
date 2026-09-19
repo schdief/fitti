@@ -37,7 +37,7 @@ export function CatalogPage() {
   return (
     <>
       <PageHeader
-        title="Trainingspläne"
+        title="fitti"
         logo
         action={
           <Link

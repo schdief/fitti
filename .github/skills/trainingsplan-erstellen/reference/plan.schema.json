@@ -306,6 +306,24 @@
                     "maxLength": 90
                   }
                 },
+                "setup": {
+                  "type": "string",
+                  "maxLength": 60
+                },
+                "weightStepKg": {
+                  "type": "number",
+                  "minimum": 0.1,
+                  "maximum": 50
+                },
+                "weightOptionsKg": {
+                  "maxItems": 40,
+                  "type": "array",
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 500
+                  }
+                },
                 "sets": {
                   "minItems": 1,
                   "maxItems": 20,

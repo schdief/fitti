@@ -64,10 +64,34 @@ export const exerciseSchema = z
     equipment: z.array(equipmentSchema).default([]),
     timing: timingSchema.default(DEFAULT_TIMING),
     cues: z.array(z.string().max(90)).max(4).default([]),
+    /** Einstellungen an der Maschine, etwa "Sitz 5 · Arm 2". */
+    setup: z.string().max(60).optional(),
+    /**
+     * Schrittweite der Gewichtsauswahl für diese Übung. Ohne Angabe gilt die
+     * Einstellung aus dem Profil. Kurzhanteln brauchen feinere Schritte als
+     * Maschinen.
+     */
+    weightStepKg: z.number().min(0.1).max(50).optional(),
+    /**
+     * Tatsächlich wählbare Stufen des Gewichtsstapels, aufsteigend. Oberhalb der
+     * letzten Stufe geht es mit `weightStepKg` weiter.
+     */
+    weightOptionsKg: z.array(z.number().min(0).max(500)).max(40).optional(),
     sets: z.array(setSchema).min(1).max(20),
   })
   .strict()
   .superRefine((exercise, ctx) => {
+    if (exercise.weightOptionsKg) {
+      const sorted = [...exercise.weightOptionsKg].sort((a, b) => a - b)
+      if (sorted.some((value, index) => value !== exercise.weightOptionsKg![index])) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['weightOptionsKg'],
+          message: 'Stufen müssen aufsteigend sortiert sein',
+        })
+      }
+    }
+
     exercise.sets.forEach((set, index) => {
       if (exercise.mode === 'reps' && set.reps === undefined) {
         ctx.addIssue({

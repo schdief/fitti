@@ -6,8 +6,6 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { ActionButton, Card } from '@/components/ui'
 import { usePlan } from '@/features/catalog/useCatalog'
 import { AnimatedFigure } from '@/features/figures/AnimatedFigure'
-import { FigureView } from '@/features/figures/FigureView'
-import { useFigure } from '@/features/figures/useFigure'
 import { MusicBar } from '@/features/music/MusicBar'
 import { loadPreviousResults, saveSession } from '@/features/logbook/db'
 import type { SetResult, WorkoutSession } from '@/features/logbook/db'
@@ -18,6 +16,7 @@ import { cue, primeWorkoutAudio, signal } from '@/features/workout/cues'
 import { buildSteps, formatClock, remainingSeconds, resultKey } from '@/features/workout/steps'
 import type { WorkoutStep } from '@/features/workout/steps'
 import { useTicker } from '@/features/workout/useTicker'
+import { nextWeight } from '@/features/workout/weights'
 import { useWorkout } from '@/features/workout/workoutStore'
 import { releaseWakeLock, requestWakeLock } from '@/lib/wakeLock'
 
@@ -79,18 +78,20 @@ const STEP_COLORS: Record<StepState, string> = {
 function SegmentedProgress({
   groups,
   stateOf,
+  className = '',
 }: {
   groups: { key: string; stepKeys: string[] }[]
   stateOf: (stepKey: string) => StepState
+  className?: string
 }) {
   return (
-    <div className="mx-auto mt-2 flex max-w-lg gap-1.5" aria-hidden>
+    <div className={`mx-auto flex max-w-lg gap-1.5 ${className}`} aria-hidden>
       {groups.map((group) => (
         <div key={group.key} className="flex flex-1 gap-0.5">
           {group.stepKeys.map((stepKey) => (
             <span
               key={stepKey}
-              className={`h-1.5 flex-1 rounded-full transition-colors ${STEP_COLORS[stateOf(stepKey)]}`}
+              className={`h-3 flex-1 rounded-full transition-colors ${STEP_COLORS[stateOf(stepKey)]}`}
             />
           ))}
         </div>
@@ -103,20 +104,12 @@ function SegmentedProgress({
 function InlineStepper({
   label,
   value,
-  step,
-  min,
-  max,
-  onChange,
+  onStep,
 }: {
   label: string
   value: number
-  step: number
-  min: number
-  max: number
-  onChange: (next: number) => void
+  onStep: (direction: 1 | -1) => void
 }) {
-  const clamp = (next: number) => Math.min(max, Math.max(min, Math.round(next * 100) / 100))
-
   return (
     <div className="flex flex-col items-center gap-1">
       <span className="text-xs uppercase tracking-wider text-fg-faint">{label}</span>
@@ -124,7 +117,7 @@ function InlineStepper({
         <button
           type="button"
           aria-label={`${label} verringern`}
-          onClick={() => onChange(clamp(value - step))}
+          onClick={() => onStep(-1)}
           className="size-16 shrink-0 rounded-2xl bg-surface-hi text-3xl leading-none text-fg-muted active:bg-line"
         >
           −
@@ -133,7 +126,7 @@ function InlineStepper({
         <button
           type="button"
           aria-label={`${label} erhöhen`}
-          onClick={() => onChange(clamp(value + step))}
+          onClick={() => onStep(1)}
           className="size-16 shrink-0 rounded-2xl bg-surface-hi text-3xl leading-none text-fg-muted active:bg-line"
         >
           +
@@ -144,17 +137,17 @@ function InlineStepper({
 }
 
 function NextUp({ step }: { step: WorkoutStep | undefined }) {
-  const { figure } = useFigure(step?.exercise.exerciseId ?? null)
-
   if (!step) {
     return <p className="text-center text-sm text-fg-muted">Danach ist Schluss.</p>
   }
 
   return (
     <div className="flex items-center justify-center gap-3">
-      {figure ? (
-        <FigureView figure={figure} pose="start" className="size-12 rounded-lg bg-surface-hi" />
-      ) : null}
+      <AnimatedFigure
+        exerciseId={step.exercise.exerciseId}
+        timing={step.exercise.timing}
+        className="size-16 shrink-0"
+      />
       <div className="text-left">
         <p className="text-[11px] uppercase tracking-wider text-fg-faint">Als Nächstes</p>
         <p className="text-sm font-medium">{step.exercise.name}</p>
@@ -162,6 +155,9 @@ function NextUp({ step }: { step: WorkoutStep | undefined }) {
           Satz {step.setIndex + 1}/{step.setCount} ·{' '}
           {step.exercise.mode === 'time' ? `${step.set.durationSec} s` : `${step.set.reps} Wdh`}
         </p>
+        {step.exercise.setup ? (
+          <p className="text-xs text-warn">{step.exercise.setup}</p>
+        ) : null}
       </div>
     </div>
   )
@@ -227,6 +223,13 @@ export function WorkoutPage() {
   const running = Boolean(active) && phase !== 'done'
   const now = useTicker(running)
 
+  /**
+   * Satz, auf den sich die Eingabefelder beziehen. In der Pause ist das bereits
+   * der nächste – so lässt sich das Gewicht einstellen, während man sitzt, und
+   * der Wert bleibt beim Weitermachen erhalten.
+   */
+  const inputStep = phase === 'rest' ? nextStep : step
+
   useEffect(() => {
     void loadPreviousResults().then(setPrevious)
   }, [])
@@ -240,11 +243,11 @@ export function WorkoutPage() {
 
   // Eingabefelder auf den Vorschlagswert des anstehenden Satzes setzen.
   useEffect(() => {
-    if (!step) return
-    const last = previous.get(resultKey(step.exercise.exerciseId, step.setIndex))
-    setReps(last?.reps ?? step.set.reps ?? 0)
-    setWeightKg(last?.weightKg ?? step.set.targetWeightKg ?? 0)
-  }, [step?.key, previous])
+    if (!inputStep) return
+    const last = previous.get(resultKey(inputStep.exercise.exerciseId, inputStep.setIndex))
+    setReps(last?.reps ?? inputStep.set.reps ?? 0)
+    setWeightKg(last?.weightKg ?? inputStep.set.targetWeightKg ?? 0)
+  }, [inputStep?.key, previous])
 
   // Display wachhalten. iOS gibt die Sperre beim Wechsel in den Hintergrund frei,
   // deshalb wird sie beim Zurückkommen neu angefordert.
@@ -659,15 +662,30 @@ export function WorkoutPage() {
   return (
     <div className="flex min-h-app flex-col">
       <header className="pad-safe-top border-b border-line px-4 py-3">
+        {/*
+          In der Pause ist der Name des gerade beendeten Satzes wertlos. Dann
+          rückt der Fortschrittsbalken an seine Stelle, auf Höhe des Kreuzes.
+        */}
         <div className="mx-auto flex max-w-lg items-center gap-3">
-          <div className="min-w-0 flex-1">
-            <h1 className="truncate text-lg font-semibold">{step.exercise.name}</h1>
-            {step.rounds > 1 ? (
-              <p className="text-[11px] uppercase tracking-wider text-fg-faint">
-                Runde {step.round}/{step.rounds}
-              </p>
-            ) : null}
-          </div>
+          {resting ? (
+            <SegmentedProgress
+              groups={progressGroups}
+              stateOf={stepStateOf}
+              className="min-w-0 flex-1"
+            />
+          ) : (
+            <div className="min-w-0 flex-1">
+              <h1 className="truncate text-lg font-semibold">{step.exercise.name}</h1>
+              {step.exercise.setup ? (
+                <p className="truncate text-xs text-warn">{step.exercise.setup}</p>
+              ) : step.rounds > 1 ? (
+                <p className="text-[11px] uppercase tracking-wider text-fg-faint">
+                  Runde {step.round}/{step.rounds}
+                </p>
+              ) : null}
+            </div>
+          )}
+
           <button
             type="button"
             aria-label="Training beenden"
@@ -678,7 +696,9 @@ export function WorkoutPage() {
           </button>
         </div>
 
-        <SegmentedProgress groups={progressGroups} stateOf={stepStateOf} />
+        {resting ? null : (
+          <SegmentedProgress groups={progressGroups} stateOf={stepStateOf} className="mt-2" />
+        )}
       </header>
 
       <main
@@ -709,12 +729,27 @@ export function WorkoutPage() {
           </>
         ) : phase === 'rest' ? (
           <>
+            <NextUp step={nextStep} />
+
             <CountdownRing
               remainingMs={remainingMs}
               totalMs={active.plannedRestSec * 1000}
               caption="Pause"
+              compact
             />
-            <NextUp step={nextStep} />
+
+            {/* Gewicht schon in der Pause einstellen, dann steht es beim Start. */}
+            {nextStep?.exercise.usesWeight ? (
+              <InlineStepper
+                label="kg"
+                value={weightKg}
+                onStep={(direction) =>
+                  setWeightKg(
+                    nextWeight(weightKg, direction, nextStep.exercise, training.weightStepKg),
+                  )
+                }
+              />
+            ) : null}
 
             <div className="flex justify-center gap-2">
               <ActionButton onClick={() => useWorkout.getState().extendRest(30)}>
@@ -774,20 +809,18 @@ export function WorkoutPage() {
                 <InlineStepper
                   label="Wdh"
                   value={reps}
-                  step={1}
-                  min={0}
-                  max={500}
-                  onChange={setReps}
+                  onStep={(direction) => setReps(Math.max(0, Math.min(500, reps + direction)))}
                 />
               )}
               {step.exercise.usesWeight ? (
                 <InlineStepper
                   label="kg"
                   value={weightKg}
-                  step={training.weightStepKg}
-                  min={0}
-                  max={500}
-                  onChange={setWeightKg}
+                  onStep={(direction) =>
+                    setWeightKg(
+                      nextWeight(weightKg, direction, step.exercise, training.weightStepKg),
+                    )
+                  }
                 />
               ) : null}
             </div>

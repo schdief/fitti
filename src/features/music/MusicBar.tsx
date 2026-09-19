@@ -28,7 +28,7 @@ function ControlButton({
       aria-label={label}
       onClick={onClick}
       className={`flex shrink-0 items-center justify-center rounded-full active:opacity-70 ${
-        primary ? 'size-10 bg-accent text-accent-fg' : 'size-9 text-fg-muted'
+        primary ? 'size-14 bg-accent text-accent-fg' : 'size-12 text-fg-muted'
       }`}
     >
       {children}
@@ -61,9 +61,10 @@ export function MusicBar() {
   }
 
   const position = scrubbing ?? interpolatedProgress(now)
+  const played = snapshot.durationMs > 0 ? Math.min(100, (position / snapshot.durationMs) * 100) : 0
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-3">
       <p className="truncate text-center text-xs text-fg-muted">
         <span className="text-fg">{snapshot.title}</span>
         {snapshot.artist ? ` · ${snapshot.artist}` : ''}
@@ -71,7 +72,7 @@ export function MusicBar() {
 
       <div className="flex items-center gap-2">
         <ControlButton label="Vorheriger Titel" onClick={() => void previous()}>
-          <SkipBack size={18} aria-hidden />
+          <SkipBack size={24} aria-hidden />
         </ControlButton>
 
         <ControlButton
@@ -79,14 +80,14 @@ export function MusicBar() {
           primary
           onClick={() => void (snapshot.isPlaying ? pause() : play())}
         >
-          {snapshot.isPlaying ? <Pause size={18} aria-hidden /> : <Play size={18} aria-hidden />}
+          {snapshot.isPlaying ? <Pause size={26} aria-hidden /> : <Play size={26} aria-hidden />}
         </ControlButton>
 
         <ControlButton label="Nächster Titel" onClick={() => void next()}>
-          <SkipForward size={18} aria-hidden />
+          <SkipForward size={24} aria-hidden />
         </ControlButton>
 
-        <span className="shrink-0 text-[11px] tabular-nums text-fg-faint">{clock(position)}</span>
+        <span className="shrink-0 text-[11px] tabular-nums text-accent">{clock(position)}</span>
 
         <input
           type="range"
@@ -99,7 +100,12 @@ export function MusicBar() {
             if (scrubbing !== null) void seek(scrubbing)
             setScrubbing(null)
           }}
-          className="h-1 min-w-0 flex-1 appearance-none rounded-full bg-surface-hi accent-accent"
+          // Der abgespielte Teil wird grün eingefärbt, accent-color allein färbt
+          // auf iOS nur den Griff.
+          style={{
+            background: `linear-gradient(to right, var(--color-accent) ${played}%, var(--color-surface-hi) ${played}%)`,
+          }}
+          className="h-1.5 min-w-0 flex-1 appearance-none rounded-full accent-accent"
         />
 
         <span className="shrink-0 text-[11px] tabular-nums text-fg-faint">
