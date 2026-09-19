@@ -183,6 +183,9 @@ export function WorkoutPage() {
   const [weightKg, setWeightKg] = useState(0)
   const savedRef = useRef(false)
   const sessionRef = useRef<WorkoutSession | null>(null)
+  // Muss vor allen vorzeitigen Rückgaben stehen, sonst bricht React ab, sobald
+  // der Abschlussbildschirm erscheint.
+  const swipeStart = useRef<{ x: number; y: number } | null>(null)
 
   const steps = useMemo(() => (plan ? buildSteps(plan) : []), [plan])
 
@@ -613,8 +616,6 @@ export function WorkoutPage() {
 
   // Wischen als Abkürzung: nach links die Übung nach hinten schieben, nach
   // rechts die zuletzt geschobene zurückholen. Die Knöpfe tun dasselbe.
-  const swipeStart = useRef<{ x: number; y: number } | null>(null)
-
   const onTouchStart = (event: ReactTouchEvent) => {
     const touch = event.touches[0]
     swipeStart.current = touch ? { x: touch.clientX, y: touch.clientY } : null

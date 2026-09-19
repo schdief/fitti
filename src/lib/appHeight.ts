@@ -9,11 +9,18 @@
  */
 export function trackAppHeight(): void {
   const apply = () => {
-    document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`)
+    const height = window.visualViewport?.height ?? window.innerHeight
+    document.documentElement.style.setProperty('--app-height', `${Math.round(height)}px`)
   }
 
   apply()
 
+  // iOS meldet direkt nach dem Start gelegentlich noch die alte Höhe, ohne dass
+  // ein Ereignis folgt. Deshalb kurz nach dem ersten Zeichnen erneut messen.
+  requestAnimationFrame(apply)
+  window.setTimeout(apply, 300)
+
+  window.addEventListener('load', apply)
   window.addEventListener('resize', apply)
   window.addEventListener('orientationchange', apply)
   window.addEventListener('pageshow', apply)
