@@ -87,11 +87,25 @@ test('workout fits with music, preserves input in rest and completes without err
   await page.getByRole('button', { name: 'Überspringen', exact: true }).click()
   await expect(page.getByRole('button', { name: 'kg erhöhen', exact: true })).toBeVisible()
   await expect(page.getByText(/Letztes Mal/)).toBeVisible()
+  const stackedInputs = await page.locator('main').evaluate((main) => {
+    const image = main.querySelector('.workout-active-figure')!.getBoundingClientRect()
+    const outputs = [...main.querySelectorAll('output')].map((element) => element.getBoundingClientRect())
+    return outputs.length === 2 && outputs[0].top >= image.bottom && outputs[1].top > outputs[0].bottom
+  })
+  expect(stackedInputs, 'Wdh and kg stay stacked below the exercise image').toBe(true)
   await fitsWidth(page)
   expect(await page.evaluate(() => document.documentElement.scrollHeight - innerHeight), 'weighted workout with advice should fit').toBeLessThanOrEqual(1)
   await page.getByRole('button', { name: 'Fertig', exact: true }).click()
   await page.getByRole('button', { name: 'kg erhöhen', exact: true }).click()
   const weight = await page.getByRole('status').last().textContent()
+  expect(await page.locator('.next-preview').evaluate((preview) => {
+    const text = preview.firstElementChild!.getBoundingClientRect()
+    const image = preview.querySelector('.figure-stage')!.getBoundingClientRect()
+    return image.top >= text.bottom
+  }), 'rest preview image is below its text').toBe(true)
+  const next = await page.getByRole('button', { name: 'Weiter', exact: true }).boundingBox()
+  const skip = await page.getByRole('button', { name: 'Überspringen', exact: true }).boundingBox()
+  expect(skip!.y).toBeGreaterThanOrEqual(next!.y + next!.height)
   await page.screenshot({ path: test.info().outputPath('rest.png'), fullPage: true })
   await fitsWidth(page)
   expect(await page.evaluate(() => document.documentElement.scrollHeight - innerHeight), 'rest should fit vertically').toBeLessThanOrEqual(1)

@@ -155,13 +155,8 @@ function NextUp({ step }: { step: WorkoutStep | undefined }) {
   }
 
   return (
-    <div className="next-preview flex items-center gap-4 rounded-2xl border border-line bg-surface p-3">
-      <AnimatedFigure
-        exerciseId={step.exercise.exerciseId}
-        timing={step.exercise.timing}
-        className="size-20 shrink-0"
-      />
-      <div className="text-left">
+    <div className="next-preview flex flex-col items-center gap-3">
+      <div className="text-center">
         <p className="text-[11px] uppercase tracking-wider text-fg-faint">Als Nächstes</p>
         <p className="text-sm font-medium">{step.exercise.name}</p>
         <p className="text-xs text-fg-muted">
@@ -172,6 +167,11 @@ function NextUp({ step }: { step: WorkoutStep | undefined }) {
           <p className="mt-1 text-xs font-medium text-fg">{step.exercise.setup}</p>
         ) : null}
       </div>
+      <AnimatedFigure
+        exerciseId={step.exercise.exerciseId}
+        timing={step.exercise.timing}
+        className="rest-preview-figure shrink-0"
+      />
     </div>
   )
 }
@@ -449,7 +449,7 @@ export function WorkoutPage() {
   }
 
   const completedSets = active.results.length
-  const elapsedSec = (now - active.startedAt) / 1000
+  const elapsedSec = phase === 'ready' ? 0 : Math.max(0, (now - active.startedAt) / 1000)
   const leftSec = remainingSeconds(orderedSteps, active.stepIndex)
 
   if (phase === 'done') {
@@ -854,8 +854,8 @@ export function WorkoutPage() {
 
             {suggestionNote}
 
-            <div className="flex flex-wrap justify-center gap-2">
-              <ActionButton className="px-2 text-xs" onClick={() => useWorkout.getState().extendRest(30)}>
+            <div className="flex justify-center gap-2">
+              <ActionButton onClick={() => useWorkout.getState().extendRest(30)}>
                 <span className="flex items-center gap-1">
                   <Plus size={16} aria-hidden />
                   30 s
@@ -863,7 +863,6 @@ export function WorkoutPage() {
               </ActionButton>
               <ActionButton
                 variant="primary"
-                className="px-2 text-xs"
                 onClick={() => {
                   cue('Weitermachen')
                   advance()
@@ -874,25 +873,27 @@ export function WorkoutPage() {
                   Weiter
                 </span>
               </ActionButton>
-              {canDefer ? (
-                <ActionButton variant="warn" className="px-2 text-xs" onClick={deferExercise}>
+            </div>
+            {canDefer ? (
+              <div className="flex justify-center">
+                <ActionButton variant="warn" onClick={deferExercise}>
                   <span className="flex items-center gap-1.5">
                     <FastForward size={16} aria-hidden />
                     Überspringen
                   </span>
                 </ActionButton>
-              ) : null}
-            </div>
+              </div>
+            ) : null}
           </>
         ) : (
           <>
             {titleBlock}
 
-            <div className="workout-exercise-layout">
+            <div className="workout-exercise-stack" data-weighted={step.exercise.usesWeight || isTime}>
               <AnimatedFigure
                 exerciseId={step.exercise.exerciseId}
                 timing={step.exercise.timing}
-                className="w-full"
+                className="workout-active-figure shrink-0"
               />
               <div className="flex flex-col items-center justify-center gap-3">
                 {isTime && endsAt ? (
