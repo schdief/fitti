@@ -15,6 +15,7 @@ import { SessionDetailPage } from '@/features/logbook/SessionDetailPage'
 import { SettingsPage } from '@/features/settings/SettingsPage'
 import { AiSetupPage } from '@/features/settings/AiSetupPage'
 import { WorkoutPage } from '@/features/workout/WorkoutPage'
+import { StatisticsPage } from '@/features/statistics/StatisticsPage'
 
 export function App() {
   return (
@@ -25,6 +26,7 @@ export function App() {
           <Route element={<TabLayout />}>
             <Route path="/" element={<CatalogPage />} />
             <Route path="/logbook" element={<LogbookPage />} />
+            <Route path="/statistics" element={<StatisticsPage />} />
           </Route>
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/health-setup" element={<HealthSetupPage />} />

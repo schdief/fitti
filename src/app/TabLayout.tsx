@@ -1,9 +1,10 @@
-import { CalendarDays, Dumbbell } from 'lucide-react'
+import { CalendarDays, ChartColumn, Dumbbell } from 'lucide-react'
 import { NavLink, Outlet } from 'react-router-dom'
 
 const tabs = [
   { to: '/', label: 'Katalog', Icon: Dumbbell },
   { to: '/logbook', label: 'Logbuch', Icon: CalendarDays },
+  { to: '/statistics', label: 'Statistik', Icon: ChartColumn },
 ] as const
 
 export function TabLayout() {
