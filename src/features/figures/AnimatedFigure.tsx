@@ -40,7 +40,7 @@ export function AnimatedFigure({
 }) {
   const { figure, loading } = useFigure(exerciseId)
   const [mix, setMix] = useState(0)
-  const startedAt = useRef(0)
+  const container = useRef<HTMLDivElement>(null)
 
   const animated = figure?.poses.mid !== undefined
 
@@ -50,22 +50,40 @@ export function AnimatedFigure({
       return
     }
 
+    const motion = window.matchMedia('(prefers-reduced-motion: reduce)')
+    let visible = false
     let frame = 0
-    startedAt.current = 0
+    let elapsed = 0
+    let previousTime = 0
+    setMix(0)
 
     const loop = (now: number) => {
-      if (startedAt.current === 0) startedAt.current = now
-
-      const next = mixAt((now - startedAt.current) / 1000, timing)
-      // Kleine Sprünge nicht rendern, das spart Arbeit ohne sichtbaren Unterschied.
+      if (previousTime) elapsed += Math.min(now - previousTime, 100)
+      previousTime = now
+      const next = mixAt(elapsed / 1000, timing)
       setMix((previous) => (Math.abs(previous - next) > 0.004 ? next : previous))
-
       frame = requestAnimationFrame(loop)
     }
-
-    frame = requestAnimationFrame(loop)
-    return () => cancelAnimationFrame(frame)
-  }, [animated, timing])
+    const update = () => {
+      cancelAnimationFrame(frame)
+      previousTime = 0
+      if (motion.matches) setMix(0)
+      if (visible && !document.hidden && !motion.matches) frame = requestAnimationFrame(loop)
+    }
+    const observer = new IntersectionObserver(([entry]) => {
+      visible = entry?.isIntersecting ?? false
+      update()
+    })
+    if (container.current) observer.observe(container.current)
+    document.addEventListener('visibilitychange', update)
+    motion.addEventListener('change', update)
+    return () => {
+      cancelAnimationFrame(frame)
+      observer.disconnect()
+      document.removeEventListener('visibilitychange', update)
+      motion.removeEventListener('change', update)
+    }
+  }, [animated, exerciseId, timing])
 
   if (loading) {
     return <div className={`aspect-square animate-pulse rounded-xl bg-surface-hi ${className}`} />
@@ -82,11 +100,8 @@ export function AnimatedFigure({
   }
 
   return (
-    <FigureView
-      figure={figure}
-      pose="start"
-      mix={animated ? mix : undefined}
-      className={`rounded-xl bg-surface-hi ${className}`}
-    />
+    <div ref={container} className={`figure-stage aspect-square overflow-hidden rounded-2xl ${className}`}>
+      <FigureView figure={figure} pose="start" mix={animated ? mix : undefined} className="block size-full" />
+    </div>
   )
 }

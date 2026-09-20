@@ -201,14 +201,15 @@ export function PlanDetailPage() {
 
             <Card className="divide-y divide-line">
               {block.exercises.map((exercise, exerciseIndex) => (
-                <div key={`${exercise.exerciseId}-${exerciseIndex}`} className="flex gap-3 p-3">
+                <div key={`${exercise.exerciseId}-${exerciseIndex}`} className="flex items-center gap-4 p-4">
                   <AnimatedFigure
                     exerciseId={exercise.exerciseId}
                     timing={exercise.timing}
-                    className="size-14 shrink-0"
+                    className="size-24 shrink-0 sm:size-28"
                   />
                   <div className="min-w-0 flex-1">
                     <p className="text-[15px] font-medium leading-snug">{exercise.name}</p>
+                    {exercise.setup ? <p className="mt-1 text-xs font-medium text-fg">{exercise.setup}</p> : null}
                     <p className="mt-0.5 text-xs text-fg-muted">{setSummary(exercise)}</p>
                     <p className="mt-0.5 text-xs text-fg-faint">{timingLabel(exercise)}</p>
                     {exercise.cues.length > 0 ? (
@@ -228,9 +229,8 @@ export function PlanDetailPage() {
         </p>
       </div>
 
-      {/* Klebend statt fest, deckend statt unscharf: siehe TabLayout. */}
+      {/* Deckende Abschlussleiste, ohne künstlichen Schatten unter dem Viewport. */}
       <div
-        style={{ boxShadow: '0 80px 0 0 var(--color-bg)' }}
         className="pad-safe-bottom sticky bottom-0 z-40 border-t border-line bg-bg px-4 py-3"
       >
         <div className="mx-auto max-w-lg">

@@ -48,7 +48,7 @@ function CountdownRing({
   const circumference = 2 * Math.PI * 45
 
   return (
-    <div className={`relative mx-auto aspect-square ${compact ? 'w-40' : 'w-56'}`}>
+    <div className={`countdown-ring relative mx-auto aspect-square ${compact ? 'w-36 max-w-full' : 'w-56 max-w-full'}`}>
       <svg viewBox="0 0 100 100" className="size-full -rotate-90">
         <circle cx="50" cy="50" r="45" className="fill-none stroke-surface-hi" strokeWidth="6" />
         <circle
@@ -126,21 +126,21 @@ function InlineStepper({
   return (
     <div className="flex flex-col items-center gap-1">
       <span className="text-xs uppercase tracking-wider text-fg-faint">{label}</span>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
         <button
           type="button"
           aria-label={`${label} verringern`}
           onClick={() => onStep(-1)}
-          className="size-16 shrink-0 rounded-2xl bg-surface-hi text-3xl leading-none text-fg-muted active:bg-line"
+          className="workout-step-button shrink-0 rounded-xl bg-surface-hi text-2xl leading-none text-fg active:bg-line"
         >
           −
         </button>
-        <output className="min-w-20 text-center text-4xl font-semibold tabular-nums">{value}</output>
+        <output className="w-16 text-center text-2xl font-semibold tabular-nums">{value}</output>
         <button
           type="button"
           aria-label={`${label} erhöhen`}
           onClick={() => onStep(1)}
-          className="size-16 shrink-0 rounded-2xl bg-surface-hi text-3xl leading-none text-fg-muted active:bg-line"
+          className="workout-step-button shrink-0 rounded-xl bg-surface-hi text-2xl leading-none text-fg active:bg-line"
         >
           +
         </button>
@@ -155,11 +155,11 @@ function NextUp({ step }: { step: WorkoutStep | undefined }) {
   }
 
   return (
-    <div className="flex items-center justify-center gap-3">
+    <div className="next-preview flex items-center gap-4 rounded-2xl border border-line bg-surface p-3">
       <AnimatedFigure
         exerciseId={step.exercise.exerciseId}
         timing={step.exercise.timing}
-        className="size-16 shrink-0"
+        className="size-20 shrink-0"
       />
       <div className="text-left">
         <p className="text-[11px] uppercase tracking-wider text-fg-faint">Als Nächstes</p>
@@ -169,7 +169,7 @@ function NextUp({ step }: { step: WorkoutStep | undefined }) {
           {step.exercise.mode === 'time' ? `${step.set.durationSec} s` : `${step.set.reps} Wdh`}
         </p>
         {step.exercise.setup ? (
-          <p className="text-xs text-warn">{step.exercise.setup}</p>
+          <p className="mt-1 text-xs font-medium text-fg">{step.exercise.setup}</p>
         ) : null}
       </div>
     </div>
@@ -738,9 +738,9 @@ export function WorkoutPage() {
 
   const titleBlock = (
     <div className="text-center">
-      <h1 className="truncate text-lg font-semibold">{step.exercise.name}</h1>
+      <h1 className="text-lg font-semibold leading-snug tracking-tight">{step.exercise.name}</h1>
       {step.exercise.setup ? (
-        <p className="truncate text-xs text-warn">{step.exercise.setup}</p>
+        <p className="mt-1 text-xs font-medium text-fg">{step.exercise.setup}</p>
       ) : null}
       {step.rounds > 1 ? (
         <p className="text-[11px] uppercase tracking-wider text-fg-faint">
@@ -770,7 +770,7 @@ export function WorkoutPage() {
   ) : null
 
   return (
-    <div className="flex min-h-app flex-col">
+    <div className="workout-shell flex min-h-app flex-col">
       {/*
         Der Übungsname steht über der Animation, nicht hier oben: In der Pause
         wäre er wertlos, und während des Satzes gehört er zur Figur.
@@ -787,7 +787,7 @@ export function WorkoutPage() {
             type="button"
             aria-label="Training beenden"
             onClick={() => setAskAbort(true)}
-            className="-mr-1 flex size-9 shrink-0 items-center justify-center rounded-full bg-danger/15 text-danger active:opacity-70"
+            className="-mr-1 flex size-11 shrink-0 items-center justify-center rounded-full bg-danger/15 text-danger active:opacity-70"
           >
             <X size={20} aria-hidden />
           </button>
@@ -797,7 +797,7 @@ export function WorkoutPage() {
       <main
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
-        className="mx-auto flex w-full max-w-lg flex-1 touch-pan-y flex-col justify-center gap-3 px-4 py-3"
+        className="workout-main mx-auto flex w-full max-w-lg flex-1 touch-pan-y flex-col justify-center gap-3 px-4 py-3"
       >
         {ready ? (
           <>
@@ -806,7 +806,7 @@ export function WorkoutPage() {
             <AnimatedFigure
               exerciseId={step.exercise.exerciseId}
               timing={step.exercise.timing}
-              className="mx-auto w-full max-w-[min(52%,30dvh)]"
+              className="mx-auto w-full max-w-[min(72%,28dvh)]"
             />
 
             <div className="text-center">
@@ -830,30 +830,32 @@ export function WorkoutPage() {
               <NextUp step={nextStep} />
             </div>
 
-            <CountdownRing
-              remainingMs={remainingMs}
-              totalMs={active.plannedRestSec * 1000}
-              caption="Pause"
-              compact
-            />
-
-            {/* Gewicht schon in der Pause einstellen, dann steht es beim Start. */}
-            {nextStep?.exercise.usesWeight ? (
-              <InlineStepper
-                label="kg"
-                value={weightKg}
-                onStep={(direction) =>
-                  setWeightKg(
-                    nextWeight(weightKg, direction, nextStep.exercise, training.weightStepKg),
-                  )
-                }
+            <div className={nextStep?.exercise.usesWeight ? 'workout-exercise-layout' : ''}>
+              <CountdownRing
+                remainingMs={remainingMs}
+                totalMs={active.plannedRestSec * 1000}
+                caption="Pause"
+                compact
               />
-            ) : null}
+
+              {/* Gewicht schon in der Pause einstellen, dann steht es beim Start. */}
+              {nextStep?.exercise.usesWeight ? (
+                <InlineStepper
+                  label="kg"
+                  value={weightKg}
+                  onStep={(direction) =>
+                    setWeightKg(
+                      nextWeight(weightKg, direction, nextStep.exercise, training.weightStepKg),
+                    )
+                  }
+                />
+              ) : null}
+            </div>
 
             {suggestionNote}
 
-            <div className="flex justify-center gap-2">
-              <ActionButton onClick={() => useWorkout.getState().extendRest(30)}>
+            <div className="flex flex-wrap justify-center gap-2">
+              <ActionButton className="px-2 text-xs" onClick={() => useWorkout.getState().extendRest(30)}>
                 <span className="flex items-center gap-1">
                   <Plus size={16} aria-hidden />
                   30 s
@@ -861,6 +863,7 @@ export function WorkoutPage() {
               </ActionButton>
               <ActionButton
                 variant="primary"
+                className="px-2 text-xs"
                 onClick={() => {
                   cue('Weitermachen')
                   advance()
@@ -871,61 +874,61 @@ export function WorkoutPage() {
                   Weiter
                 </span>
               </ActionButton>
-            </div>
-
-            {canDefer ? (
-              <div className="flex justify-center">
-                <ActionButton variant="warn" onClick={deferExercise}>
+              {canDefer ? (
+                <ActionButton variant="warn" className="px-2 text-xs" onClick={deferExercise}>
                   <span className="flex items-center gap-1.5">
                     <FastForward size={16} aria-hidden />
                     Überspringen
                   </span>
                 </ActionButton>
-              </div>
-            ) : null}
+              ) : null}
+            </div>
           </>
         ) : (
           <>
             {titleBlock}
 
-            <AnimatedFigure
-              exerciseId={step.exercise.exerciseId}
-              timing={step.exercise.timing}
-              className="mx-auto w-full max-w-[min(52%,30dvh)]"
-            />
-
-            {isTime && endsAt ? (
-              <CountdownRing
-                remainingMs={remainingMs}
-                totalMs={(step.set.durationSec ?? 1) * 1000}
-                caption="Halten"
-                compact
+            <div className="workout-exercise-layout">
+              <AnimatedFigure
+                exerciseId={step.exercise.exerciseId}
+                timing={step.exercise.timing}
+                className="w-full"
               />
-            ) : null}
+              <div className="flex flex-col items-center justify-center gap-3">
+                {isTime && endsAt ? (
+                  <CountdownRing
+                    remainingMs={remainingMs}
+                    totalMs={(step.set.durationSec ?? 1) * 1000}
+                    caption="Halten"
+                    compact
+                  />
+                ) : null}
 
-            {isTime && !endsAt ? (
-              <p className="text-center text-2xl font-semibold tabular-nums">Zeit um</p>
-            ) : null}
+                {isTime && !endsAt ? (
+                  <p className="text-center text-2xl font-semibold tabular-nums">Zeit um</p>
+                ) : null}
 
-            <div className="flex flex-col items-center gap-2">
-              {isTime ? null : (
-                <InlineStepper
-                  label="Wdh"
-                  value={reps}
-                  onStep={(direction) => setReps(Math.max(0, Math.min(500, reps + direction)))}
-                />
-              )}
-              {step.exercise.usesWeight ? (
-                <InlineStepper
-                  label="kg"
-                  value={weightKg}
-                  onStep={(direction) =>
-                    setWeightKg(
-                      nextWeight(weightKg, direction, step.exercise, training.weightStepKg),
-                    )
-                  }
-                />
-              ) : null}
+                <div className="flex flex-col items-center gap-2">
+                  {isTime ? null : (
+                    <InlineStepper
+                      label="Wdh"
+                      value={reps}
+                      onStep={(direction) => setReps(Math.max(0, Math.min(500, reps + direction)))}
+                    />
+                  )}
+                  {step.exercise.usesWeight ? (
+                    <InlineStepper
+                      label="kg"
+                      value={weightKg}
+                      onStep={(direction) =>
+                        setWeightKg(
+                          nextWeight(weightKg, direction, step.exercise, training.weightStepKg),
+                        )
+                      }
+                    />
+                  ) : null}
+                </div>
+              </div>
             </div>
 
             {suggestionNote}

@@ -1,52 +1,12 @@
-import type { Figure, JointMap } from '@/lib/plan/schema'
-import { JOINTS } from '@/lib/plan/enums'
-import type { Joint, PropType } from '@/lib/plan/enums'
+import { useId } from 'react'
+import type { Figure } from '@/lib/plan/schema'
+import type { PropType } from '@/lib/plan/enums'
+import { HumanBody } from '@/features/figures/HumanBody'
+import { lerpPose, resolvePose } from '@/features/figures/pose'
 
-const BONES: readonly (readonly [Joint, Joint])[] = [
-  ['neck', 'shoulderL'],
-  ['shoulderL', 'elbowL'],
-  ['elbowL', 'handL'],
-  ['hip', 'kneeL'],
-  ['kneeL', 'footL'],
-  ['neck', 'shoulderR'],
-  ['shoulderR', 'elbowR'],
-  ['elbowR', 'handR'],
-  ['neck', 'hip'],
-  ['hip', 'kneeR'],
-  ['kneeR', 'footR'],
-]
-
-const LEFT_JOINTS = new Set<Joint>(['shoulderL', 'elbowL', 'handL', 'kneeL', 'footL'])
+export { lerpPose, resolvePose } from '@/features/figures/pose'
 
 const GROUND_Y = 90
-
-/** Die Mid-Pose erbt alle Gelenke, die sie nicht selbst überschreibt. */
-export function resolvePose(figure: Figure, pose: 'start' | 'mid'): JointMap {
-  if (pose === 'start' || !figure.poses.mid) return figure.poses.start
-  return { ...figure.poses.start, ...figure.poses.mid }
-}
-
-/** Zwischenstand der Bewegung. 0 ist die Ausgangs-, 1 die Mittelposition. */
-export function lerpPose(figure: Figure, mix: number): JointMap {
-  const start = figure.poses.start
-  if (!figure.poses.mid || mix <= 0) return start
-
-  const mid = resolvePose(figure, 'mid')
-  if (mix >= 1) return mid
-
-  // Start enthält laut Schema alle Gelenke, die Schleife füllt die Karte vollständig.
-  const blended = {} as JointMap
-
-  for (const joint of JOINTS) {
-    const from = start[joint]
-    if (!from) continue
-
-    const to = mid[joint] ?? from
-    blended[joint] = [from[0] + (to[0] - from[0]) * mix, from[1] + (to[1] - from[1]) * mix]
-  }
-
-  return blended
-}
 
 export interface FigureBox {
   x: number
@@ -59,12 +19,17 @@ export interface FigureBox {
  * hinweg, damit Ausgang und Mitte denselben Maßstab haben. So muss beim
  * Erstellen der Posen niemand auf die Bildkomposition achten.
  */
+const boundsCache = new WeakMap<Figure, FigureBox>()
+
 export function figureBounds(figure: Figure): FigureBox {
+  const cached = boundsCache.get(figure)
+  if (cached) return cached
   const xs: number[] = []
   const ys: number[] = []
 
-  for (const pose of ['start', 'mid'] as const) {
-    for (const point of Object.values(resolvePose(figure, pose))) {
+  // Include the arcs as well as endpoints, without recalculating each frame.
+  for (let sample = 0; sample <= 16; sample += 1) {
+    for (const point of Object.values(lerpPose(figure, sample / 16))) {
       xs.push(point[0])
       ys.push(point[1])
     }
@@ -85,15 +50,13 @@ export function figureBounds(figure: Figure): FigureBox {
 
   const size = Math.max(maxX - minX, maxY - minY)
 
-  return {
+  const bounds = {
     x: minX - (size - (maxX - minX)) / 2,
     y: minY - (size - (maxY - minY)) / 2,
     size,
   }
-}
-
-function isLeft([from, to]: readonly [Joint, Joint]): boolean {
-  return LEFT_JOINTS.has(from) || LEFT_JOINTS.has(to)
+  boundsCache.set(figure, bounds)
+  return bounds
 }
 
 function FixedProp({ type, x = 50, y = 80, w = 20, h = 4, rot = 0 }: {
@@ -107,7 +70,7 @@ function FixedProp({ type, x = 50, y = 80, w = 20, h = 4, rot = 0 }: {
   const transform = rot ? `rotate(${rot} ${x + w / 2} ${y + h / 2})` : undefined
   // Geräte und Auflagen sollen erkennbar sein, aber nicht mit der Figur konkurrieren.
   const solid = 'fill-fg-faint'
-  const opacity = 0.4
+  const opacity = 0.85
 
   switch (type) {
     case 'mat':
@@ -126,7 +89,8 @@ function FixedProp({ type, x = 50, y = 80, w = 20, h = 4, rot = 0 }: {
     case 'bench':
       return (
         <g transform={transform} className={`${solid} stroke-fg-faint`} opacity={opacity}>
-          <rect x={x} y={y} width={w} height={h} rx={1} />
+          <rect x={x} y={y} width={w} height={h} rx={1.5} fill="#3b5263" stroke="#6c8493" strokeWidth=".6" />
+          <line x1={x + 1} y1={y + 1} x2={x + w - 1} y2={y + 1} stroke="#93a8b5" strokeWidth=".5" />
           <line x1={x + w * 0.15} y1={y + h} x2={x + w * 0.15} y2={GROUND_Y} strokeWidth={2} />
           <line x1={x + w * 0.85} y1={y + h} x2={x + w * 0.85} y2={GROUND_Y} strokeWidth={2} />
         </g>
@@ -269,13 +233,13 @@ export function FigureContent({
   mix?: number
   showArrow?: boolean
 }) {
+  const id = useId().replace(/:/g, '')
   const joints = mix === undefined ? resolvePose(figure, pose) : lerpPose(figure, mix)
   const box = figureBounds(figure)
   const stroke = box.size * 0.032
-  const headRadius = box.size * 0.055
   const arrowFrom = figure.arrowJoint ? figure.poses.start[figure.arrowJoint] : undefined
   const arrowTo = figure.arrowJoint ? figure.poses.mid?.[figure.arrowJoint] : undefined
-  const arrowId = `arrow-${figure.id}-${pose}`
+  const arrowId = `arrow-${id}`
   const markerSize = box.size * 0.045
 
   // Bei sehr kurzen Wegen verdeckt die Spitze den Pfeil komplett.
@@ -302,6 +266,7 @@ export function FigureContent({
         </marker>
       </defs>
 
+      <ellipse cx={box.x + box.size / 2} cy={GROUND_Y + 1.5} rx={box.size * .38} ry={2.5} fill="#060d14" opacity=".5" />
       <line
         x1={box.x}
         y1={GROUND_Y}
@@ -317,40 +282,7 @@ export function FigureContent({
           <FixedProp key={`fixed-${index}`} {...prop} />
         ))}
 
-      <g strokeLinecap="round" fill="none">
-        {BONES.map(([from, to]) => {
-          const a = joints[from]
-          const b = joints[to]
-          if (!a || !b) return null
-          return (
-            <line
-              key={`${from}-${to}`}
-              x1={a[0]}
-              y1={a[1]}
-              x2={b[0]}
-              y2={b[1]}
-              strokeWidth={stroke}
-              className="stroke-fg"
-              opacity={isLeft([from, to]) ? 0.45 : 1}
-            />
-          )
-        })}
-      </g>
-
-      {joints.head && joints.neck ? (
-        <>
-          <line
-            x1={joints.neck[0]}
-            y1={joints.neck[1]}
-            x2={joints.head[0]}
-            y2={joints.head[1]}
-            strokeWidth={stroke}
-            strokeLinecap="round"
-            className="stroke-fg"
-          />
-          <circle cx={joints.head[0]} cy={joints.head[1]} r={headRadius} className="fill-fg" />
-        </>
-      ) : null}
+      <HumanBody joints={joints} figure={figure} id={id} />
 
       {figure.props
         .filter((prop) => prop.attachTo)

@@ -53,15 +53,18 @@ Wandelt eine Trainingsbeschreibung in gültige JSON-Dateien um. Ein Plan liegt i
 
 ## Regeln für Figuren
 
-Nie SVG-Pfade schreiben. Die App rendert die Strichfigur aus Gelenkkoordinaten.
+Figuren weiterhin als Gelenkkoordinaten schreiben, nicht als SVG-Pfade. Die App rendert daraus
+einen schattierten, bekleideten Körper; Körperkonturen gehören in den Renderer, nicht in die Daten.
 
 - Zeichenfläche 0–100 in beiden Achsen, **y zeigt nach unten**, der Boden liegt bei y = 90.
 - `poses.start` enthält **alle 13 Gelenke**.
 - `poses.mid` enthält **nur die Gelenke, die sich bewegen**. Alles andere wird von `start` geerbt.
 - Bei Halteübungen (`mode: "time"` ohne Bewegung, etwa Plank) `poses.mid` ganz weglassen.
 - `arrowJoint` markiert das Gelenk, dessen Bewegung der Pfeil zeigt. Es muss in `mid` vorkommen.
-- Die App animiert die Bewegung zwischen beiden Posen. Achte deshalb darauf, dass ein direkter
-  Weg zwischen `start` und `mid` anatomisch sinnvoll aussieht – Gelenke bewegen sich linear.
+- Die App interpoliert die projizierten Knochenwinkel zwischen beiden Posen. Bewegte Gelenke
+  folgen Bögen; in beiden Posen unveränderte Gelenke (etwa aufgestützte Füße) bleiben verankert.
+  Projizierte Gliedmaßenlängen möglichst konsistent halten und Zwischenposen im Figuren-Labor
+  bzw. in der Animation prüfen. Das ist eine 2D-Illustration, keine biomechanische Simulation.
 - Details, Vorlagen und typische Winkel stehen in `reference/pose-guide.md`.
 
 ## Validierung

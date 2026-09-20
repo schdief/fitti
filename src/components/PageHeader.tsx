@@ -27,7 +27,7 @@ export function PageHeader({
             type="button"
             aria-label="Zurück"
             onClick={() => navigate(-1)}
-            className="-ml-2 flex size-10 items-center justify-center rounded-full text-fg-muted active:bg-surface"
+            className="-ml-2 flex size-11 shrink-0 items-center justify-center rounded-full text-fg-muted active:bg-surface"
           >
             <ChevronLeft size={24} aria-hidden />
           </button>

@@ -21,3 +21,5 @@ pnpm-debug.log*
 dev-dist
 public/sw.js
 public/workbox-*.js
+test-results/
+playwright-report/

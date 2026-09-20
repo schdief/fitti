@@ -22,7 +22,7 @@ export function StatusBadge({ state, detail }: { state: ConnectionState; detail?
 
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
-    <div className={`rounded-card border border-line bg-surface ${className}`}>{children}</div>
+    <div className={`rounded-card border border-line bg-surface shadow-sm shadow-black/10 ${className}`}>{children}</div>
   )
 }
 
@@ -41,14 +41,14 @@ export function ListRow({
     <>
       <span className="min-w-0 flex-1">
         <span className="block text-[15px] text-fg">{label}</span>
-        {hint ? <span className="mt-0.5 block text-xs text-fg-muted">{hint}</span> : null}
+        {hint ? <span className="mt-1 block text-xs leading-relaxed text-fg-muted">{hint}</span> : null}
       </span>
       {control}
     </>
   )
 
   const className =
-    'flex w-full items-center gap-3 px-4 py-3 text-left not-last:border-b not-last:border-line'
+    'settings-row flex w-full flex-wrap items-center justify-between gap-3 px-4 py-4 text-left not-last:border-b not-last:border-line'
 
   if (onClick) {
     return (
@@ -76,15 +76,13 @@ export function Toggle({
       aria-checked={checked}
       aria-label={label}
       onClick={() => onChange(!checked)}
-      className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${
-        checked ? 'bg-accent' : 'bg-surface-hi'
-      }`}
+      className="relative flex h-11 w-12 shrink-0 items-center"
     >
       <span
-        className={`absolute left-0 top-0.5 size-6 rounded-full bg-white transition-transform ${
-          checked ? 'translate-x-[1.375rem]' : 'translate-x-0.5'
-        }`}
-      />
+        className={`relative h-7 w-12 rounded-full transition-colors ${checked ? 'bg-accent' : 'bg-surface-hi'}`}
+      >
+        <span className={`absolute left-0 top-0.5 size-6 rounded-full bg-white shadow-sm transition-transform ${checked ? 'translate-x-[1.375rem]' : 'translate-x-0.5'}`} />
+      </span>
     </button>
   )
 }
@@ -101,7 +99,7 @@ export function SegmentedControl<T extends string>({
   label: string
 }) {
   return (
-    <div role="radiogroup" aria-label={label} className="flex rounded-lg bg-surface-hi p-0.5">
+    <div role="radiogroup" aria-label={label} className="flex max-w-full flex-wrap gap-1 rounded-xl bg-surface-hi p-1">
       {options.map((option) => (
         <button
           key={option.value}
@@ -109,7 +107,7 @@ export function SegmentedControl<T extends string>({
           role="radio"
           aria-checked={value === option.value}
           onClick={() => onChange(option.value)}
-          className={`rounded-[0.4rem] px-3 py-1.5 text-sm font-medium transition-colors ${
+          className={`min-h-11 flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
             value === option.value ? 'bg-accent text-accent-fg' : 'text-fg-muted'
           }`}
         >
@@ -147,7 +145,7 @@ export function NumberStepper({
         type="button"
         aria-label={`${label} verringern`}
         onClick={() => onChange(clamp((value ?? min) - step))}
-        className="size-8 rounded-lg bg-surface-hi text-lg leading-none text-fg-muted"
+        className="size-11 rounded-xl bg-surface-hi text-xl leading-none text-fg active:bg-line"
       >
         −
       </button>
@@ -158,7 +156,7 @@ export function NumberStepper({
         type="button"
         aria-label={`${label} erhöhen`}
         onClick={() => onChange(clamp((value ?? min) + step))}
-        className="size-8 rounded-lg bg-surface-hi text-lg leading-none text-fg-muted"
+        className="size-11 rounded-xl bg-surface-hi text-xl leading-none text-fg active:bg-line"
       >
         +
       </button>
@@ -195,7 +193,7 @@ export function TextField({
         autoCorrect="off"
         spellCheck={false}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-lg border border-line bg-surface-hi px-3 py-2 text-fg placeholder:text-fg-faint"
+        className="min-h-12 w-full rounded-xl border border-line bg-bg/50 px-3 py-2.5 text-fg placeholder:text-fg-faint"
       />
     </label>
   )
@@ -226,7 +224,7 @@ export function ActionButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`rounded-lg px-3 py-2 text-sm font-semibold disabled:opacity-40 ${variants[variant]} ${className}`}
+      className={`min-h-11 rounded-xl px-4 py-2.5 text-sm font-semibold transition-[background-color,transform] active:scale-[0.98] disabled:opacity-40 disabled:active:scale-100 ${variants[variant]} ${className}`}
     >
       {children}
     </button>
@@ -253,7 +251,7 @@ export function ChipSelect<T extends string>({
           role="radio"
           aria-checked={value === option}
           onClick={() => onChange(option)}
-          className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+          className={`min-h-11 rounded-full px-3 py-2 text-xs font-medium transition-colors ${
             value === option ? 'bg-accent text-accent-fg' : 'bg-surface-hi text-fg-muted'
           }`}
         >

@@ -7,7 +7,7 @@
   --color-line: #26313b;
   --color-fg: #e9eff5;
   --color-fg-muted: #93a3b2;
-  --color-fg-faint: #64748b;
+  --color-fg-faint: #8899ad;
   --color-accent: #2fe3a0;
   --color-accent-fg: #06231a;
   --color-warn: #ffc65c;
@@ -56,7 +56,7 @@
 }
 
 @utility pad-safe-top {
-  padding-top: env(safe-area-inset-top);
+  padding-top: calc(env(safe-area-inset-top, 0px) + 0.75rem);
 }
 
 /* Gemessene Viewporthöhe, siehe lib/appHeight.ts. */
@@ -82,5 +82,98 @@
 }
 
 @utility pad-safe-bottom {
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.75rem);
+}
+
+/* A bounded shell keeps navigation in its own row, without sticky painting
+   workarounds. Only catalogue/logbook content scrolls. */
+.tab-shell {
+  display: grid;
+  height: 100dvh;
+  grid-template-rows: minmax(0, 1fr) auto;
+  overflow: hidden;
+}
+
+.settings-row > span:first-child {
+  flex-basis: 9rem;
+}
+
+.figure-stage {
+  background: radial-gradient(ellipse at 50% 25%, #293b49 0%, #18242f 55%, #111b25 100%);
+  box-shadow: inset 0 0 0 1px rgb(148 178 196 / 12%);
+}
+
+.workout-exercise-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(164px, 1fr);
+  align-items: center;
+  gap: 1rem;
+}
+.workout-step-button { width: 44px; height: 52px; }
+
+/* On unusually small displays or enlarged system text, only the exercise
+  content may scroll. Completion and music controls remain reachable. */
+.workout-shell { height: var(--app-height, 100dvh); }
+.workout-shell > header, .workout-shell > footer { flex-shrink: 0; }
+.workout-main { min-height: 0; overflow-y: auto; justify-content: safe center; }
+.workout-main > * { flex-shrink: 0; }
+
+@media (min-width: 430px) {
+  .workout-step-button { width: 52px; height: 60px; }
+}
+
+@media (max-height: 740px) {
+  .workout-main { gap: 0.5rem; padding-block: 0.5rem; }
+  .workout-main .countdown-ring { width: 120px; }
+  .workout-shell footer { padding-top: 0.5rem; }
+  .workout-shell footer > div > :not(:last-child) { margin-bottom: 0.5rem; }
+}
+
+@media (max-height: 620px) {
+  .workout-main .next-preview .figure-stage { width: 64px; height: 64px; }
+  .workout-main .countdown-ring { width: 104px; }
+  .workout-main .countdown-ring span:first-child { font-size: 1.875rem; }
+}
+
+.music-seek {
+  appearance: none;
+  background: transparent;
+  height: 44px;
+  min-width: 0;
+  width: 100%;
+}
+.music-seek::-webkit-slider-runnable-track {
+  height: 5px;
+  border-radius: 99px;
+  background: linear-gradient(to right, var(--color-accent) var(--played), var(--color-line) var(--played));
+}
+.music-seek::-webkit-slider-thumb {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -4.5px;
+  border-radius: 50%;
+  background: var(--color-fg);
+}
+.music-seek::-moz-range-track {
+  height: 5px;
+  border-radius: 99px;
+  background: linear-gradient(to right, var(--color-accent) var(--played), var(--color-line) var(--played));
+}
+.music-seek::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-fg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .animate-confetti { display: none; }
 }

@@ -1,5 +1,6 @@
 import { Pause, Play, SkipBack, SkipForward } from 'lucide-react'
 import { useState } from 'react'
+import type { CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 
 import { useSpotifyPlayer } from '@/features/music/useSpotifyPlayer'
@@ -64,13 +65,13 @@ export function MusicBar() {
   const played = snapshot.durationMs > 0 ? Math.min(100, (position / snapshot.durationMs) * 100) : 0
 
   return (
-    <div className="space-y-3">
-      <p className="truncate text-center text-xs text-fg-muted">
-        <span className="text-fg">{snapshot.title}</span>
-        {snapshot.artist ? ` · ${snapshot.artist}` : ''}
-      </p>
-
-      <div className="flex items-center gap-2">
+    <div className="rounded-2xl border border-line bg-surface px-3 pt-2" aria-label="Musiksteuerung">
+      <div className="flex items-center justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium text-fg">{snapshot.title}</p>
+          <p className="mt-1 truncate text-xs text-fg-muted">{snapshot.artist}</p>
+        </div>
+        <div className="flex shrink-0 items-center gap-1">
         <ControlButton label="Vorheriger Titel" onClick={() => void previous()}>
           <SkipBack size={24} aria-hidden />
         </ControlButton>
@@ -86,7 +87,9 @@ export function MusicBar() {
         <ControlButton label="Nächster Titel" onClick={() => void next()}>
           <SkipForward size={24} aria-hidden />
         </ControlButton>
-
+        </div>
+      </div>
+      <div className="flex items-center gap-3">
         <span className="shrink-0 text-[11px] tabular-nums text-accent">{clock(position)}</span>
 
         <input
@@ -96,16 +99,19 @@ export function MusicBar() {
           max={Math.max(1, snapshot.durationMs)}
           value={Math.min(position, snapshot.durationMs)}
           onChange={(event) => setScrubbing(Number(event.target.value))}
+          onKeyUp={(event) => {
+            if (['ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown'].includes(event.key)) {
+              void seek(Number(event.currentTarget.value))
+              setScrubbing(null)
+            }
+          }}
+          onPointerCancel={() => setScrubbing(null)}
           onPointerUp={() => {
             if (scrubbing !== null) void seek(scrubbing)
             setScrubbing(null)
           }}
-          // Der abgespielte Teil wird grün eingefärbt, accent-color allein färbt
-          // auf iOS nur den Griff.
-          style={{
-            background: `linear-gradient(to right, var(--color-accent) ${played}%, var(--color-surface-hi) ${played}%)`,
-          }}
-          className="h-1.5 min-w-0 flex-1 appearance-none rounded-full accent-accent"
+          style={{ '--played': `${played}%` } as CSSProperties}
+          className="music-seek flex-1"
         />
 
         <span className="shrink-0 text-[11px] tabular-nums text-fg-faint">

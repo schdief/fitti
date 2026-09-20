@@ -1,8 +1,12 @@
 {
   "id": "reverse-pec-deck",
-  "view": "front",
+  "view": "back",
   "facing": "right",
-  "props": [],
+  "props": [
+    { "type": "box", "x": 41, "y": 55, "w": 18, "h": 4 },
+    { "type": "box", "x": 48, "y": 59, "w": 4, "h": 29 },
+    { "type": "box", "x": 36, "y": 87, "w": 28, "h": 3 }
+  ],
   "poses": {
     "start": {
       "head": [50, 14],

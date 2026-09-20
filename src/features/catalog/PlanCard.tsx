@@ -20,19 +20,19 @@ export function PlanCard({ entry, history }: { entry: CatalogEntry; history?: Pl
   return (
     <Link
       to={`/plan/${entry.id}`}
-      className="block rounded-card border border-line bg-surface p-4 active:bg-surface-hi"
+      className="group block rounded-card border border-line bg-surface p-5 shadow-sm shadow-black/20 transition-colors hover:border-accent/40 active:bg-surface-hi"
     >
       <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1">
-          <h3 className="truncate text-[17px] font-semibold">{entry.title}</h3>
+          <h3 className="text-lg font-semibold leading-snug tracking-tight">{entry.title}</h3>
           {entry.description ? (
-            <p className="mt-0.5 line-clamp-2 text-sm text-fg-muted">{entry.description}</p>
+            <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-fg-muted">{entry.description}</p>
           ) : null}
         </div>
         <ChevronRight size={20} className="mt-0.5 shrink-0 text-fg-faint" aria-hidden />
       </div>
 
-      <dl className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-fg-muted">
+      <dl className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-fg-muted">
         <div className="flex items-center gap-1.5">
           <Clock size={14} aria-hidden />
           <dt className="sr-only">Dauer</dt>
@@ -62,7 +62,7 @@ export function PlanCard({ entry, history }: { entry: CatalogEntry; history?: Pl
         ) : null}
       </dl>
 
-      <ul className="mt-3 flex flex-wrap gap-1.5">
+      <ul className="mt-4 flex flex-wrap gap-1.5 border-t border-line pt-4">
         {shown.map((muscle) => (
           <li
             key={muscle}

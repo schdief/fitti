@@ -56,7 +56,7 @@ export function CatalogPage() {
           <Link
             to="/settings"
             aria-label="Einstellungen"
-            className="-mr-2 flex size-10 items-center justify-center rounded-full text-fg-muted active:bg-surface"
+            className="-mr-2 flex size-11 items-center justify-center rounded-full text-fg-muted active:bg-surface"
           >
             <Settings size={22} aria-hidden />
           </Link>
@@ -65,7 +65,7 @@ export function CatalogPage() {
 
       <div className="mx-auto max-w-lg px-4 py-4">
         <div className="flex gap-2">
-          <label className="relative flex-1">
+          <label className="relative min-w-0 flex-1">
             <Search
               size={18}
               aria-hidden
