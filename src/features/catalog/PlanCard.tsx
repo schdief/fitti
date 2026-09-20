@@ -8,7 +8,11 @@ import type { CatalogEntry } from '@/lib/plan/schema'
 
 const MAX_CHIPS = 4
 
-export function PlanCard({ entry, history }: { entry: CatalogEntry; history?: PlanHistory }) {
+export function PlanCard({ entry, history, historyLoaded = true }: {
+  entry: CatalogEntry
+  history?: PlanHistory
+  historyLoaded?: boolean
+}) {
   const shown = entry.targetMuscles.slice(0, MAX_CHIPS)
   const rest = entry.targetMuscles.length - shown.length
 
@@ -50,17 +54,26 @@ export function PlanCard({ entry, history }: { entry: CatalogEntry; history?: Pl
           <dt className="sr-only">Level</dt>
           <dd>{LEVEL_LABELS[entry.level]}</dd>
         </div>
-        {history && history.count > 0 ? (
-          <div className="flex items-center gap-1.5 text-accent">
-            <CheckCircle2 size={14} aria-hidden />
-            <dt className="sr-only">Absolviert</dt>
-            <dd>
-              {describeCount(history.count)}
-              {history.lastAt ? ` · zuletzt ${describeSince(history.lastAt)}` : ''}
-            </dd>
-          </div>
-        ) : null}
       </dl>
+
+      <div className="mt-3 flex items-start gap-2 text-xs leading-relaxed" aria-label="Trainingshistorie">
+        <CheckCircle2 size={16} aria-hidden className={`mt-0.5 shrink-0 ${history?.count ? 'text-accent' : 'text-fg-muted'}`} />
+        {!historyLoaded ? (
+          <p className="text-fg-muted">Trainingshistorie lädt …</p>
+        ) : history && history.count > 0 ? (
+          <div>
+            <p className="text-accent">
+              {describeCount(history.count)} trainiert
+              {history.lastAt ? ` · zuletzt ${describeSince(history.lastAt)}` : ''}
+            </p>
+            {history.completedCount < history.count ? (
+              <p className="text-fg-muted">Davon {history.count - history.completedCount} × vorzeitig beendet</p>
+            ) : null}
+          </div>
+        ) : (
+          <p className="text-fg-muted">Noch kein Training gespeichert</p>
+        )}
+      </div>
 
       <ul className="mt-4 flex flex-wrap gap-1.5 border-t border-line pt-4">
         {shown.map((muscle) => (

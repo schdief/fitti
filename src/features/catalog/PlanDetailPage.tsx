@@ -151,8 +151,11 @@ export function PlanDetailPage() {
 
         {history.count > 0 ? (
           <p className="px-1 text-xs text-accent">
-            Schon {describeCount(history.count)} absolviert
+            Schon {describeCount(history.count)} trainiert
             {history.lastAt ? ` · zuletzt ${describeSince(history.lastAt)}` : ''}
+            {history.completedCount < history.count
+              ? ` · davon ${history.count - history.completedCount} × vorzeitig beendet`
+              : ''}
           </p>
         ) : null}
 

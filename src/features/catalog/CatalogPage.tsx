@@ -32,8 +32,18 @@ export function CatalogPage() {
   const sessionsLoaded = useSessions((state) => state.loaded)
 
   useEffect(() => {
-    if (!sessionsLoaded) void useSessions.getState().load()
-  }, [sessionsLoaded])
+    // Auch nach einem gespeicherten Teiltraining oder bei Rückkehr aus einem
+    // anderen Fenster nachladen, statt einen alten leeren Store beizubehalten.
+    const refresh = () => { void useSessions.getState().load() }
+    const onVisible = () => { if (!document.hidden) refresh() }
+    refresh()
+    document.addEventListener('visibilitychange', onVisible)
+    window.addEventListener('focus', refresh)
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('focus', refresh)
+    }
+  }, [])
 
   const history = useMemo(() => historyByPlan(sessions), [sessions])
 
@@ -179,7 +189,7 @@ export function CatalogPage() {
             <ul className="mt-2 space-y-3">
               {visible.map((entry) => (
                 <li key={entry.id}>
-                  <PlanCard entry={entry} history={history.get(entry.id)} />
+                  <PlanCard entry={entry} history={history.get(entry.id)} historyLoaded={sessionsLoaded} />
                 </li>
               ))}
             </ul>
