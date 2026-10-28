@@ -83,10 +83,12 @@ test('workout fits with music, preserves input in rest and completes without err
     expect(await page.locator('main').evaluate((main) => main.scrollHeight - main.clientHeight), 'exercise content fits on standard phones').toBeLessThanOrEqual(1)
   }
 
-  // Move from unweighted Back Extensions to the next exercise.
+  // Skip Hack Squats and check the next exercise's full-session recommendation.
   await page.getByRole('button', { name: 'Überspringen', exact: true }).click()
   await expect(page.getByRole('button', { name: 'kg erhöhen', exact: true })).toBeVisible()
-  await expect(page.getByText(/Letztes Mal/)).toBeVisible()
+  await expect(page.getByTestId('workout-recommendation')).toContainText('HOCH · 27,5 kg')
+  await expect(page.getByTestId('workout-recommendation')).toContainText(/Alle 3 Satz-Ziele erreicht/)
+  await expect(page.getByRole('status').last()).toHaveText('27.5')
   const stackedInputs = await page.locator('main').evaluate((main) => {
     const image = main.querySelector('.workout-active-figure')!.getBoundingClientRect()
     const outputs = [...main.querySelectorAll('output')].map((element) => element.getBoundingClientRect())

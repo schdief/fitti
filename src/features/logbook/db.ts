@@ -1,7 +1,5 @@
 import { createStore, del, get, keys, set } from 'idb-keyval'
 
-import { resultKey } from '@/features/workout/steps'
-
 const store = createStore('fitti', 'sessions')
 
 export interface SetResult {
@@ -60,18 +58,24 @@ export async function clearSessions(): Promise<void> {
 }
 
 /**
- * Letzte tatsächlich geschaffte Leistung je Übung und Satznummer – die Basis
- * für die Vorschlagswerte. Übungsübergreifend über alle Pläne hinweg, damit
- * dieselbe Übung in einem anderen Plan denselben Vorschlag bekommt.
+ * Ergebnisse aus dem jüngsten Training je Übung – übungübergreifend über alle
+ * Pläne hinweg, damit Empfehlungen alle Sätze derselben Einheit vergleichen.
  */
-export async function loadPreviousResults(): Promise<Map<string, SetResult>> {
+export async function loadPreviousResults(): Promise<Map<string, SetResult[]>> {
   const sessions = await listSessions()
-  const previous = new Map<string, SetResult>()
+  const previous = new Map<string, SetResult[]>()
 
   for (const session of sessions) {
+    const resultsByExercise = new Map<string, SetResult[]>()
+
     for (const result of session.results) {
-      const key = resultKey(result.exerciseId, result.setIndex)
-      if (!previous.has(key)) previous.set(key, result)
+      const results = resultsByExercise.get(result.exerciseId) ?? []
+      results.push(result)
+      resultsByExercise.set(result.exerciseId, results)
+    }
+
+    for (const [exerciseId, results] of resultsByExercise) {
+      if (!previous.has(exerciseId)) previous.set(exerciseId, results)
     }
   }
 

@@ -128,7 +128,7 @@
 }
 .workout-active-figure { width: clamp(120px, calc(100cqh - 280px), 280px); max-width: 100%; }
 .workout-exercise-stack[data-weighted="true"] .workout-active-figure {
-  width: clamp(120px, calc(100cqh - 360px), 280px);
+  width: clamp(120px, calc(100cqh - 395px), 246px);
 }
 .rest-preview-figure { width: clamp(96px, calc(100cqh - 390px), 192px); max-width: 100%; }
 

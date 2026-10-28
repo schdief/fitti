@@ -1,0 +1,44 @@
+{
+  "id": "hack-squat",
+  "view": "side",
+  "facing": "right",
+  "props": [
+    { "type": "wall", "x": 35, "y": 28, "w": 3, "h": 42 },
+    { "type": "bench", "x": 37, "y": 55, "w": 24, "h": 5, "rot": -20 },
+    { "type": "box", "x": 63, "y": 79, "w": 24, "h": 5 },
+    { "type": "box", "x": 84, "y": 57, "w": 3, "h": 27 },
+    { "type": "plate", "x": 77, "y": 51, "w": 8, "h": 8 }
+  ],
+  "poses": {
+    "start": {
+      "head": [44, 18],
+      "neck": [46, 27],
+      "shoulderR": [50, 31],
+      "shoulderL": [48, 32],
+      "elbowR": [53, 42],
+      "elbowL": [51, 43],
+      "handR": [57, 52],
+      "handL": [55, 53],
+      "hip": [51, 49],
+      "kneeR": [63, 66],
+      "kneeL": [61, 67],
+      "footR": [78, 82],
+      "footL": [76, 83]
+    },
+    "mid": {
+      "head": [39, 27],
+      "neck": [41, 35],
+      "shoulderR": [46, 39],
+      "shoulderL": [44, 40],
+      "elbowR": [50, 49],
+      "elbowL": [48, 50],
+      "handR": [54, 59],
+      "handL": [52, 60],
+      "hip": [49, 56],
+      "kneeR": [65, 72],
+      "kneeL": [63, 73]
+    }
+  },
+  "arrowJoint": "hip",
+  "emphasis": ["quads", "glutes"]
+}

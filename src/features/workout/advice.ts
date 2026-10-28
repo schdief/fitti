@@ -1,67 +1,128 @@
 import type { SetResult } from '@/features/logbook/db'
 import type { WorkoutStep } from '@/features/workout/steps'
+import { nextWeight } from './weights.ts'
 
 export type Advice = 'increase' | 'hold' | 'decrease' | 'unknown'
 
 export interface SetAdvice {
   advice: Advice
-  /** Kurzer Satz für den Trainingsbildschirm. */
+  recommendedWeightKg: number | null
+  recommendedReps: number | null
+  /** Kurzer Satz für den Trainingsbildschirm, begründet über alle Sätze. */
   text: string
 }
 
 /**
- * Empfehlung für den anstehenden Satz aus dem letzten Ergebnis derselben Übung
- * und Satznummer.
+ * Empfehlung für den anstehenden Satz anhand aller Ergebnisse der Übung aus
+ * dem jüngsten Training.
  *
- * Grundregel im Krafttraining: Wer die Zielwiederholungen sauber schafft, darf
- * beim nächsten Mal mehr auflegen. Wer deutlich darunter bleibt, sollte
- * reduzieren. Dazwischen bleibt das Gewicht stehen.
+ * Erst wenn alle geplanten Sätze erfasst wurden und alle Wiederholungsziele
+ * erreicht sind, wird gesteigert. Bei einem deutlichen Einbruch wird nur der
+ * betroffene Satz erleichtert; die übrigen Sätze bleiben unverändert.
  */
-export function adviseSet(step: WorkoutStep, last: SetResult | undefined): SetAdvice {
-  // Zeitübungen wie Planks lassen sich nicht „schwerer“ machen, da wäre jeder
-  // Hinweis irreführend.
-  if (step.exercise.mode !== 'reps' || !last || last.reps == null) {
-    return { advice: 'unknown', text: '' }
-  }
+export function adviseSet(
+  step: WorkoutStep,
+  lastSets: SetResult[] | undefined,
+  fallbackWeightStepKg: number,
+): SetAdvice {
+  if (step.exercise.mode !== 'reps' || !lastSets) return unknownAdvice()
 
+  const bySet = new Map(lastSets.map((result) => [result.setIndex, result]))
+  const last = bySet.get(step.setIndex)
+  if (!last || last.reps == null) return unknownAdvice()
+
+  const plannedSets = step.exercise.sets
+  const allSetsRecorded = plannedSets.every((_, index) => bySet.get(index)?.reps != null)
+  const allGoalsMet =
+    allSetsRecorded &&
+    plannedSets.every((plannedSet, index) => {
+      const reps = bySet.get(index)?.reps
+      return reps != null && reps >= (plannedSet.reps ?? 0)
+    })
   const target = step.set.reps ?? 0
-  if (target === 0) return { advice: 'unknown', text: '' }
+  if (target === 0) return unknownAdvice()
 
-  const done = last.reps
-  const weight = last.weightKg
+  const summary = plannedSets
+    .map((plannedSet, index) => {
+      const reps = bySet.get(index)?.reps
+      return reps == null ? 'offen' : `${reps}/${plannedSet.reps ?? 0}`
+    })
+    .join(' · ')
 
-  // Ohne Zusatzgewicht bleibt nur die Wiederholungszahl als Stellschraube.
   if (!step.exercise.usesWeight) {
-    if (done >= target) {
-      return { advice: 'increase', text: `Letztes Mal ${done} Wdh – versuch eine mehr` }
+    if (allGoalsMet) {
+      return {
+        advice: 'increase',
+        recommendedWeightKg: null,
+        recommendedReps: target + 1,
+        text: `Alle ${plannedSets.length} Satz-Ziele erreicht.`,
+      }
     }
-    if (done <= target - 3) {
-      return { advice: 'decrease', text: `Letztes Mal ${done} von ${target} Wdh – sauber bleiben` }
+    if (last.reps <= target - 3) {
+      return {
+        advice: 'decrease',
+        recommendedWeightKg: null,
+        recommendedReps: Math.max(1, target - 1),
+        text: `Sätze ${summary}; nur Satz ${step.setIndex + 1} leichter.`,
+      }
     }
-    return { advice: 'hold', text: `Letztes Mal ${done} von ${target} Wdh` }
+    return {
+      advice: 'hold',
+      recommendedWeightKg: null,
+      recommendedReps: last.reps,
+      text: `Sätze ${summary}; Wiederholungen halten.`,
+    }
   }
 
-  if (done >= target) {
+  const currentWeight = last.weightKg ?? step.set.targetWeightKg ?? 0
+
+  if (allGoalsMet) {
+    const recommendedWeightKg = nextWeight(
+      currentWeight,
+      1,
+      step.exercise,
+      fallbackWeightStepKg,
+    )
     return {
       advice: 'increase',
-      text: weight
-        ? `Letztes Mal ${done} Wdh mit ${weight} kg – leg etwas drauf`
-        : `Letztes Mal ${done} Wdh geschafft – etwas mehr Gewicht`,
+      recommendedWeightKg,
+      recommendedReps: null,
+      text: `Alle ${plannedSets.length} Satz-Ziele erreicht.`,
     }
   }
 
-  if (done <= target - 3) {
+  if (last.reps <= target - 3) {
+    const recommendedWeightKg = nextWeight(
+      currentWeight,
+      -1,
+      step.exercise,
+      fallbackWeightStepKg,
+    )
+    const canDecrease = recommendedWeightKg < currentWeight
     return {
-      advice: 'decrease',
-      text: weight
-        ? `Letztes Mal nur ${done} von ${target} Wdh mit ${weight} kg – geh runter`
-        : `Letztes Mal nur ${done} von ${target} Wdh – etwas leichter`,
+      advice: canDecrease ? 'decrease' : 'hold',
+      recommendedWeightKg,
+      recommendedReps: null,
+      text: canDecrease
+        ? `Sätze ${summary}; nur Satz ${step.setIndex + 1} erleichtern.`
+        : `Untergrenze ${recommendedWeightKg} kg erreicht (${summary}) – Gewicht halten.`,
     }
   }
 
   return {
     advice: 'hold',
-    text: `Letztes Mal ${done} von ${target} Wdh – Gewicht halten`,
+    recommendedWeightKg: currentWeight,
+    recommendedReps: null,
+    text: `Sätze ${summary}; nicht steigern.`,
+  }
+}
+
+function unknownAdvice(): SetAdvice {
+  return {
+    advice: 'unknown',
+    recommendedWeightKg: null,
+    recommendedReps: null,
+    text: '',
   }
 }
 

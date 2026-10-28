@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "id": "ruecken-gesaess-maschinen-40",
-  "title": "Rücken und Gesäß an Maschinen",
-  "description": "Hüftstreckung, Beinbeuger und oberer Rücken. Einsteigergewichte, alles an Maschinen und mit leichten Kurzhanteln.",
-  "estimatedDurationMin": 40,
+  "title": "Rücken, Gesäß und Beine an Maschinen",
+  "description": "Kniebeuge, Hüftstreckung, Beinbeuger und oberer Rücken. Einsteigergewichte an Maschinen und mit leichten Kurzhanteln.",
+  "estimatedDurationMin": 32,
   "level": "beginner",
   "equipment": ["machine", "dumbbells", "bench"],
   "targetMuscles": [
@@ -14,7 +14,7 @@
     "rear-delts",
     "shoulders",
     "traps",
-    "lower-back"
+    "quads"
   ],
   "tags": ["gerätetraining", "rückseite", "einsteiger"],
   "metValue": 4.5,
@@ -27,23 +27,25 @@
       "restBetweenRoundsSec": 0,
       "exercises": [
         {
-          "exerciseId": "back-extension",
-          "name": "Back Extensions mit Hüftfokus",
+          "exerciseId": "hack-squat",
+          "name": "Hack Squat Maschine",
           "mode": "reps",
-          "usesWeight": false,
-          "primaryMuscles": ["glutes", "lower-back"],
+          "usesWeight": true,
+          "primaryMuscles": ["quads", "glutes"],
           "secondaryMuscles": ["hamstrings"],
           "equipment": ["machine"],
-          "timing": { "toMidSec": 2, "holdMidSec": 0, "toStartSec": 2, "holdStartSec": 1 },
-          "setup": "Stufe 4",
+          "timing": { "toMidSec": 2, "holdMidSec": 0, "toStartSec": 2 },
+          "weightStepKg": 2.5,
+          "weightOptionsKg": [47.5],
+          "setup": "Rückenpolster · Fußplatte",
           "cues": [
-            "Hände vor der Brust verschränken",
-            "Bewegung aus der Hüfte, Rücken bleibt lang"
+            "Rücken und Hüfte am Polster halten",
+            "Knie kontrolliert beugen und strecken"
           ],
           "sets": [
-            { "reps": 12, "restSec": 75 },
-            { "reps": 12, "restSec": 75 },
-            { "reps": 10, "restSec": 90 }
+            { "reps": 11, "targetWeightKg": 47.5, "restSec": 75 },
+            { "reps": 11, "targetWeightKg": 47.5, "restSec": 75 },
+            { "reps": 10, "targetWeightKg": 47.5, "restSec": 90 }
           ]
         },
         {
@@ -60,12 +62,12 @@
             "Rippen unten lassen, kein Hohlkreuz"
           ],
           "sets": [
-            { "reps": 12, "targetWeightKg": 25, "restSec": 105 },
-            { "reps": 11, "targetWeightKg": 30, "restSec": 105 },
+            { "reps": 12, "targetWeightKg": 25, "restSec": 75 },
+            { "reps": 11, "targetWeightKg": 30, "restSec": 75 },
             {
               "reps": 10,
               "targetWeightKg": 30,
-              "restSec": 120,
+              "restSec": 90,
               "note": "Zzgl. Eigengewicht der Maschine"
             }
           ]
@@ -82,9 +84,9 @@
           "setup": "Fuß 1 · Knie 4",
           "cues": ["Hüfte bleibt auf dem Polster", "Langsam ablassen, nicht fallen lassen"],
           "sets": [
-            { "reps": 12, "targetWeightKg": 25, "restSec": 90 },
-            { "reps": 11, "targetWeightKg": 27.5, "restSec": 90 },
-            { "reps": 10, "targetWeightKg": 27.5, "restSec": 90 }
+            { "reps": 12, "targetWeightKg": 25, "restSec": 60 },
+            { "reps": 11, "targetWeightKg": 27.5, "restSec": 60 },
+            { "reps": 10, "targetWeightKg": 27.5, "restSec": 60 }
           ]
         },
         {
@@ -102,9 +104,9 @@
             "Ellbogen eng am Körper nach hinten führen"
           ],
           "sets": [
-            { "reps": 12, "targetWeightKg": 30, "restSec": 90 },
-            { "reps": 11, "targetWeightKg": 32.5, "restSec": 90 },
-            { "reps": 10, "targetWeightKg": 32.5, "restSec": 90 }
+            { "reps": 12, "targetWeightKg": 30, "restSec": 60 },
+            { "reps": 11, "targetWeightKg": 32.5, "restSec": 60 },
+            { "reps": 10, "targetWeightKg": 32.5, "restSec": 60 }
           ]
         },
         {
@@ -122,9 +124,9 @@
             "Sehr leicht wählen, Technik geht vor Gewicht"
           ],
           "sets": [
-            { "reps": 15, "targetWeightKg": 2, "restSec": 75 },
-            { "reps": 14, "targetWeightKg": 2, "restSec": 75 },
-            { "reps": 12, "targetWeightKg": 3, "restSec": 90 }
+            { "reps": 15, "targetWeightKg": 2, "restSec": 45 },
+            { "reps": 14, "targetWeightKg": 2, "restSec": 45 },
+            { "reps": 12, "targetWeightKg": 3, "restSec": 60 }
           ]
         },
         {
@@ -141,9 +143,9 @@
           "weightOptionsKg": [10, 11, 18, 25],
           "cues": ["Ellbogen leicht gebeugt lassen", "Nicht mit Schwung arbeiten"],
           "sets": [
-            { "reps": 15, "targetWeightKg": 18, "restSec": 75 },
-            { "reps": 14, "targetWeightKg": 18, "restSec": 75 },
-            { "reps": 12, "targetWeightKg": 25, "restSec": 90 }
+            { "reps": 15, "targetWeightKg": 18, "restSec": 45 },
+            { "reps": 14, "targetWeightKg": 18, "restSec": 45 },
+            { "reps": 12, "targetWeightKg": 25, "restSec": 60 }
           ]
         }
       ]

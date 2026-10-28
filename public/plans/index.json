@@ -2,9 +2,9 @@
   "plans": [
     {
       "id": "ruecken-gesaess-maschinen-40",
-      "title": "Rücken und Gesäß an Maschinen",
-      "description": "Hüftstreckung, Beinbeuger und oberer Rücken. Einsteigergewichte, alles an Maschinen und mit leichten Kurzhanteln.",
-      "estimatedDurationMin": 40,
+      "title": "Rücken, Gesäß und Beine an Maschinen",
+      "description": "Kniebeuge, Hüftstreckung, Beinbeuger und oberer Rücken. Einsteigergewichte an Maschinen und mit leichten Kurzhanteln.",
+      "estimatedDurationMin": 32,
       "level": "beginner",
       "equipment": [
         "machine",
@@ -19,7 +19,7 @@
         "rear-delts",
         "shoulders",
         "traps",
-        "lower-back"
+        "quads"
       ],
       "tags": [
         "gerätetraining",

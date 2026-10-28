@@ -1,8 +1,11 @@
 import {
+  ArrowDown,
+  ArrowUp,
   Check,
   Clock,
   FastForward,
   Flame,
+  Minus,
   PartyPopper,
   Plus,
   SkipForward,
@@ -26,7 +29,7 @@ import { useSettings } from '@/features/settings/settingsStore'
 import { adviseSet, analyseSession } from '@/features/workout/advice'
 import { buildCoachPrompt, formatDelta } from '@/features/workout/coachPrompt'
 import { cue, primeWorkoutAudio, signal } from '@/features/workout/cues'
-import { buildSteps, formatClock, remainingSeconds, resultKey } from '@/features/workout/steps'
+import { buildSteps, formatClock, remainingSeconds } from '@/features/workout/steps'
 import type { WorkoutStep } from '@/features/workout/steps'
 import { useTicker } from '@/features/workout/useTicker'
 import { nextWeight } from '@/features/workout/weights'
@@ -186,7 +189,7 @@ export function WorkoutPage() {
   const health = useSettings((state) => state.connections.health)
   const bodyWeightKg = useSettings((state) => state.profile.bodyWeightKg)
 
-  const [previous, setPrevious] = useState<Map<string, SetResult>>(new Map())
+  const [previous, setPrevious] = useState<Map<string, SetResult[]>>(new Map())
   const [askAbort, setAskAbort] = useState(false)
   const [reps, setReps] = useState(0)
   const [weightKg, setWeightKg] = useState(0)
@@ -258,10 +261,14 @@ export function WorkoutPage() {
   // Eingabefelder auf den Vorschlagswert des anstehenden Satzes setzen.
   useEffect(() => {
     if (!inputStep) return
-    const last = previous.get(resultKey(inputStep.exercise.exerciseId, inputStep.setIndex))
-    setReps(last?.reps ?? inputStep.set.reps ?? 0)
-    setWeightKg(last?.weightKg ?? inputStep.set.targetWeightKg ?? 0)
-  }, [inputStep?.key, previous])
+    const lastSets = previous.get(inputStep.exercise.exerciseId)
+    const last = lastSets?.find((result) => result.setIndex === inputStep.setIndex)
+    const recommendation = adviseSet(inputStep, lastSets, training.weightStepKg)
+    setReps(recommendation.recommendedReps ?? last?.reps ?? inputStep.set.reps ?? 0)
+    setWeightKg(
+      recommendation.recommendedWeightKg ?? last?.weightKg ?? inputStep.set.targetWeightKg ?? 0,
+    )
+  }, [inputStep, previous, training.weightStepKg])
 
   // Display wachhalten. iOS gibt die Sperre beim Wechsel in den Hintergrund frei,
   // deshalb wird sie beim Zurückkommen neu angefordert.
@@ -750,24 +757,50 @@ export function WorkoutPage() {
     </div>
   )
 
-  // Empfehlung aus dem letzten Ergebnis desselben Satzes.
+  // Empfehlung aus allen Sätzen des jüngsten Trainings dieser Übung.
   const suggestion = inputStep
-    ? adviseSet(inputStep, previous.get(resultKey(inputStep.exercise.exerciseId, inputStep.setIndex)))
-    : { advice: 'unknown' as const, text: '' }
-
-  const suggestionNote = suggestion.text ? (
-    <p
-      className={`text-center text-xs ${
-        suggestion.advice === 'increase'
-          ? 'text-accent'
-          : suggestion.advice === 'decrease'
-            ? 'text-warn'
-            : 'text-fg-muted'
-      }`}
-    >
-      {suggestion.text}
-    </p>
-  ) : null
+    ? adviseSet(inputStep, previous.get(inputStep.exercise.exerciseId), training.weightStepKg)
+    : {
+        advice: 'unknown' as const,
+        recommendedWeightKg: null,
+        recommendedReps: null,
+        text: '',
+      }
+  const recommendationValue = inputStep?.exercise.usesWeight
+    ? suggestion.recommendedWeightKg == null
+      ? ''
+      : `${suggestion.recommendedWeightKg.toLocaleString('de-DE')} kg`
+    : suggestion.recommendedReps == null
+      ? ''
+      : `${suggestion.recommendedReps} Wdh`
+  const recommendationLabel =
+    suggestion.advice === 'increase'
+      ? 'HOCH'
+      : suggestion.advice === 'decrease'
+        ? 'RUNTER'
+        : 'HALTEN'
+  const RecommendationIcon =
+    suggestion.advice === 'increase' ? ArrowUp : suggestion.advice === 'decrease' ? ArrowDown : Minus
+  const suggestionNote =
+    suggestion.text && recommendationValue ? (
+      <div
+        data-testid="workout-recommendation"
+        aria-label="Trainingsempfehlung"
+        className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-1 ${
+          suggestion.advice === 'increase'
+            ? 'border-accent/30 bg-accent/10 text-accent'
+            : suggestion.advice === 'decrease'
+              ? 'border-warn/30 bg-warn/10 text-warn'
+              : 'border-line bg-surface-hi text-fg'
+        }`}
+      >
+        <RecommendationIcon size={20} aria-hidden />
+        <p className="shrink-0 text-sm font-bold">
+          {recommendationLabel} · {recommendationValue}
+        </p>
+        <p className="min-w-0 text-[11px] leading-snug text-fg-muted">{suggestion.text}</p>
+      </div>
+    ) : null
 
   return (
     <div className="workout-shell flex min-h-app flex-col">
