@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "id": "ruecken-gesaess-maschinen-40",
   "title": "Rücken, Gesäß und Beine an Maschinen",
-  "description": "Kniebeuge, Hüftstreckung, Beinbeuger und oberer Rücken. Einsteigergewichte an Maschinen und mit leichten Kurzhanteln.",
-  "estimatedDurationMin": 32,
+  "description": "Hüftstreckung, Beinbeuger, Gesäß-Kickbacks und oberer Rücken. Einsteigergewichte an Maschinen und mit leichten Kurzhanteln.",
+  "estimatedDurationMin": 31,
   "level": "beginner",
   "equipment": ["machine", "dumbbells", "bench"],
   "targetMuscles": [
@@ -13,8 +13,7 @@
     "lats",
     "rear-delts",
     "shoulders",
-    "traps",
-    "quads"
+    "traps"
   ],
   "tags": ["gerätetraining", "rückseite", "einsteiger"],
   "metValue": 4.5,
@@ -26,28 +25,6 @@
       "rounds": 1,
       "restBetweenRoundsSec": 0,
       "exercises": [
-        {
-          "exerciseId": "hack-squat",
-          "name": "Hack Squat Maschine",
-          "mode": "reps",
-          "usesWeight": true,
-          "primaryMuscles": ["quads", "glutes"],
-          "secondaryMuscles": ["hamstrings"],
-          "equipment": ["machine"],
-          "timing": { "toMidSec": 2, "holdMidSec": 0, "toStartSec": 2 },
-          "weightStepKg": 2.5,
-          "weightOptionsKg": [47.5],
-          "setup": "Rückenpolster · Fußplatte",
-          "cues": [
-            "Rücken und Hüfte am Polster halten",
-            "Knie kontrolliert beugen und strecken"
-          ],
-          "sets": [
-            { "reps": 11, "targetWeightKg": 47.5, "restSec": 75 },
-            { "reps": 11, "targetWeightKg": 47.5, "restSec": 75 },
-            { "reps": 10, "targetWeightKg": 47.5, "restSec": 90 }
-          ]
-        },
         {
           "exerciseId": "hip-thrust-machine",
           "name": "Hip Thrust Maschine",
@@ -87,6 +64,26 @@
             { "reps": 12, "targetWeightKg": 25, "restSec": 60 },
             { "reps": 11, "targetWeightKg": 27.5, "restSec": 60 },
             { "reps": 10, "targetWeightKg": 27.5, "restSec": 60 }
+          ]
+        },
+        {
+          "exerciseId": "glute-kickback-machine",
+          "name": "Gluteus Maximus Maschine",
+          "mode": "reps",
+          "usesWeight": true,
+          "primaryMuscles": ["glutes"],
+          "secondaryMuscles": ["hamstrings"],
+          "equipment": ["machine"],
+          "timing": { "toMidSec": 1, "holdMidSec": 1, "toStartSec": 2 },
+          "cues": [
+            "Je Bein alle Wiederholungen, dann Seite wechseln",
+            "Brust am Polster, Rücken neutral, kein Hohlkreuz",
+            "Aus der Hüfte drücken, oben das Gesäß anspannen"
+          ],
+          "sets": [
+            { "reps": 12, "targetWeightKg": null, "restSec": 60 },
+            { "reps": 11, "targetWeightKg": null, "restSec": 60 },
+            { "reps": 10, "targetWeightKg": null, "restSec": 75 }
           ]
         },
         {

@@ -1,0 +1,35 @@
+{
+  "id": "glute-kickback-machine",
+  "view": "side",
+  "facing": "right",
+  "props": [
+    { "type": "box", "x": 74, "y": 18, "w": 3, "h": 72 },
+    { "type": "box", "x": 62, "y": 87.5, "w": 20, "h": 2.5 },
+    { "type": "box", "x": 65, "y": 36, "w": 10, "h": 2.5 },
+    { "type": "box", "x": 59, "y": 23, "w": 4, "h": 16, "rot": 20 },
+    { "type": "plate", "attachTo": "kneeR" }
+  ],
+  "poses": {
+    "start": {
+      "head": [61, 13],
+      "neck": [57, 21],
+      "shoulderR": [57, 25],
+      "shoulderL": [55, 26],
+      "elbowR": [57, 37],
+      "elbowL": [55, 38],
+      "handR": [69, 37],
+      "handL": [67, 38],
+      "hip": [46, 52],
+      "kneeR": [59.4, 65.4],
+      "kneeL": [47, 71],
+      "footR": [46, 78.8],
+      "footL": [48, 90]
+    },
+    "mid": {
+      "kneeR": [39.5, 69.9],
+      "footR": [21.6, 63.4]
+    }
+  },
+  "arrowJoint": "kneeR",
+  "emphasis": ["glutes", "hamstrings"]
+}
