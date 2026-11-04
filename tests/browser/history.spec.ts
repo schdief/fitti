@@ -16,6 +16,7 @@ test('catalogue history stays visible and refreshes saved partial sessions', asy
   })
   // Same React app/store, not a reload that would hide a stale-cache regression.
   await page.getByRole('link', { name: 'Logbuch', exact: true }).click()
+  await expect(page.getByRole('radio', { name: 'Kalender', exact: true }), 'logbook opens in calendar view').toHaveAttribute('aria-checked', 'true')
   await page.getByRole('link', { name: 'Katalog', exact: true }).click()
   await expect(history).toContainText('1 × trainiert · zuletzt heute')
   await expect(history).toContainText('Davon 1 × vorzeitig beendet')

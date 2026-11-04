@@ -59,7 +59,7 @@ function SessionCard({ session }: { session: WorkoutSession }) {
 
 export function LogbookPage() {
   const { sessions, loaded, load } = useSessions()
-  const [view, setView] = useState<'list' | 'calendar'>('list')
+  const [view, setView] = useState<'list' | 'calendar'>('calendar')
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
 
   useEffect(() => {
