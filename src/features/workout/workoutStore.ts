@@ -34,7 +34,6 @@ interface WorkoutActions {
   finishWork: () => void
   submitResult: (result: SetResult) => void
   startRest: (restSec: number) => void
-  extendRest: (seconds: number) => void
   goToStep: (stepIndex: number) => void
   finish: () => void
   discard: () => void
@@ -169,19 +168,6 @@ export const useWorkout = create<{ active: ActiveWorkout | null } & WorkoutActio
                   phase: 'rest',
                   endsAt: Date.now() + restSec * 1000,
                   plannedRestSec: restSec,
-                },
-              }
-            : state,
-        ),
-
-      extendRest: (seconds) =>
-        set((state) =>
-          state.active?.endsAt
-            ? {
-                active: {
-                  ...state.active,
-                  endsAt: state.active.endsAt + seconds * 1000,
-                  plannedRestSec: state.active.plannedRestSec + seconds,
                 },
               }
             : state,

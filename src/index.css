@@ -152,28 +152,11 @@
 .countdown-ring { container-type: inline-size; }
 .countdown-time { font-size: 24cqw; line-height: 1.1; }
 .countdown-progress { transition: stroke-dashoffset 200ms linear, stroke 200ms ease-out; }
-.rest-ring { width: clamp(7.5rem, 30cqh, 10.5rem); margin-bottom: 0.5rem; }
+.rest-ring { width: clamp(7.5rem, 30cqh, 10.5rem); }
 .hold-ring { width: clamp(7rem, 24cqh, 9rem); }
-.rest-extend { position: relative; height: 2.25rem; }
-/* Visible pill stays slim, the touch target reaches 44px. */
-.rest-extend::after { content: ''; position: absolute; inset: -0.25rem; }
 
 @media (min-width: 430px) {
   .workout-step-button { width: 3.75rem; height: 3.25rem; }
-}
-
-/* On the narrowest phones the main button must stay the widest. Skipping
-   keeps its icon; the label remains for assistive technology. */
-@media (max-width: 359px) {
-  .workout-skip { position: relative; min-width: 3.5rem; }
-  .workout-skip-label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
 }
 
 @media (max-height: 740px) {

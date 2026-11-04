@@ -3,7 +3,6 @@ import {
   ArrowUp,
   Check,
   Clock,
-  FastForward,
   Flame,
   Info,
   Minus,
@@ -14,7 +13,7 @@ import {
   X,
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { ReactNode, TouchEvent as ReactTouchEvent } from 'react'
+import type { TouchEvent as ReactTouchEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { ActionButton, Card } from '@/components/ui'
@@ -45,7 +44,6 @@ function CountdownRing({
   caption,
   urgent = false,
   className = '',
-  action,
 }: {
   remainingMs: number
   totalMs: number
@@ -53,8 +51,6 @@ function CountdownRing({
   /** Letzte Sekunden: Ring und Zahl in Warnfarbe, passend zum Signalton. */
   urgent?: boolean
   className?: string
-  /** Sitzt auf dem unteren Rand des Rings, damit innen nur die Zeit steht. */
-  action?: ReactNode
 }) {
   const ratio = totalMs > 0 ? Math.max(0, Math.min(1, remainingMs / totalMs)) : 0
   const circumference = 2 * Math.PI * 45
@@ -84,11 +80,6 @@ function CountdownRing({
           {caption}
         </span>
       </div>
-      {action ? (
-        <div className="absolute inset-x-0 bottom-0 flex translate-y-1/2 justify-center">
-          {action}
-        </div>
-      ) : null}
     </div>
   )
 }
@@ -557,8 +548,6 @@ export function WorkoutPage() {
   }
 
   const completedSets = active.results.length
-  const elapsedSec = phase === 'ready' ? 0 : Math.max(0, (now - active.startedAt) / 1000)
-  const leftSec = remainingSeconds(orderedSteps, active.stepIndex)
 
   if (phase === 'done') {
     const volume = active.results.reduce(
@@ -726,6 +715,11 @@ export function WorkoutPage() {
   // Während der Pause betrifft das Verschieben die nächste Übung, sonst die laufende.
   const resting = phase === 'rest'
   const ready = phase === 'ready'
+
+  // Restzeit: in der Pause die laufende Uhr plus alles ab dem nächsten Satz.
+  const leftSec = resting
+    ? remainingMs / 1000 + remainingSeconds(orderedSteps, active.stepIndex + 1)
+    : remainingSeconds(orderedSteps, active.stepIndex)
   const deferTarget = resting ? nextStep : step
   const deferFrom = resting ? active.stepIndex + 1 : active.stepIndex
 
@@ -802,8 +796,8 @@ export function WorkoutPage() {
     restartCurrentStep()
   }
 
-  // Wischen als Abkürzung: nach links die Übung nach hinten schieben, nach
-  // rechts die zuletzt geschobene zurückholen. Die Knöpfe tun dasselbe.
+  // Wischen statt Knöpfen: nach links die Übung nach hinten schieben, nach
+  // rechts die zuletzt geschobene zurückholen.
   const onTouchStart = (event: ReactTouchEvent) => {
     const touch = event.touches[0]
     swipeStart.current = touch ? { x: touch.clientX, y: touch.clientY } : null
@@ -947,16 +941,6 @@ export function WorkoutPage() {
           caption="Pause"
           urgent={urgent}
           className="rest-ring"
-          action={
-            <button
-              type="button"
-              onClick={() => useWorkout.getState().extendRest(30)}
-              className="rest-extend inline-flex items-center gap-0.5 rounded-full bg-surface-hi px-3 text-sm font-semibold text-fg ring-4 ring-surface transition-colors hover:bg-line active:bg-line"
-            >
-              <Plus size={14} aria-hidden />
-              30 s
-            </button>
-          }
         />
 
         {/* Gewicht schon in der Pause einstellen, dann steht es beim Start. */}
@@ -1010,8 +994,8 @@ export function WorkoutPage() {
               </span>
               <span className="flex items-center gap-1">
                 <Clock size={12} aria-hidden />
-                {/* Gleich gerundet wie in den Plandetails, sonst stehen dort zwei Zahlen. */}
-                {Math.floor(elapsedSec / 60)} von {Math.round((elapsedSec + leftSec) / 60)} min
+                {/* Gerundet wie in den Plandetails: zu Beginn steht hier dieselbe Zahl. */}
+                noch {Math.max(1, Math.round(leftSec / 60))} min
               </span>
             </p>
           </div>
@@ -1064,27 +1048,14 @@ export function WorkoutPage() {
 
       <footer className="border-t border-line px-4 pt-3">
         <div className="mx-auto max-w-lg space-y-3">
-          <div className="flex gap-2">
-            <ActionButton
-              variant="primary"
-              onClick={primaryAction.onClick}
-              className="flex flex-1 items-center justify-center gap-2 py-4 text-base"
-            >
-              {primaryAction.icon}
-              {primaryAction.label}
-            </ActionButton>
-
-            {canDefer ? (
-              <ActionButton
-                variant="warn"
-                onClick={deferExercise}
-                className="workout-skip flex shrink-0 items-center justify-center gap-1.5 px-3 py-4"
-              >
-                <FastForward size={18} aria-hidden />
-                <span className="workout-skip-label">Überspringen</span>
-              </ActionButton>
-            ) : null}
-          </div>
+          <ActionButton
+            variant="primary"
+            onClick={primaryAction.onClick}
+            className="flex w-full items-center justify-center gap-2 py-4 text-base"
+          >
+            {primaryAction.icon}
+            {primaryAction.label}
+          </ActionButton>
 
           <MusicBar />
         </div>

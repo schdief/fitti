@@ -22,6 +22,25 @@ async function fitsWidth(page: Page) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true)
 }
 
+/**
+ * Horizontal swipe on the workout content. Skipping has no button, only this
+ * gesture. React reads nothing but touches/changedTouches, so plain events
+ * work in every engine, including WebKit without a Touch constructor.
+ */
+async function swipe(page: Page, direction: 'left' | 'right') {
+  await page.locator('main').evaluate((main, dx) => {
+    const box = main.getBoundingClientRect()
+    const start = { clientX: box.left + box.width / 2, clientY: box.top + box.height / 2 }
+    const fire = (type: string, key: string, point: { clientX: number; clientY: number }) => {
+      const event = new Event(type, { bubbles: true })
+      Object.defineProperty(event, key, { value: [point] })
+      main.dispatchEvent(event)
+    }
+    fire('touchstart', 'touches', start)
+    fire('touchend', 'changedTouches', { clientX: start.clientX + dx, clientY: start.clientY })
+  }, direction === 'left' ? -160 : 160)
+}
+
 test('catalogue, logbook, settings and detail fit; navigation stays at the bottom', async ({ page }) => {
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
@@ -88,9 +107,17 @@ test('workout fits with music, preserves input in rest and completes without err
     const stage = await page.locator('.workout-active-figure').boundingBox()
     expect(stage!.height, 'movement picture stays large on the iPhone 17e').toBeGreaterThanOrEqual(168)
   }
+  await expect(page.locator('header')).toContainText(/noch \d+ min/)
+  await expect(page.getByRole('button', { name: 'Überspringen' }), 'skipping is a swipe, not a button').toHaveCount(0)
 
-  // Skip the hip thrust and check the leg curl's full-session recommendation.
-  await page.getByRole('button', { name: 'Überspringen', exact: true }).click()
+  // Swipe the hip thrust away and check the leg curl's full-session recommendation.
+  await swipe(page, 'left')
+  await expect(page.getByRole('heading', { name: 'Liegender Beinbeuger', level: 1 })).toBeVisible()
+  // A right swipe brings the deferred exercise back, a left one defers it again.
+  await swipe(page, 'right')
+  await expect(page.getByRole('heading', { name: 'Hip Thrust Maschine', level: 1 })).toBeVisible()
+  await swipe(page, 'left')
+  await expect(page.getByRole('heading', { name: 'Liegender Beinbeuger', level: 1 })).toBeVisible()
   await expect(page.getByRole('button', { name: 'kg erhöhen', exact: true })).toBeVisible()
   await expect(page.getByTestId('workout-recommendation')).toContainText('HOCH · 27,5 kg')
   await expect(page.getByTestId('workout-recommendation')).toContainText(/Alle 3 Satz-Ziele erreicht/)
@@ -112,12 +139,11 @@ test('workout fits with music, preserves input in rest and completes without err
     const image = preview.querySelector('.figure-stage')!.getBoundingClientRect()
     return image.top >= text.bottom
   }), 'rest preview image is below its text').toBe(true)
-  // The main button keeps its place in every phase; skipping sits beside it.
+  // The main button keeps its place and width in every phase.
   const next = await page.getByRole('button', { name: 'Weiter', exact: true }).boundingBox()
-  const skip = await page.getByRole('button', { name: 'Überspringen', exact: true }).boundingBox()
   expect(Math.abs(next!.y - done!.y), 'Weiter replaces Fertig in place').toBeLessThan(2)
-  expect(Math.abs(skip!.y - next!.y)).toBeLessThan(2)
-  expect(next!.width).toBeGreaterThan(skip!.width)
+  expect(Math.abs(next!.width - done!.width)).toBeLessThan(2)
+  await expect(page.getByRole('button', { name: /30 s/ }), 'no rest extension button').toHaveCount(0)
   await page.screenshot({ path: test.info().outputPath('rest.png'), fullPage: true })
   await fitsWidth(page)
   expect(await page.evaluate(() => document.documentElement.scrollHeight - innerHeight), 'rest should fit vertically').toBeLessThanOrEqual(1)
