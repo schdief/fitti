@@ -14,15 +14,22 @@ export interface FigureBox {
   size: number
 }
 
-/**
- * Quadratischer Ausschnitt um alles, was gezeichnet wird – über beide Posen
- * hinweg, damit Ausgang und Mitte denselben Maßstab haben. So muss beim
- * Erstellen der Posen niemand auf die Bildkomposition achten.
- */
-const boundsCache = new WeakMap<Figure, FigureBox>()
+/** Enger Rahmen um die Zeichnung, nicht quadratisch. */
+export interface FigureFrame {
+  x: number
+  y: number
+  w: number
+  h: number
+}
 
-export function figureBounds(figure: Figure): FigureBox {
-  const cached = boundsCache.get(figure)
+const frameCache = new WeakMap<Figure, FigureFrame>()
+
+/**
+ * Alles, was gezeichnet wird – über beide Posen und die Bögen dazwischen,
+ * damit Ausgang und Mitte denselben Maßstab haben.
+ */
+export function figureFrame(figure: Figure): FigureFrame {
+  const cached = frameCache.get(figure)
   if (cached) return cached
   const xs: number[] = []
   const ys: number[] = []
@@ -48,11 +55,26 @@ export function figureBounds(figure: Figure): FigureBox {
   const minY = Math.min(...ys) - padding
   const maxY = Math.max(...ys, GROUND_Y) + padding * 0.4
 
-  const size = Math.max(maxX - minX, maxY - minY)
+  const frame = { x: minX, y: minY, w: maxX - minX, h: maxY - minY }
+  frameCache.set(figure, frame)
+  return frame
+}
+
+/**
+ * Quadratischer Ausschnitt um den Rahmen. So muss beim Erstellen der Posen
+ * niemand auf die Bildkomposition achten.
+ */
+const boundsCache = new WeakMap<Figure, FigureBox>()
+
+export function figureBounds(figure: Figure): FigureBox {
+  const cached = boundsCache.get(figure)
+  if (cached) return cached
+  const frame = figureFrame(figure)
+  const size = Math.max(frame.w, frame.h)
 
   const bounds = {
-    x: minX - (size - (maxX - minX)) / 2,
-    y: minY - (size - (maxY - minY)) / 2,
+    x: frame.x - (size - frame.w) / 2,
+    y: frame.y - (size - frame.h) / 2,
     size,
   }
   boundsCache.set(figure, bounds)
@@ -267,10 +289,11 @@ export function FigureContent({
       </defs>
 
       <ellipse cx={box.x + box.size / 2} cy={GROUND_Y + 1.5} rx={box.size * .38} ry={2.5} fill="#060d14" opacity=".5" />
+      {/* Über den Ausschnitt hinaus: in breiten Bühnen reicht der Boden bis zum Rand. */}
       <line
-        x1={box.x}
+        x1={box.x - box.size}
         y1={GROUND_Y}
-        x2={box.x + box.size}
+        x2={box.x + box.size * 2}
         y2={GROUND_Y}
         className="stroke-line"
         strokeWidth={stroke * 0.35}
@@ -313,23 +336,29 @@ export function FigureView({
   pose,
   mix,
   showArrow = false,
+  fit = 'square',
   className = '',
 }: {
   figure: Figure
   pose: 'start' | 'mid'
   mix?: number
   showArrow?: boolean
+  /**
+   * `content` rahmt nur die Zeichnung. In einer breiten, flachen Bühne wird
+   * eine liegende Figur so deutlich größer als im quadratischen Ausschnitt.
+   */
+  fit?: 'square' | 'content'
   className?: string
 }) {
   const box = figureBounds(figure)
+  const frame = figureFrame(figure)
+  const viewBox =
+    fit === 'content'
+      ? `${frame.x} ${frame.y} ${frame.w} ${frame.h}`
+      : `${box.x} ${box.y} ${box.size} ${box.size}`
 
   return (
-    <svg
-      viewBox={`${box.x} ${box.y} ${box.size} ${box.size}`}
-      className={className}
-      role="img"
-      aria-label={figure.id}
-    >
+    <svg viewBox={viewBox} className={className} role="img" aria-label={figure.id}>
       <FigureContent figure={figure} pose={pose} mix={mix} showArrow={showArrow} />
     </svg>
   )

@@ -5,14 +5,16 @@ import {
   Clock,
   FastForward,
   Flame,
+  Info,
   Minus,
   PartyPopper,
   Plus,
   SkipForward,
+  SlidersHorizontal,
   X,
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { TouchEvent as ReactTouchEvent } from 'react'
+import type { ReactNode, TouchEvent as ReactTouchEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { ActionButton, Card } from '@/components/ui'
@@ -27,6 +29,7 @@ import { useSessions } from '@/features/logbook/useSessions'
 import { sendHealthWorkout } from '@/features/health/healthExport'
 import { useSettings } from '@/features/settings/settingsStore'
 import { adviseSet, analyseSession } from '@/features/workout/advice'
+import type { Advice } from '@/features/workout/advice'
 import { buildCoachPrompt, formatDelta } from '@/features/workout/coachPrompt'
 import { cue, primeWorkoutAudio, signal } from '@/features/workout/cues'
 import { buildSteps, formatClock, remainingSeconds } from '@/features/workout/steps'
@@ -40,25 +43,31 @@ function CountdownRing({
   remainingMs,
   totalMs,
   caption,
-  compact = false,
+  urgent = false,
+  className = '',
+  action,
 }: {
   remainingMs: number
   totalMs: number
   caption: string
-  compact?: boolean
+  /** Letzte Sekunden: Ring und Zahl in Warnfarbe, passend zum Signalton. */
+  urgent?: boolean
+  className?: string
+  /** Sitzt auf dem unteren Rand des Rings, damit innen nur die Zeit steht. */
+  action?: ReactNode
 }) {
   const ratio = totalMs > 0 ? Math.max(0, Math.min(1, remainingMs / totalMs)) : 0
   const circumference = 2 * Math.PI * 45
 
   return (
-    <div className={`countdown-ring relative mx-auto aspect-square ${compact ? 'w-36 max-w-full' : 'w-56 max-w-full'}`}>
-      <svg viewBox="0 0 100 100" className="size-full -rotate-90">
+    <div className={`countdown-ring relative aspect-square shrink-0 ${className}`}>
+      <svg viewBox="0 0 100 100" className="size-full -rotate-90" aria-hidden>
         <circle cx="50" cy="50" r="45" className="fill-none stroke-surface-hi" strokeWidth="6" />
         <circle
           cx="50"
           cy="50"
           r="45"
-          className="fill-none stroke-accent transition-[stroke-dashoffset] duration-200 ease-linear"
+          className={`countdown-progress fill-none ${urgent ? 'stroke-warn' : 'stroke-accent'}`}
           strokeWidth="6"
           strokeLinecap="round"
           strokeDasharray={circumference}
@@ -67,12 +76,19 @@ function CountdownRing({
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span
-          className={`font-semibold tabular-nums ${compact ? 'text-4xl' : 'text-5xl'}`}
+          className={`countdown-time font-semibold tabular-nums transition-colors duration-200 ${urgent ? 'text-warn' : 'text-fg'}`}
         >
           {formatClock(remainingMs / 1000)}
         </span>
-        <span className="mt-1 text-xs uppercase tracking-wider text-fg-faint">{caption}</span>
+        <span className="text-[11px] font-medium uppercase tracking-wider text-fg-faint">
+          {caption}
+        </span>
       </div>
+      {action ? (
+        <div className="absolute inset-x-0 bottom-0 flex translate-y-1/2 justify-center">
+          {action}
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -116,66 +132,151 @@ function SegmentedProgress({
   )
 }
 
-/** Große Tasten, damit die Eingabe zwischen zwei Sätzen mit einem Daumen klappt. */
-function InlineStepper({
+/**
+ * Große Tasten an den Rändern, die Zahl mit Einheit dazwischen: so klappt die
+ * Eingabe zwischen zwei Sätzen mit einem Daumen.
+ */
+function ValueStepper({
   label,
   value,
   onStep,
+  compact = false,
 }: {
+  /** Einheit, zugleich Name der Tasten: „Wdh“ oder „kg“. */
   label: string
   value: number
   onStep: (direction: 1 | -1) => void
+  compact?: boolean
 }) {
+  const button = `workout-step-button flex shrink-0 items-center justify-center rounded-xl bg-surface-hi text-fg transition-colors hover:bg-line active:bg-line ${
+    compact ? 'workout-step-button-compact' : ''
+  }`
+
   return (
-    <div className="flex flex-col items-center gap-1">
-      <span className="text-xs uppercase tracking-wider text-fg-faint">{label}</span>
-      <div className="flex items-center gap-1">
-        <button
-          type="button"
-          aria-label={`${label} verringern`}
-          onClick={() => onStep(-1)}
-          className="workout-step-button shrink-0 rounded-xl bg-surface-hi text-2xl leading-none text-fg active:bg-line"
-        >
-          −
-        </button>
-        <output className="w-16 text-center text-2xl font-semibold tabular-nums">{value}</output>
-        <button
-          type="button"
-          aria-label={`${label} erhöhen`}
-          onClick={() => onStep(1)}
-          className="workout-step-button shrink-0 rounded-xl bg-surface-hi text-2xl leading-none text-fg active:bg-line"
-        >
-          +
-        </button>
-      </div>
+    <div
+      className={`flex items-center gap-2 ${
+        compact ? 'w-full' : 'workout-stepper-row px-2 py-1.5 not-first:border-t not-first:border-line'
+      }`}
+    >
+      <button
+        type="button"
+        aria-label={`${label} verringern`}
+        onClick={() => onStep(-1)}
+        className={button}
+      >
+        <Minus size={20} aria-hidden />
+      </button>
+      <p className="flex min-w-0 flex-1 items-baseline justify-center gap-1">
+        <output className={`font-semibold tabular-nums ${compact ? 'text-2xl' : 'text-3xl'}`}>
+          {value.toLocaleString('de-DE')}
+        </output>
+        <span className="text-sm font-medium text-fg-muted">{label}</span>
+      </p>
+      <button
+        type="button"
+        aria-label={`${label} erhöhen`}
+        onClick={() => onStep(1)}
+        className={button}
+      >
+        <Plus size={20} aria-hidden />
+      </button>
     </div>
   )
 }
 
-function NextUp({ step }: { step: WorkoutStep | undefined }) {
-  if (!step) {
-    return <p className="text-center text-sm text-fg-muted">Danach ist Schluss.</p>
-  }
+function targetLabel(step: WorkoutStep): string {
+  return step.exercise.mode === 'time' ? `${step.set.durationSec} s` : `${step.set.reps} Wdh`
+}
+
+/** Maschineneinstellung und Satzhinweis: beides braucht man beim Einstellen. */
+function ExerciseChips({ step }: { step: WorkoutStep }) {
+  const { setup } = step.exercise
+  const { note } = step.set
+  if (!setup && !note) return null
 
   return (
-    <div className="next-preview flex flex-col items-center gap-3">
-      <div className="text-center">
-        <p className="text-[11px] uppercase tracking-wider text-fg-faint">Als Nächstes</p>
-        <p className="text-sm font-medium">{step.exercise.name}</p>
-        <p className="text-xs text-fg-muted">
-          Satz {step.setIndex + 1}/{step.setCount} ·{' '}
-          {step.exercise.mode === 'time' ? `${step.set.durationSec} s` : `${step.set.reps} Wdh`}
-        </p>
-        {step.exercise.setup ? (
-          <p className="mt-1 text-xs font-medium text-fg">{step.exercise.setup}</p>
-        ) : null}
+    <div className="flex flex-wrap justify-center gap-1.5">
+      {setup ? (
+        <span className="inline-flex items-center gap-1.5 rounded-2xl bg-surface-hi px-2.5 py-1 text-xs font-medium text-fg">
+          <SlidersHorizontal size={12} aria-hidden className="shrink-0 text-fg-muted" />
+          {setup}
+        </span>
+      ) : null}
+      {note ? (
+        <span className="inline-flex items-center gap-1.5 rounded-2xl bg-surface-hi px-2.5 py-1 text-xs text-fg-muted">
+          <Info size={12} aria-hidden className="shrink-0" />
+          {note}
+        </span>
+      ) : null}
+    </div>
+  )
+}
+
+/** Empfehlung als Fußzeile der Fläche, deren Gewicht sie betrifft. */
+function RecommendationStrip({
+  advice,
+  value,
+  text,
+}: {
+  advice: Advice
+  value: string
+  text: string
+}) {
+  const tone =
+    advice === 'increase'
+      ? 'bg-accent/10 text-accent'
+      : advice === 'decrease'
+        ? 'bg-warn/10 text-warn'
+        : 'bg-surface-hi text-fg'
+  const label = advice === 'increase' ? 'HOCH' : advice === 'decrease' ? 'RUNTER' : 'HALTEN'
+  const Icon = advice === 'increase' ? ArrowUp : advice === 'decrease' ? ArrowDown : Minus
+
+  return (
+    <div
+      role="note"
+      aria-label="Trainingsempfehlung"
+      data-testid="workout-recommendation"
+      className={`workout-advice flex items-center gap-3 border-t border-line px-3 py-2.5 ${tone}`}
+    >
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-current/15">
+        <Icon size={18} aria-hidden />
+      </span>
+      <p className="min-w-0 leading-snug">
+        <span className="block text-sm font-bold">
+          {label} · {value}
+        </span>
+        <span className="block text-xs text-fg/75">{text}</span>
+      </p>
+    </div>
+  )
+}
+
+/**
+ * Vorschau in der Pause: Name, Satz und Einstellung direkt über der
+ * Bewegung. Bewusst ohne Rahmen, sonst stünde die Bühne der Figur in einer
+ * zweiten Karte.
+ */
+function NextUp({ step }: { step: WorkoutStep }) {
+  return (
+    <section aria-label="Als Nächstes" className="next-preview">
+      <div className="space-y-1.5 text-center">
+        <div>
+          <h2 className="text-balance text-lg font-semibold leading-tight tracking-tight">
+            {step.exercise.name}
+          </h2>
+          <p className="mt-0.5 text-sm tabular-nums text-fg-muted">
+            Als Nächstes · Satz {step.setIndex + 1} von {step.setCount} · {targetLabel(step)}
+          </p>
+        </div>
+        <ExerciseChips step={step} />
       </div>
       <AnimatedFigure
         exerciseId={step.exercise.exerciseId}
         timing={step.exercise.timing}
-        className="rest-preview-figure shrink-0"
+        fill
+        className="rest-preview-figure workout-figure"
       />
-    </div>
+    </section>
   )
 }
 
@@ -736,24 +837,27 @@ export function WorkoutPage() {
 
   const cueList =
     step.exercise.cues.length > 0 ? (
-      <ul className="space-y-1 text-center text-sm text-fg-muted">
+      <ul className="space-y-0.5 text-center text-[13px] leading-snug text-fg-muted">
         {step.exercise.cues.map((hint) => (
-          <li key={hint}>{hint}</li>
+          <li key={hint} className="text-balance">
+            {hint}
+          </li>
         ))}
       </ul>
     ) : null
 
-  const titleBlock = (
-    <div className="text-center">
-      <h1 className="text-lg font-semibold leading-snug tracking-tight">{step.exercise.name}</h1>
-      {step.exercise.setup ? (
-        <p className="mt-1 text-xs font-medium text-fg">{step.exercise.setup}</p>
-      ) : null}
-      {step.rounds > 1 ? (
-        <p className="text-[11px] uppercase tracking-wider text-fg-faint">
-          Runde {step.round}/{step.rounds}
+  const exerciseHeading = (
+    <div className="space-y-1.5 text-center">
+      <div>
+        <h1 className="text-balance text-xl font-semibold leading-tight tracking-tight">
+          {step.exercise.name}
+        </h1>
+        <p className="mt-0.5 text-sm tabular-nums text-fg-muted">
+          Satz {step.setIndex + 1} von {step.setCount}
+          {step.rounds > 1 ? ` · Runde ${step.round} von ${step.rounds}` : ''}
         </p>
-      ) : null}
+      </div>
+      <ExerciseChips step={step} />
     </div>
   )
 
@@ -773,34 +877,122 @@ export function WorkoutPage() {
     : suggestion.recommendedReps == null
       ? ''
       : `${suggestion.recommendedReps} Wdh`
-  const recommendationLabel =
-    suggestion.advice === 'increase'
-      ? 'HOCH'
-      : suggestion.advice === 'decrease'
-        ? 'RUNTER'
-        : 'HALTEN'
-  const RecommendationIcon =
-    suggestion.advice === 'increase' ? ArrowUp : suggestion.advice === 'decrease' ? ArrowDown : Minus
-  const suggestionNote =
+  const recommendation =
     suggestion.text && recommendationValue ? (
-      <div
-        data-testid="workout-recommendation"
-        aria-label="Trainingsempfehlung"
-        className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-1 ${
-          suggestion.advice === 'increase'
-            ? 'border-accent/30 bg-accent/10 text-accent'
-            : suggestion.advice === 'decrease'
-              ? 'border-warn/30 bg-warn/10 text-warn'
-              : 'border-line bg-surface-hi text-fg'
-        }`}
-      >
-        <RecommendationIcon size={20} aria-hidden />
-        <p className="shrink-0 text-sm font-bold">
-          {recommendationLabel} · {recommendationValue}
-        </p>
-        <p className="min-w-0 text-[11px] leading-snug text-fg-muted">{suggestion.text}</p>
-      </div>
+      <RecommendationStrip
+        advice={suggestion.advice}
+        value={recommendationValue}
+        text={suggestion.text}
+      />
     ) : null
+
+  // Farbe und Signalton kündigen das Ende gleichzeitig an.
+  const urgent =
+    endsAt !== null &&
+    training.countdownFromSec > 0 &&
+    remainingMs <= training.countdownFromSec * 1000
+
+  // Ziel und Erfassung des laufenden Satzes, direkt über dem Hauptknopf.
+  const setSurface = (
+    <section
+      aria-label="Satz erfassen"
+      className="overflow-hidden rounded-2xl border border-line bg-surface"
+    >
+      {isTime ? (
+        <div className="flex min-h-16 items-center justify-center p-3">
+          {ready ? (
+            <p className="flex items-baseline gap-1.5">
+              <span className="text-3xl font-semibold tabular-nums">{plannedSec}</span>
+              <span className="text-sm font-medium text-fg-muted">s halten</span>
+            </p>
+          ) : endsAt ? (
+            <CountdownRing
+              remainingMs={remainingMs}
+              totalMs={Math.max(1, plannedSec) * 1000}
+              caption="Halten"
+              urgent={urgent}
+              className="hold-ring"
+            />
+          ) : (
+            <p className="text-2xl font-semibold">Zeit um</p>
+          )}
+        </div>
+      ) : (
+        <ValueStepper
+          label="Wdh"
+          value={reps}
+          onStep={(direction) => setReps(Math.max(0, Math.min(500, reps + direction)))}
+        />
+      )}
+      {step.exercise.usesWeight ? (
+        <ValueStepper
+          label="kg"
+          value={weightKg}
+          onStep={(direction) =>
+            setWeightKg(nextWeight(weightKg, direction, step.exercise, training.weightStepKg))
+          }
+        />
+      ) : null}
+      {recommendation}
+    </section>
+  )
+
+  // Pausenuhr und Gewicht des nächsten Satzes, an derselben Stelle wie die Satzfläche.
+  const restSurface = (
+    <section aria-label="Pause" className="overflow-hidden rounded-2xl border border-line bg-surface">
+      <div className="flex items-center justify-center gap-3 p-3">
+        <CountdownRing
+          remainingMs={remainingMs}
+          totalMs={active.plannedRestSec * 1000}
+          caption="Pause"
+          urgent={urgent}
+          className="rest-ring"
+          action={
+            <button
+              type="button"
+              onClick={() => useWorkout.getState().extendRest(30)}
+              className="rest-extend inline-flex items-center gap-0.5 rounded-full bg-surface-hi px-3 text-sm font-semibold text-fg ring-4 ring-surface transition-colors hover:bg-line active:bg-line"
+            >
+              <Plus size={14} aria-hidden />
+              30 s
+            </button>
+          }
+        />
+
+        {/* Gewicht schon in der Pause einstellen, dann steht es beim Start. */}
+        {nextStep?.exercise.usesWeight ? (
+          <div className="flex min-w-0 flex-1 flex-col items-center gap-2">
+            <p className="text-xs font-medium text-fg-muted">
+              Gewicht für Satz {nextStep.setIndex + 1}
+            </p>
+            <ValueStepper
+              compact
+              label="kg"
+              value={weightKg}
+              onStep={(direction) =>
+                setWeightKg(
+                  nextWeight(weightKg, direction, nextStep.exercise, training.weightStepKg),
+                )
+              }
+            />
+          </div>
+        ) : null}
+      </div>
+      {recommendation}
+    </section>
+  )
+
+  const continueAfterRest = () => {
+    cue('Weitermachen')
+    advance()
+  }
+
+  // Der Hauptknopf steht in jeder Phase an derselben Stelle.
+  const primaryAction = ready
+    ? { label: 'Zündung', icon: <Flame size={20} aria-hidden />, onClick: ignite }
+    : resting
+      ? { label: 'Weiter', icon: <SkipForward size={20} aria-hidden />, onClick: continueAfterRest }
+      : { label: 'Fertig', icon: <Check size={20} aria-hidden />, onClick: submit }
 
   return (
     <div className="workout-shell flex min-h-app flex-col">
@@ -808,13 +1000,21 @@ export function WorkoutPage() {
         Der Übungsname steht über der Animation, nicht hier oben: In der Pause
         wäre er wertlos, und während des Satzes gehört er zur Figur.
       */}
-      <header className="pad-safe-top border-b border-line px-4 py-3">
+      <header className="border-b border-line px-4 pb-3">
         <div className="mx-auto flex max-w-lg items-center gap-3">
-          <SegmentedProgress
-            groups={progressGroups}
-            stateOf={stepStateOf}
-            className="min-w-0 flex-1"
-          />
+          <div className="min-w-0 flex-1">
+            <SegmentedProgress groups={progressGroups} stateOf={stepStateOf} />
+            <p className="mt-1.5 flex items-center justify-between gap-3 text-[11px] font-medium tabular-nums text-fg-muted">
+              <span>
+                {completedSets} von {orderedSteps.length} Sätzen
+              </span>
+              <span className="flex items-center gap-1">
+                <Clock size={12} aria-hidden />
+                {/* Gleich gerundet wie in den Plandetails, sonst stehen dort zwei Zahlen. */}
+                {Math.floor(elapsedSec / 60)} von {Math.round((elapsedSec + leftSec) / 60)} min
+              </span>
+            </p>
+          </div>
 
           <button
             type="button"
@@ -827,205 +1027,64 @@ export function WorkoutPage() {
         </div>
       </header>
 
+      {/*
+        Oben steht, was zu tun ist, unten, was zu erfassen ist – direkt über dem
+        Hauptknopf. Die Figur bekommt den Platz dazwischen.
+      */}
       <main
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
-        className="workout-main mx-auto flex w-full max-w-lg flex-1 touch-pan-y flex-col justify-center gap-3 px-4 py-3"
+        className="workout-main mx-auto w-full max-w-lg flex-1 touch-pan-y px-4 py-3"
       >
-        {ready ? (
-          <>
-            {titleBlock}
-
-            <AnimatedFigure
-              exerciseId={step.exercise.exerciseId}
-              timing={step.exercise.timing}
-              className="mx-auto w-full max-w-[min(72%,28dvh)]"
-            />
-
-            <div className="text-center">
-              <p className="text-[11px] uppercase tracking-wider text-fg-faint">Los geht’s mit</p>
-              <p className="mt-0.5 text-sm text-fg-muted">
-                Satz {step.setIndex + 1}/{step.setCount} ·{' '}
-                {isTime ? `${step.set.durationSec} s` : `${step.set.reps} Wdh`}
-                {step.exercise.usesWeight && step.set.targetWeightKg != null
-                  ? ` · ${step.set.targetWeightKg} kg`
-                  : ''}
-              </p>
-            </div>
-
-            {suggestionNote}
-            {cueList}
-          </>
-        ) : phase === 'rest' ? (
-          <>
-            {/* Doppelter Abstand zur Uhr, damit Vorschau und Pause klar getrennt sind. */}
-            <div className="mb-3">
+        {resting ? (
+          <div className="workout-view" data-phase="rest">
+            {nextStep ? (
               <NextUp step={nextStep} />
-            </div>
-
-            <div className={nextStep?.exercise.usesWeight ? 'workout-exercise-layout' : ''}>
-              <CountdownRing
-                remainingMs={remainingMs}
-                totalMs={active.plannedRestSec * 1000}
-                caption="Pause"
-                compact
-              />
-
-              {/* Gewicht schon in der Pause einstellen, dann steht es beim Start. */}
-              {nextStep?.exercise.usesWeight ? (
-                <InlineStepper
-                  label="kg"
-                  value={weightKg}
-                  onStep={(direction) =>
-                    setWeightKg(
-                      nextWeight(weightKg, direction, nextStep.exercise, training.weightStepKg),
-                    )
-                  }
-                />
-              ) : null}
-            </div>
-
-            {suggestionNote}
-
-            <div className="flex justify-center gap-2">
-              <ActionButton onClick={() => useWorkout.getState().extendRest(30)}>
-                <span className="flex items-center gap-1">
-                  <Plus size={16} aria-hidden />
-                  30 s
-                </span>
-              </ActionButton>
-              <ActionButton
-                variant="primary"
-                onClick={() => {
-                  cue('Weitermachen')
-                  advance()
-                }}
-              >
-                <span className="flex items-center gap-1">
-                  <SkipForward size={16} aria-hidden />
-                  Weiter
-                </span>
-              </ActionButton>
-            </div>
-            {canDefer ? (
-              <div className="flex justify-center">
-                <ActionButton variant="warn" onClick={deferExercise}>
-                  <span className="flex items-center gap-1.5">
-                    <FastForward size={16} aria-hidden />
-                    Überspringen
-                  </span>
-                </ActionButton>
-              </div>
-            ) : null}
-          </>
+            ) : (
+              <p className="text-center text-sm text-fg-muted">Danach ist Schluss.</p>
+            )}
+            {restSurface}
+          </div>
         ) : (
-          <>
-            {titleBlock}
-
-            <div className="workout-exercise-stack" data-weighted={step.exercise.usesWeight || isTime}>
+          <div className="workout-view" data-phase={ready ? 'ready' : 'work'}>
+            <div className="workout-what">
+              {exerciseHeading}
               <AnimatedFigure
                 exerciseId={step.exercise.exerciseId}
                 timing={step.exercise.timing}
-                className="workout-active-figure shrink-0"
+                fill
+                className="workout-active-figure workout-figure"
               />
-              <div className="flex flex-col items-center justify-center gap-3">
-                {isTime && endsAt ? (
-                  <CountdownRing
-                    remainingMs={remainingMs}
-                    totalMs={(step.set.durationSec ?? 1) * 1000}
-                    caption="Halten"
-                    compact
-                  />
-                ) : null}
-
-                {isTime && !endsAt ? (
-                  <p className="text-center text-2xl font-semibold tabular-nums">Zeit um</p>
-                ) : null}
-
-                <div className="flex flex-col items-center gap-2">
-                  {isTime ? null : (
-                    <InlineStepper
-                      label="Wdh"
-                      value={reps}
-                      onStep={(direction) => setReps(Math.max(0, Math.min(500, reps + direction)))}
-                    />
-                  )}
-                  {step.exercise.usesWeight ? (
-                    <InlineStepper
-                      label="kg"
-                      value={weightKg}
-                      onStep={(direction) =>
-                        setWeightKg(
-                          nextWeight(weightKg, direction, step.exercise, training.weightStepKg),
-                        )
-                      }
-                    />
-                  ) : null}
-                </div>
-              </div>
+              {cueList}
             </div>
-
-            {suggestionNote}
-            {cueList}
-          </>
+            {setSurface}
+          </div>
         )}
       </main>
 
-      <footer className="pad-safe-bottom border-t border-line px-4 py-3">
+      <footer className="border-t border-line px-4 pt-3">
         <div className="mx-auto max-w-lg space-y-3">
-          {ready ? (
-            <div className="flex gap-2">
+          <div className="flex gap-2">
+            <ActionButton
+              variant="primary"
+              onClick={primaryAction.onClick}
+              className="flex flex-1 items-center justify-center gap-2 py-4 text-base"
+            >
+              {primaryAction.icon}
+              {primaryAction.label}
+            </ActionButton>
+
+            {canDefer ? (
               <ActionButton
-                variant="primary"
-                onClick={ignite}
-                className="flex flex-1 items-center justify-center gap-2 py-4 text-base"
+                variant="warn"
+                onClick={deferExercise}
+                className="workout-skip flex shrink-0 items-center justify-center gap-1.5 px-3 py-4"
               >
-                <Flame size={20} aria-hidden />
-                Zündung
+                <FastForward size={18} aria-hidden />
+                <span className="workout-skip-label">Überspringen</span>
               </ActionButton>
-
-              {canDefer ? (
-                <ActionButton
-                  variant="warn"
-                  onClick={deferExercise}
-                  className="flex shrink-0 items-center gap-1.5 px-3 py-4"
-                >
-                  <FastForward size={18} aria-hidden />
-                  Überspringen
-                </ActionButton>
-              ) : null}
-            </div>
-          ) : phase !== 'rest' ? (
-            <div className="flex gap-2">
-              <ActionButton
-                variant="primary"
-                onClick={submit}
-                className="flex flex-1 items-center justify-center gap-2 py-4 text-base"
-              >
-                <Check size={20} aria-hidden />
-                Fertig
-              </ActionButton>
-
-              {canDefer ? (
-                <ActionButton
-                  variant="warn"
-                  onClick={deferExercise}
-                  className="flex shrink-0 items-center gap-1.5 px-3 py-4"
-                >
-                  <FastForward size={18} aria-hidden />
-                  Überspringen
-                </ActionButton>
-              ) : null}
-            </div>
-          ) : null}
-
-          <p className="flex items-center justify-center gap-1.5 text-xs text-fg-muted">
-            <Clock size={14} aria-hidden />
-            <span className="tabular-nums">
-              {/* Gleich gerundet wie in den Plandetails, sonst stehen dort zwei Zahlen. */}
-              {Math.floor(elapsedSec / 60)} von {Math.round((elapsedSec + leftSec) / 60)} min
-            </span>
-          </p>
+            ) : null}
+          </div>
 
           <MusicBar />
         </div>

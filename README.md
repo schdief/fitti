@@ -27,6 +27,7 @@ npm run dev
 | `npm run build` | Katalog-Index, Typecheck und Produktionsbuild nach `dist/` |
 | `npm run preview` | Produktionsbuild lokal testen (inkl. Service Worker) |
 | `npm run typecheck` | nur Typprüfung |
+| `npm run test:ui` | Layouttests im Browser, u. a. auf dem Zielgerät iPhone 17e (WebKit, einmalig `npx playwright install webkit`) |
 | `npm run validate` | Pläne und Figuren gegen das Schema und die Querverweise prüfen |
 | `npm run catalog` | `public/plans/index.json` neu erzeugen |
 | `npm run schema` | JSON Schema und Vokabular für den Copilot-Skill exportieren |

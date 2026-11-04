@@ -4,13 +4,14 @@ import type { Page } from '@playwright/test'
 const plan = 'ruecken-gesaess-maschinen-40'
 
 test.beforeEach(async ({ page }, info) => {
-  // Desktop WebKit device emulation has no physical notch. Exercise that space
-  // explicitly without pretending this reproduces standalone iOS compositor bugs.
-  if (info.project.name === 'iphone-webkit') {
+  // Desktop WebKit device emulation has no physical notch. Inject the iPhone
+  // 17e's standalone safe areas (47 px status bar, 34 px home indicator)
+  // without pretending this reproduces standalone iOS compositor bugs.
+  if (info.project.name === 'iphone-17e') {
     await page.addInitScript(() => {
       document.addEventListener('DOMContentLoaded', () => {
         const style = document.createElement('style')
-        style.textContent = '.pad-safe-top { padding-top: 59px !important; } .pad-safe-bottom { padding-bottom: 46px !important; }'
+        style.textContent = ':root { --safe-top: 47px !important; --safe-bottom: 34px !important; }'
         document.head.append(style)
       }, { once: true })
     })
@@ -79,16 +80,21 @@ test('workout fits with music, preserves input in rest and completes without err
   await page.screenshot({ path: test.info().outputPath('work.png'), fullPage: true })
   const workHeight = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight)
   expect(workHeight, 'workout should fit vertically').toBeLessThanOrEqual(1)
-  if ((page.viewportSize()?.height ?? 0) >= 740) {
+  const standardPhone = (page.viewportSize()?.height ?? 0) >= 740
+  if (standardPhone) {
     expect(await page.locator('main').evaluate((main) => main.scrollHeight - main.clientHeight), 'exercise content fits on standard phones').toBeLessThanOrEqual(1)
   }
+  if (test.info().project.name === 'iphone-17e') {
+    const stage = await page.locator('.workout-active-figure').boundingBox()
+    expect(stage!.height, 'movement picture stays large on the iPhone 17e').toBeGreaterThanOrEqual(168)
+  }
 
-  // Skip Hack Squats and check the next exercise's full-session recommendation.
+  // Skip the hip thrust and check the leg curl's full-session recommendation.
   await page.getByRole('button', { name: 'Überspringen', exact: true }).click()
   await expect(page.getByRole('button', { name: 'kg erhöhen', exact: true })).toBeVisible()
   await expect(page.getByTestId('workout-recommendation')).toContainText('HOCH · 27,5 kg')
   await expect(page.getByTestId('workout-recommendation')).toContainText(/Alle 3 Satz-Ziele erreicht/)
-  await expect(page.getByRole('status').last()).toHaveText('27.5')
+  await expect(page.getByRole('status').last()).toHaveText('27,5')
   const stackedInputs = await page.locator('main').evaluate((main) => {
     const image = main.querySelector('.workout-active-figure')!.getBoundingClientRect()
     const outputs = [...main.querySelectorAll('output')].map((element) => element.getBoundingClientRect())
@@ -97,6 +103,7 @@ test('workout fits with music, preserves input in rest and completes without err
   expect(stackedInputs, 'Wdh and kg stay stacked below the exercise image').toBe(true)
   await fitsWidth(page)
   expect(await page.evaluate(() => document.documentElement.scrollHeight - innerHeight), 'weighted workout with advice should fit').toBeLessThanOrEqual(1)
+  const done = await page.getByRole('button', { name: 'Fertig', exact: true }).boundingBox()
   await page.getByRole('button', { name: 'Fertig', exact: true }).click()
   await page.getByRole('button', { name: 'kg erhöhen', exact: true }).click()
   const weight = await page.getByRole('status').last().textContent()
@@ -105,12 +112,18 @@ test('workout fits with music, preserves input in rest and completes without err
     const image = preview.querySelector('.figure-stage')!.getBoundingClientRect()
     return image.top >= text.bottom
   }), 'rest preview image is below its text').toBe(true)
+  // The main button keeps its place in every phase; skipping sits beside it.
   const next = await page.getByRole('button', { name: 'Weiter', exact: true }).boundingBox()
   const skip = await page.getByRole('button', { name: 'Überspringen', exact: true }).boundingBox()
-  expect(skip!.y).toBeGreaterThanOrEqual(next!.y + next!.height)
+  expect(Math.abs(next!.y - done!.y), 'Weiter replaces Fertig in place').toBeLessThan(2)
+  expect(Math.abs(skip!.y - next!.y)).toBeLessThan(2)
+  expect(next!.width).toBeGreaterThan(skip!.width)
   await page.screenshot({ path: test.info().outputPath('rest.png'), fullPage: true })
   await fitsWidth(page)
   expect(await page.evaluate(() => document.documentElement.scrollHeight - innerHeight), 'rest should fit vertically').toBeLessThanOrEqual(1)
+  if (standardPhone) {
+    expect(await page.locator('main').evaluate((main) => main.scrollHeight - main.clientHeight), 'rest content fits on standard phones').toBeLessThanOrEqual(1)
+  }
   await page.getByRole('button', { name: 'Weiter', exact: true }).click()
   await expect(page.getByRole('status').last()).toHaveText(weight!)
   for (let i = 0; i < 17; i++) {

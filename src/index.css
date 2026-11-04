@@ -21,6 +21,12 @@
 }
 
 @layer base {
+  /* Geräteabstände an einer Stelle; Tests setzen hier die Werte des iPhone 17e ein. */
+  :root {
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
   html {
     background-color: var(--color-bg);
     -webkit-text-size-adjust: 100%;
@@ -56,7 +62,7 @@
 }
 
 @utility pad-safe-top {
-  padding-top: calc(env(safe-area-inset-top, 0px) + 0.75rem);
+  padding-top: calc(var(--safe-top) + 0.75rem);
 }
 
 /* Gemessene Viewporthöhe, siehe lib/appHeight.ts. */
@@ -82,7 +88,7 @@
 }
 
 @utility pad-safe-bottom {
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.75rem);
+  padding-bottom: calc(var(--safe-bottom) + 0.75rem);
 }
 
 /* A bounded shell keeps navigation in its own row, without sticky painting
@@ -103,49 +109,83 @@
   box-shadow: inset 0 0 0 1px rgb(148 178 196 / 12%);
 }
 
-.workout-exercise-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(164px, 1fr);
-  align-items: center;
-  gap: 1rem;
-}
-.workout-step-button { width: 44px; height: 52px; }
-
 /* On unusually small displays or enlarged system text, only the exercise
   content may scroll. Completion and music controls remain reachable. */
 .workout-shell { height: var(--app-height, 100dvh); }
 .workout-shell > header, .workout-shell > footer { flex-shrink: 0; }
-.workout-main { min-height: 0; overflow-y: auto; justify-content: safe center; container-type: size; }
-.workout-main > * { flex-shrink: 0; }
+/* Notch phones such as the iPhone 17e already bring 47px above and 34px below.
+   Adding the usual 0.75rem on top would only take height from the picture. */
+.workout-shell > header { padding-top: max(calc(var(--safe-top) + 0.25rem), 0.75rem); }
+.workout-shell > footer { padding-bottom: max(var(--safe-bottom), 0.75rem); }
+.workout-main { min-height: 0; overflow-y: auto; container-type: size; }
 
-/* Keep the reading order vertical. Size illustrations from the space left
-   above the footer, so a disconnected player doesn't leave a tiny picture. */
-.workout-exercise-stack {
+/* Two zones in every phase: on top what to do (name, movement, cues), at the
+   bottom what to log or wait for, right above the main button. The movement
+   takes the height that is left, so a disconnected player or a missing hint
+   gives a bigger picture instead of empty space. */
+.workout-view {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
+  gap: 1.25rem;
+  min-height: 100%;
 }
-.workout-active-figure { width: clamp(120px, calc(100cqh - 280px), 280px); max-width: 100%; }
-.workout-exercise-stack[data-weighted="true"] .workout-active-figure {
-  width: clamp(120px, calc(100cqh - 395px), 246px);
+.workout-view > * { flex-shrink: 0; }
+.workout-what,
+.next-preview {
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.625rem;
 }
-.rest-preview-figure { width: clamp(96px, calc(100cqh - 390px), 192px); max-width: 100%; }
+.workout-figure {
+  flex: 1 1 0;
+  width: 100%;
+  min-height: 6.5rem;
+  max-height: 24rem;
+}
+
+.workout-step-button { width: 3.25rem; height: 3rem; }
+.workout-step-button-compact { width: 2.75rem; height: 2.75rem; }
+
+/* Timers grow with the space they get, the digits with the ring. */
+.countdown-ring { container-type: inline-size; }
+.countdown-time { font-size: 24cqw; line-height: 1.1; }
+.countdown-progress { transition: stroke-dashoffset 200ms linear, stroke 200ms ease-out; }
+.rest-ring { width: clamp(7.5rem, 30cqh, 10.5rem); margin-bottom: 0.5rem; }
+.hold-ring { width: clamp(7rem, 24cqh, 9rem); }
+.rest-extend { position: relative; height: 2.25rem; }
+/* Visible pill stays slim, the touch target reaches 44px. */
+.rest-extend::after { content: ''; position: absolute; inset: -0.25rem; }
 
 @media (min-width: 430px) {
-  .workout-step-button { width: 52px; height: 60px; }
+  .workout-step-button { width: 3.75rem; height: 3.25rem; }
+}
+
+/* On the narrowest phones the main button must stay the widest. Skipping
+   keeps its icon; the label remains for assistive technology. */
+@media (max-width: 359px) {
+  .workout-skip { position: relative; min-width: 3.5rem; }
+  .workout-skip-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
 }
 
 @media (max-height: 740px) {
-  .workout-main { gap: 0.5rem; padding-block: 0.5rem; }
-  .workout-main .countdown-ring { width: 120px; }
+  .workout-main { padding-block: 0.5rem; }
+  .workout-view { gap: 0.75rem; }
+  .workout-what, .next-preview { gap: 0.375rem; }
+  .workout-figure { min-height: 5rem; }
+  .workout-step-button { height: 2.75rem; }
+  .workout-stepper-row { padding-block: 0.25rem; }
+  .workout-advice { padding-block: 0.375rem; }
   .workout-shell footer { padding-top: 0.5rem; }
   .workout-shell footer > div > :not(:last-child) { margin-bottom: 0.5rem; }
-}
-
-@media (max-height: 620px) {
-  .workout-main .countdown-ring { width: 104px; }
-  .workout-main .countdown-ring span:first-child { font-size: 1.875rem; }
 }
 
 .music-seek {

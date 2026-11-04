@@ -28,15 +28,20 @@ function mixAt(elapsedSec: number, timing: MovementTiming): number {
 /**
  * Spielt die Bewegung zwischen Ausgangs- und Mittelposition in der Taktung des
  * Plans ab. Halteübungen ohne Mittelposition bleiben stehen.
+ *
+ * Mit `fill` bestimmt das Layout die Größe der Bühne statt eines festen
+ * Quadrats; die Figur sitzt dann zentriert im verfügbaren Platz.
  */
 export function AnimatedFigure({
   exerciseId,
   timing,
   className = '',
+  fill = false,
 }: {
   exerciseId: string
   timing: MovementTiming
   className?: string
+  fill?: boolean
 }) {
   const { figure, loading } = useFigure(exerciseId)
   const [mix, setMix] = useState(0)
@@ -85,14 +90,16 @@ export function AnimatedFigure({
     }
   }, [animated, exerciseId, timing])
 
+  const shape = fill ? 'relative' : 'aspect-square'
+
   if (loading) {
-    return <div className={`aspect-square animate-pulse rounded-xl bg-surface-hi ${className}`} />
+    return <div className={`${shape} animate-pulse rounded-xl bg-surface-hi ${className}`} />
   }
 
   if (!figure) {
     return (
       <div
-        className={`flex aspect-square items-center justify-center rounded-xl bg-surface-hi text-fg-faint ${className}`}
+        className={`flex ${shape} items-center justify-center rounded-xl bg-surface-hi text-fg-faint ${className}`}
       >
         ?
       </div>
@@ -100,8 +107,14 @@ export function AnimatedFigure({
   }
 
   return (
-    <div ref={container} className={`figure-stage aspect-square overflow-hidden rounded-2xl ${className}`}>
-      <FigureView figure={figure} pose="start" mix={animated ? mix : undefined} className="block size-full" />
+    <div ref={container} className={`figure-stage ${shape} overflow-hidden rounded-2xl ${className}`}>
+      <FigureView
+        figure={figure}
+        pose="start"
+        mix={animated ? mix : undefined}
+        fit={fill ? 'content' : 'square'}
+        className={fill ? 'absolute inset-0 block size-full' : 'block size-full'}
+      />
     </div>
   )
 }

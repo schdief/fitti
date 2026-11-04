@@ -14,7 +14,11 @@ import {
  */
 export async function primeWorkoutAudio(): Promise<void> {
   primeCueElement()
-  await unlockAudio()
+  try {
+    await unlockAudio()
+  } catch {
+    // Ohne Web Audio startet das Training trotzdem; Signale laufen über das Audioelement.
+  }
   setAudioSessionType(WORKOUT_AUDIO_SESSION)
 }
 
