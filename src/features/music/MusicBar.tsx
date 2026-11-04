@@ -1,7 +1,6 @@
 import { Pause, Play, SkipBack, SkipForward } from 'lucide-react'
 import { useState } from 'react'
 import type { CSSProperties } from 'react'
-import { Link } from 'react-router-dom'
 
 import { useSpotifyPlayer } from '@/features/music/useSpotifyPlayer'
 import { useTicker } from '@/features/workout/useTicker'
@@ -45,13 +44,9 @@ export function MusicBar() {
   const [scrubbing, setScrubbing] = useState<number | null>(null)
   const now = useTicker(connected && snapshot.isPlaying, 500)
 
-  if (!connected) {
-    return (
-      <Link to="/settings" className="block text-center text-xs text-fg-faint">
-        Spotify verbinden
-      </Link>
-    )
-  }
+  // Ohne Spotify-Verbindung bleibt die Leiste ganz weg, der Platz gehört der
+  // Übung. Verbinden lässt sich Spotify in den Einstellungen.
+  if (!connected) return null
 
   if (!snapshot.hasDevice) {
     return (

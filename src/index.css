@@ -92,12 +92,16 @@
 }
 
 /* A bounded shell keeps navigation in its own row, without sticky painting
-   workarounds. Only catalogue/logbook content scrolls. */
+   workarounds. Only catalogue/logbook content scrolls. The height is measured
+   (lib/appHeight.ts): plain 100dvh is too short when iOS launches the
+   home-screen app and left an empty strip under the tab bar. Should iOS still
+   report too little, the shadow paints that strip in the tab bar's colour. */
 .tab-shell {
   display: grid;
-  height: 100dvh;
+  height: var(--app-height, 100dvh);
   grid-template-rows: minmax(0, 1fr) auto;
   overflow: hidden;
+  box-shadow: 0 6rem 0 0 var(--color-surface);
 }
 
 .settings-row > span:first-child {
@@ -113,9 +117,10 @@
   content may scroll. Completion and music controls remain reachable. */
 .workout-shell { height: var(--app-height, 100dvh); }
 .workout-shell > header, .workout-shell > footer { flex-shrink: 0; }
-/* Notch phones such as the iPhone 17e already bring 47px above and 34px below.
-   Adding the usual 0.75rem on top would only take height from the picture. */
-.workout-shell > header { padding-top: max(calc(var(--safe-top) + 0.25rem), 0.75rem); }
+/* iOS blurs content right below the status bar, so the progress bar keeps its
+   distance there. Below, the home indicator inset (34px on the iPhone 17e)
+   is room enough. */
+.workout-shell > header { padding-top: max(calc(var(--safe-top) + 1.25rem), 0.75rem); }
 .workout-shell > footer { padding-bottom: max(var(--safe-bottom), 0.75rem); }
 .workout-main { min-height: 0; overflow-y: auto; container-type: size; }
 
@@ -146,13 +151,21 @@
 }
 
 .workout-step-button { width: 3.25rem; height: 3rem; }
-.workout-step-button-compact { width: 2.75rem; height: 2.75rem; }
+.workout-step-button.workout-step-button-compact { width: 2.5rem; height: 2.75rem; }
 
-/* Timers grow with the space they get, the digits with the ring. */
+/* Timers grow with the space they get, the digits with the ring. Next to the
+   rest timer the weight needs room for values like "102,5"; on the narrowest
+   phones it moves below the timer instead. */
 .countdown-ring { container-type: inline-size; }
 .countdown-time { font-size: 24cqw; line-height: 1.1; }
 .countdown-progress { transition: stroke-dashoffset 200ms linear, stroke 200ms ease-out; }
-.rest-ring { width: clamp(7.5rem, 30cqh, 10.5rem); }
+.rest-surface { container-type: inline-size; }
+.rest-ring { width: clamp(6.5rem, min(30cqh, 42cqw), 9.5rem); }
+@container (max-width: 300px) {
+  .rest-row { flex-direction: column; }
+  .rest-ring { width: 7.5rem; }
+  .rest-weight { align-self: stretch; }
+}
 .hold-ring { width: clamp(7rem, 24cqh, 9rem); }
 
 @media (min-width: 430px) {

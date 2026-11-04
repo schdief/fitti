@@ -145,8 +145,10 @@ function ValueStepper({
 
   return (
     <div
-      className={`flex items-center gap-2 ${
-        compact ? 'w-full' : 'workout-stepper-row px-2 py-1.5 not-first:border-t not-first:border-line'
+      className={`flex items-center ${
+        compact
+          ? 'w-full gap-1.5'
+          : 'workout-stepper-row gap-2 px-2 py-1.5 not-first:border-t not-first:border-line'
       }`}
     >
       <button
@@ -157,11 +159,22 @@ function ValueStepper({
       >
         <Minus size={20} aria-hidden />
       </button>
-      <p className="flex min-w-0 flex-1 items-baseline justify-center gap-1">
-        <output className={`font-semibold tabular-nums ${compact ? 'text-2xl' : 'text-3xl'}`}>
+      {/* Schmal neben der Pausenuhr steht die Einheit unter der Zahl, sonst daneben. */}
+      <p
+        className={`flex min-w-0 flex-1 justify-center ${
+          compact ? 'flex-col items-center' : 'items-baseline gap-1'
+        }`}
+      >
+        <output
+          className={`font-semibold tabular-nums ${compact ? 'text-2xl leading-tight' : 'text-3xl'}`}
+        >
           {value.toLocaleString('de-DE')}
         </output>
-        <span className="text-sm font-medium text-fg-muted">{label}</span>
+        <span
+          className={`font-medium text-fg-muted ${compact ? 'text-xs leading-none' : 'text-sm'}`}
+        >
+          {label}
+        </span>
       </p>
       <button
         type="button"
@@ -933,8 +946,11 @@ export function WorkoutPage() {
 
   // Pausenuhr und Gewicht des nächsten Satzes, an derselben Stelle wie die Satzfläche.
   const restSurface = (
-    <section aria-label="Pause" className="overflow-hidden rounded-2xl border border-line bg-surface">
-      <div className="flex items-center justify-center gap-3 p-3">
+    <section
+      aria-label="Pause"
+      className="rest-surface overflow-hidden rounded-2xl border border-line bg-surface"
+    >
+      <div className="rest-row flex items-center justify-center gap-3 p-3">
         <CountdownRing
           remainingMs={remainingMs}
           totalMs={active.plannedRestSec * 1000}
@@ -945,7 +961,7 @@ export function WorkoutPage() {
 
         {/* Gewicht schon in der Pause einstellen, dann steht es beim Start. */}
         {nextStep?.exercise.usesWeight ? (
-          <div className="flex min-w-0 flex-1 flex-col items-center gap-2">
+          <div className="rest-weight flex min-w-0 flex-1 flex-col items-center gap-2">
             <p className="text-xs font-medium text-fg-muted">
               Gewicht für Satz {nextStep.setIndex + 1}
             </p>

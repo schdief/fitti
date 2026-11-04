@@ -105,7 +105,9 @@ test('workout fits with music, preserves input in rest and completes without err
   }
   if (test.info().project.name === 'iphone-17e') {
     const stage = await page.locator('.workout-active-figure').boundingBox()
-    expect(stage!.height, 'movement picture stays large on the iPhone 17e').toBeGreaterThanOrEqual(168)
+    expect(stage!.height, 'movement picture stays large on the iPhone 17e').toBeGreaterThanOrEqual(150)
+    const progress = await page.locator('header [aria-hidden]').first().boundingBox()
+    expect(progress!.y, 'progress bar clears the blurred status bar').toBeGreaterThanOrEqual(64)
   }
   await expect(page.locator('header')).toContainText(/noch \d+ min/)
   await expect(page.getByRole('button', { name: 'Überspringen' }), 'skipping is a swipe, not a button').toHaveCount(0)
@@ -159,6 +161,16 @@ test('workout fits with music, preserves input in rest and completes without err
   await expect(page.getByRole('heading', { name: 'Geschafft', exact: true })).toBeVisible()
   await fitsWidth(page)
   expect(errors).toEqual([])
+})
+
+test('without Spotify the workout footer holds only the main button', async ({ page }) => {
+  await page.goto(`#/plan/${plan}`)
+  await page.getByRole('button', { name: 'Los geht’s' }).click()
+  await expect(page.getByRole('button', { name: 'Zündung' })).toBeVisible()
+  await expect(page.getByLabel('Musiksteuerung')).toHaveCount(0)
+  await expect(page.getByText('Spotify verbinden')).toHaveCount(0)
+  expect(await page.locator('footer').evaluate((footer) => footer.querySelectorAll('button, a').length)).toBe(1)
+  expect(await page.evaluate(() => document.documentElement.scrollHeight - innerHeight)).toBeLessThanOrEqual(1)
 })
 
 test('reduced motion leaves animated exercises still', async ({ page }) => {
