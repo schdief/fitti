@@ -8,6 +8,113 @@ export { lerpPose, resolvePose } from '@/features/figures/pose'
 
 const GROUND_Y = 90
 
+/** Geräte im Stil der Figur: gedecktes Schiefer, runde Kanten, ein Licht von oben. */
+const STUDIO = {
+  frame: '#2b3a47',
+  pad: '#3f5466',
+  padLight: '#62798c',
+  metal: '#9aadbd',
+  plate: '#253340',
+} as const
+
+interface PropBox {
+  type: PropType
+  x?: number
+  y?: number
+  w?: number
+  h?: number
+  rot?: number
+}
+
+function FixedProp({ type, x = 50, y = 80, w = 20, h = 4, rot = 0 }: PropBox) {
+  const transform = rot ? `rotate(${rot} ${x + w / 2} ${y + h / 2})` : undefined
+  const highlight = (
+    <rect x={x + 0.8} y={y + 0.45} width={Math.max(0, w - 1.6)} height={Math.min(1, h * 0.25)} rx={0.5} fill={STUDIO.padLight} opacity={0.75} />
+  )
+
+  switch (type) {
+    case 'bench':
+    case 'chair':
+      return (
+        <g transform={transform}>
+          {[0.18, 0.82].map((at) => (
+            <line key={at} x1={x + w * at} y1={y + h} x2={x + w * at} y2={GROUND_Y} stroke={STUDIO.frame} strokeWidth={2.4} strokeLinecap="round" />
+          ))}
+          {type === 'chair' ? (
+            <line x1={x + 1} y1={y} x2={x + 1} y2={y - w * 0.8} stroke={STUDIO.frame} strokeWidth={2.4} strokeLinecap="round" />
+          ) : null}
+          <rect x={x} y={y} width={w} height={h} rx={Math.min(h / 2, 2.2)} fill={STUDIO.pad} />
+          {highlight}
+        </g>
+      )
+    case 'wall':
+      return <rect x={x} y={y} width={2.6} height={h} rx={1.3} fill={STUDIO.frame} transform={transform} />
+    case 'pullup-bar':
+      return <rect x={x} y={y} width={w} height={2} rx={1} fill={STUDIO.metal} transform={transform} />
+    case 'cable':
+      return (
+        <line x1={x} y1={y} x2={x + w} y2={y + h} stroke={STUDIO.metal} strokeWidth={1} strokeDasharray="2.4 1.8" strokeLinecap="round" transform={transform} />
+      )
+    case 'box':
+      return (
+        <g transform={transform}>
+          <rect x={x} y={y} width={w} height={h} rx={Math.min(w, h) / 2.4} fill={STUDIO.frame} />
+          {w > 4 && h > 2 ? highlight : null}
+        </g>
+      )
+    default:
+      return (
+        <g transform={transform}>
+          <rect x={x} y={y} width={w} height={h} rx={Math.min(w, h) / 2} fill={STUDIO.pad} />
+          {highlight}
+        </g>
+      )
+  }
+}
+
+function HeldProp({ type, at }: { type: PropType; at: [number, number] }) {
+  const [x, y] = at
+
+  switch (type) {
+    case 'dumbbell':
+      return (
+        <g>
+          <rect x={x - 0.9} y={y - 4.5} width={1.8} height={9} rx={0.9} fill={STUDIO.metal} />
+          <rect x={x - 3} y={y - 5.6} width={6} height={2.6} rx={1.2} fill={STUDIO.plate} />
+          <rect x={x - 3} y={y + 3} width={6} height={2.6} rx={1.2} fill={STUDIO.plate} />
+        </g>
+      )
+    case 'kettlebell':
+      return (
+        <g>
+          <path d={`M ${x - 2.2} ${y + 1} a 2.2 2.6 0 1 1 4.4 0`} fill="none" stroke={STUDIO.metal} strokeWidth={1.2} />
+          <circle cx={x} cy={y + 4} r={3.4} fill={STUDIO.plate} />
+        </g>
+      )
+    case 'barbell':
+      return (
+        <g>
+          <rect x={x - 16} y={y - 0.8} width={32} height={1.6} rx={0.8} fill={STUDIO.metal} />
+          <rect x={x - 15.2} y={y - 3.8} width={3} height={7.6} rx={1.2} fill={STUDIO.plate} />
+          <rect x={x + 12.2} y={y - 3.8} width={3} height={7.6} rx={1.2} fill={STUDIO.plate} />
+        </g>
+      )
+    case 'plate':
+      return (
+        <g>
+          <circle cx={x} cy={y} r={3.6} fill={STUDIO.pad} />
+          <circle cx={x - 0.8} cy={y - 0.9} r={1.6} fill={STUDIO.padLight} opacity={0.6} />
+        </g>
+      )
+    case 'ball':
+      return <circle cx={x} cy={y} r={3.6} fill={STUDIO.pad} />
+    case 'band':
+      return <path d={`M ${x} ${y} q 6 6 0 12`} fill="none" stroke="#2fe3a0" strokeWidth={1.3} strokeDasharray="2 1.6" />
+    default:
+      return <circle cx={x} cy={y} r={2.4} fill={STUDIO.metal} />
+  }
+}
+
 export interface FigureBox {
   x: number
   y: number
@@ -81,168 +188,6 @@ export function figureBounds(figure: Figure): FigureBox {
   return bounds
 }
 
-function FixedProp({ type, x = 50, y = 80, w = 20, h = 4, rot = 0 }: {
-  type: PropType
-  x?: number
-  y?: number
-  w?: number
-  h?: number
-  rot?: number
-}) {
-  const transform = rot ? `rotate(${rot} ${x + w / 2} ${y + h / 2})` : undefined
-  // Geräte und Auflagen sollen erkennbar sein, aber nicht mit der Figur konkurrieren.
-  const solid = 'fill-fg-faint'
-  const opacity = 0.85
-
-  switch (type) {
-    case 'mat':
-      return (
-        <rect
-          x={x}
-          y={y}
-          width={w}
-          height={h}
-          rx={1.5}
-          className={solid}
-          opacity={opacity}
-          transform={transform}
-        />
-      )
-    case 'bench':
-      return (
-        <g transform={transform} className={`${solid} stroke-fg-faint`} opacity={opacity}>
-          <rect x={x} y={y} width={w} height={h} rx={1.5} fill="#3b5263" stroke="#6c8493" strokeWidth=".6" />
-          <line x1={x + 1} y1={y + 1} x2={x + w - 1} y2={y + 1} stroke="#93a8b5" strokeWidth=".5" />
-          <line x1={x + w * 0.15} y1={y + h} x2={x + w * 0.15} y2={GROUND_Y} strokeWidth={2} />
-          <line x1={x + w * 0.85} y1={y + h} x2={x + w * 0.85} y2={GROUND_Y} strokeWidth={2} />
-        </g>
-      )
-    case 'box':
-      return (
-        <rect
-          x={x}
-          y={y}
-          width={w}
-          height={h}
-          rx={1}
-          className={solid}
-          opacity={opacity}
-          transform={transform}
-        />
-      )
-    case 'chair':
-      return (
-        <g transform={transform} className={`${solid} stroke-fg-faint`} opacity={opacity}>
-          <rect x={x} y={y} width={w} height={2.5} />
-          <line x1={x} y1={y} x2={x} y2={y - w * 0.8} strokeWidth={2} />
-          <line x1={x + 1} y1={y + 2.5} x2={x + 1} y2={GROUND_Y} strokeWidth={2} />
-          <line x1={x + w - 1} y1={y + 2.5} x2={x + w - 1} y2={GROUND_Y} strokeWidth={2} />
-        </g>
-      )
-    case 'wall':
-      return (
-        <rect
-          x={x}
-          y={y}
-          width={2.5}
-          height={h}
-          className={solid}
-          opacity={opacity}
-          transform={transform}
-        />
-      )
-    case 'pullup-bar':
-      return (
-        <rect
-          x={x}
-          y={y}
-          width={w}
-          height={2}
-          rx={1}
-          className={solid}
-          opacity={opacity}
-          transform={transform}
-        />
-      )
-    case 'cable':
-      return (
-        <line
-          x1={x}
-          y1={y}
-          x2={x + w}
-          y2={y + h}
-          className="stroke-fg-faint"
-          opacity={opacity}
-          strokeWidth={1.2}
-          strokeDasharray="3 2"
-          transform={transform}
-        />
-      )
-    default:
-      return (
-        <rect
-          x={x}
-          y={y}
-          width={w}
-          height={h}
-          rx={1}
-          className={solid}
-          opacity={opacity}
-          transform={transform}
-        />
-      )
-  }
-}
-
-function HeldProp({ type, at }: { type: PropType; at: [number, number] }) {
-  const [x, y] = at
-
-  switch (type) {
-    case 'dumbbell':
-      return (
-        <g className="fill-accent">
-          <rect x={x - 1} y={y - 4.5} width={2} height={9} rx={0.8} />
-          <rect x={x - 3} y={y - 5.5} width={6} height={2.6} rx={1} />
-          <rect x={x - 3} y={y + 2.9} width={6} height={2.6} rx={1} />
-        </g>
-      )
-    case 'kettlebell':
-      return (
-        <g className="fill-accent">
-          <circle cx={x} cy={y + 4} r={3.4} />
-          <path
-            d={`M ${x - 2.2} ${y + 1} a 2.2 2.6 0 1 1 4.4 0`}
-            className="fill-none stroke-accent"
-            strokeWidth={1.2}
-          />
-        </g>
-      )
-    case 'barbell':
-      return (
-        <g className="fill-accent">
-          <rect x={x - 16} y={y - 0.9} width={32} height={1.8} rx={0.9} />
-          <rect x={x - 15} y={y - 3.5} width={2.6} height={7} rx={1} />
-          <rect x={x + 12.4} y={y - 3.5} width={2.6} height={7} rx={1} />
-        </g>
-      )
-    case 'plate':
-      return <circle cx={x} cy={y} r={3.4} className="fill-none stroke-accent" strokeWidth={1.6} />
-    case 'ball':
-      return <circle cx={x} cy={y} r={3.6} className="fill-accent" />
-    case 'band':
-      return (
-        <path
-          d={`M ${x} ${y} q 6 6 0 12`}
-          className="fill-none stroke-accent"
-          strokeWidth={1.4}
-          strokeDasharray="2 1.6"
-        />
-      )
-    default:
-      return <circle cx={x} cy={y} r={2.4} className="fill-accent" />
-  }
-}
-
 export function FigureContent({
   figure,
   pose,
@@ -286,9 +231,13 @@ export function FigureContent({
         >
           <path d="M 0 1 L 10 5 L 0 9 z" className="fill-accent" />
         </marker>
+        <radialGradient id={`${id}-shadow`}>
+          <stop stopColor="#03080c" stopOpacity=".6" />
+          <stop offset="1" stopColor="#03080c" stopOpacity="0" />
+        </radialGradient>
       </defs>
 
-      <ellipse cx={box.x + box.size / 2} cy={GROUND_Y + 1.5} rx={box.size * .38} ry={2.5} fill="#060d14" opacity=".5" />
+      <ellipse cx={box.x + box.size / 2} cy={GROUND_Y + 0.6} rx={box.size * 0.42} ry={3.2} fill={`url(#${id}-shadow)`} />
       {/* Über den Ausschnitt hinaus: in breiten Bühnen reicht der Boden bis zum Rand. */}
       <line
         x1={box.x - box.size}
