@@ -3,7 +3,7 @@
   "view": "side",
   "facing": "right",
   "props": [
-    { "type": "bench", "x": 18, "y": 76, "w": 62, "h": 4 },
+    { "type": "bench", "x": 33, "y": 76, "w": 47, "h": 4 },
     { "type": "plate", "attachTo": "footR" }
   ],
   "poses": {
@@ -23,8 +23,8 @@
       "footL": [18, 75]
     },
     "mid": {
-      "footR": [24, 54],
-      "footL": [24, 56]
+      "footR": [26.3, 59.2],
+      "footL": [26.3, 61.2]
     }
   },
   "arrowJoint": "footR",

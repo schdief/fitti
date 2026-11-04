@@ -3,12 +3,14 @@
   "view": "side",
   "facing": "right",
   "props": [
-    { "type": "box", "x": 36, "y": 60, "w": 18, "h": 4 },
-    { "type": "wall", "x": 54, "y": 30, "w": 3, "h": 26 },
-    { "type": "pullup-bar", "x": 66, "y": 20, "w": 12, "h": 2 },
-    { "type": "cable", "x": 72, "y": 22, "w": 1, "h": 21 },
-    { "type": "plate", "attachTo": "handR" },
-    { "type": "plate", "attachTo": "handL" }
+    { "type": "mat", "x": 33.5, "y": 63.4, "w": 19, "h": 3.4 },
+    { "type": "wall", "x": 41.7, "y": 66.8, "w": 2.6, "h": 20.8 },
+    { "type": "box", "x": 35, "y": 87.5, "w": 51, "h": 2.5 },
+    { "type": "mat", "x": 50.8, "y": 33.5, "w": 3.6, "h": 19 },
+    { "type": "wall", "x": 55.2, "y": 51.66, "w": 2.6, "h": 36.18, "rot": -11.2 },
+    { "type": "box", "x": 78, "y": 21, "w": 8, "h": 66.5 },
+    { "type": "plate", "x": 79.2, "y": 60, "w": 5.6, "h": 27 },
+    { "type": "cable", "x": 78, "y": 43, "attachTo": "handR" }
   ],
   "poses": {
     "start": {

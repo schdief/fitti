@@ -3,7 +3,7 @@
   "view": "side",
   "facing": "right",
   "props": [
-    { "type": "bench", "x": 36, "y": 56, "w": 28, "h": 4, "rot": -24 },
+    { "type": "bench", "x": 41.8, "y": 55.8, "w": 26, "h": 4, "rot": -39.5 },
     { "type": "dumbbell", "attachTo": "handR" },
     { "type": "dumbbell", "attachTo": "handL" }
   ],

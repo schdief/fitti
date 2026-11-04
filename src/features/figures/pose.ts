@@ -20,6 +20,9 @@ export function resolvePose(figure: Figure, pose: 'start' | 'mid'): JointMap {
  * Interpolates projected bone angles, not joint coordinates. A raised arm
  * follows an arc instead of collapsing through the shoulder. Projected lengths
  * may vary (e.g. front-view fly); unchanged feet/support points stay anchored.
+ * Joints listed in `depthJoints` move through the picture depth instead: they
+ * travel in a straight line relative to their parent, which is how a limb
+ * swinging towards or away from the viewer projects.
  * This is 2D articulation, not a biomechanical/3D reconstruction.
  */
 export function lerpPose(figure: Figure, mix: number): JointMap {
@@ -27,6 +30,7 @@ export function lerpPose(figure: Figure, mix: number): JointMap {
   if (!figure.poses.mid || mix <= 0) return start
   const end = resolvePose(figure, 'mid')
   if (mix >= 1) return end
+  const depth = new Set(figure.depthJoints ?? [])
   const joints: JointMap = { ...start }
   joints.hip = [
     start.hip[0] + (end.hip[0] - start.hip[0]) * mix,
@@ -44,6 +48,13 @@ export function lerpPose(figure: Figure, mix: number): JointMap {
     const ay = from[1] - start[parent][1]
     const bx = to[0] - end[parent][0]
     const by = to[1] - end[parent][1]
+    if (depth.has(child)) {
+      joints[child] = [
+        joints[parent][0] + ax + (bx - ax) * mix,
+        joints[parent][1] + ay + (by - ay) * mix,
+      ]
+      continue
+    }
     const angle = Math.atan2(ay, ax)
     const delta = Math.atan2(Math.sin(Math.atan2(by, bx) - angle), Math.cos(Math.atan2(by, bx) - angle))
     const length = Math.hypot(ax, ay) * (1 - mix) + Math.hypot(bx, by) * mix

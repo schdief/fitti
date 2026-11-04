@@ -86,6 +86,7 @@ function smoothClosed(points: Point[]): string {
  */
 export function HumanBody({ joints: j, figure, id }: { joints: JointMap; figure: Figure; id: string }) {
   const front = figure.view !== 'side'
+  const back = figure.view === 'back'
   const side = figure.facing === 'left' ? -1 : 1
   const length = Math.hypot(j.neck[0] - j.hip[0], j.neck[1] - j.hip[1])
   const depth = front ? Math.max(6, Math.abs(j.shoulderR[0] - j.shoulderL[0]) / 2 + 1) : 5.6
@@ -114,11 +115,18 @@ export function HumanBody({ joints: j, figure, id }: { joints: JointMap; figure:
   const leg = (s: 'L' | 'R', far: boolean) => {
     const pants = far ? farTone(TONES.pants) : TONES.pants
     const mirror = front ? (s === 'L' ? -1 : 1) : side
+    const knee = j[`knee${s}`]
+    const foot = j[`foot${s}`]
+    // Ein frei bewegter Fuß folgt dem Unterschenkel, ein aufgesetzter bleibt flach.
+    const startFoot = figure.poses.start[`foot${s}`]
+    const midFoot = figure.poses.mid?.[`foot${s}`]
+    const swings = !front && midFoot !== undefined && (midFoot[0] !== startFoot[0] || midFoot[1] !== startFoot[1])
+    const tilt = swings ? Math.atan2(foot[1] - knee[1], foot[0] - knee[0]) * 180 / Math.PI - 90 : 0
     return (
       <g>
-        <Bone id={`${id}-shin${s}`} from={j[`knee${s}`]} to={j[`foot${s}`]} width={5.8} tone={pants} />
-        <Bone id={`${id}-thigh${s}`} from={j.hip} to={j[`knee${s}`]} width={7.4} tone={pants} />
-        <g transform={`translate(${j[`foot${s}`][0]} ${j[`foot${s}`][1]}) scale(${mirror} 1)`}>
+        <Bone id={`${id}-shin${s}`} from={knee} to={foot} width={5.8} tone={pants} />
+        <Bone id={`${id}-thigh${s}`} from={j.hip} to={knee} width={7.4} tone={pants} />
+        <g transform={`translate(${foot[0]} ${foot[1]}) rotate(${tilt}) scale(${mirror} 1)`}>
           <path
             d="M -2.4 -2.3 Q -0.6 -3.5 1.7 -2.3 L 4.9 -0.7 Q 6.5 0.1 6.1 1.5 L -2.6 1.5 Q -3.5 -0.1 -2.4 -2.3 Z"
             fill={far ? '#9aa7b1' : '#e8eef2'}
@@ -150,6 +158,9 @@ export function HumanBody({ joints: j, figure, id }: { joints: JointMap; figure:
       {leg('L', !front)}
       {front ? null : arm('L', true)}
       {leg('R', false)}
+      {/* Von hinten liegen die Arme hinter dem Rumpf: vor der Brust verdeckt er sie. */}
+      {back ? arm('L', false) : null}
+      {back ? arm('R', false) : null}
 
       <Bone id={`${id}-neck`} from={j.neck} to={j.head} width={4.2} tone={TONES.skin} />
 
@@ -187,7 +198,7 @@ export function HumanBody({ joints: j, figure, id }: { joints: JointMap; figure:
         <path d={torsoPath} fill={`url(#${id}-hips)`} clipPath={`url(#${id}-waist)`} />
       </g>
 
-      {/* Glatzkopf mit Glanz zur Lichtseite; das Ohr zeigt, wohin die Figur schaut. */}
+      {/* Glatzkopf mit Glanz zur Lichtseite. Ohren zeigen die Blickrichtung, von vorn auch ein schlichtes Gesicht. */}
       <defs>
         <radialGradient id={`${id}-head`} cx={0.5 + LIGHT[0] * 0.24} cy={0.5 + LIGHT[1] * 0.24} r=".72">
           <stop stopColor={TONES.skin[0]} />
@@ -195,15 +206,29 @@ export function HumanBody({ joints: j, figure, id }: { joints: JointMap; figure:
           <stop offset="1" stopColor={TONES.skin[2]} />
         </radialGradient>
       </defs>
+      {front ? (
+        <g transform={`translate(${j.head[0]} ${j.head[1]}) rotate(${headAngle})`}>
+          <ellipse cx="-4.7" cy="0.6" rx="1.1" ry="1.6" fill={TONES.skin[1]} />
+          <ellipse cx="4.7" cy="0.6" rx="1.1" ry="1.6" fill={TONES.skin[1]} />
+        </g>
+      ) : null}
       <circle cx={j.head[0]} cy={j.head[1]} r={5} fill={`url(#${id}-head)`} />
-      {front ? null : (
+      {front ? (
+        back ? null : (
+          <g transform={`translate(${j.head[0]} ${j.head[1]}) rotate(${headAngle})`}>
+            <ellipse cx="-1.75" cy="-0.1" rx=".5" ry=".62" fill="#2b2a30" />
+            <ellipse cx="1.75" cy="-0.1" rx=".5" ry=".62" fill="#2b2a30" />
+            <path d="M 0 0.4 Q -0.75 1.7 0 2 Q 0.5 2.05 0.75 1.8" fill="none" stroke={TONES.skin[2]} strokeWidth=".5" strokeLinecap="round" />
+          </g>
+        )
+      ) : (
         <g transform={`translate(${j.head[0]} ${j.head[1]}) rotate(${headAngle}) scale(${side} 1)`}>
           <ellipse cx="-0.55" cy="0.95" rx="1" ry="1.4" fill={TONES.skin[2]} />
         </g>
       )}
 
-      {front ? arm('L', false) : null}
-      {arm('R', false)}
+      {front && !back ? arm('L', false) : null}
+      {back ? null : arm('R', false)}
     </g>
   )
 }

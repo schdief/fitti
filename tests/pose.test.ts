@@ -22,6 +22,15 @@ for (const file of readdirSync(directory).filter((name) => name.endsWith('.json'
       }
     }
   })
+  if (figure.id === 'reverse-pec-deck') {
+    test('reverse fly arms travel through depth instead of swinging down', () => {
+      const end = resolvePose(figure, 'mid')
+      const lowest = Math.max(figure.poses.start.handR[1], end.handR[1])
+      for (let sample = 0; sample <= 40; sample++) {
+        assert(lerpPose(figure, sample / 40).handR[1] <= lowest + 1e-9)
+      }
+    })
+  }
   if (figure.id === 'chest-supported-y-raise') {
     test('Y-raise arm follows an arc instead of shrinking through the shoulder', () => {
       const joints = lerpPose(figure, .5)

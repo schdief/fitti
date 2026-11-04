@@ -63,6 +63,7 @@ einen schattierten, bekleideten Körper; Körperkonturen gehören in den Rendere
 - `arrowJoint` markiert das Gelenk, dessen Bewegung der Pfeil zeigt. Es muss in `mid` vorkommen.
 - Die App interpoliert die projizierten Knochenwinkel zwischen beiden Posen. Bewegte Gelenke
   folgen Bögen; in beiden Posen unveränderte Gelenke (etwa aufgestützte Füße) bleiben verankert.
+  Gelenke, die sich durch die Bildtiefe bewegen, gehören in `depthJoints` und laufen geradlinig.
   Projizierte Gliedmaßenlängen möglichst konsistent halten und Zwischenposen im Figuren-Labor
   bzw. in der Animation prüfen. Das ist eine 2D-Illustration, keine biomechanische Simulation.
 - Details, Vorlagen und typische Winkel stehen in `reference/pose-guide.md`.

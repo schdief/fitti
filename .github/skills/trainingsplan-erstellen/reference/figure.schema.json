@@ -216,6 +216,28 @@
         "footR"
       ]
     },
+    "depthJoints": {
+      "maxItems": 13,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "head",
+          "neck",
+          "shoulderL",
+          "shoulderR",
+          "elbowL",
+          "elbowR",
+          "handL",
+          "handR",
+          "hip",
+          "kneeL",
+          "kneeR",
+          "footL",
+          "footR"
+        ]
+      }
+    },
     "emphasis": {
       "default": [],
       "maxItems": 4,

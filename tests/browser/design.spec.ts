@@ -65,6 +65,8 @@ test('catalogue, logbook, settings and detail fit; navigation stays at the botto
 })
 
 test('workout fits with music, preserves input in rest and completes without errors', async ({ page }) => {
+  // Runs all 18 sets while the figure animates; WebKit on Windows needs longer than 30 s for that.
+  test.setTimeout(60_000)
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
   await page.addInitScript(() => {

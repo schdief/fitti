@@ -17,6 +17,8 @@ const STUDIO = {
   plate: '#253340',
 } as const
 
+type Point = [number, number]
+
 interface PropBox {
   type: PropType
   x?: number
@@ -26,29 +28,66 @@ interface PropBox {
   rot?: number
 }
 
+/** Dreht einen Punkt um den Mittelpunkt einer Requisite, wie es SVG beim Zeichnen tut. */
+function turnAround(point: Point, center: Point, degrees: number): Point {
+  const radians = (degrees * Math.PI) / 180
+  const dx = point[0] - center[0]
+  const dy = point[1] - center[1]
+  return [
+    center[0] + dx * Math.cos(radians) - dy * Math.sin(radians),
+    center[1] + dx * Math.sin(radians) + dy * Math.cos(radians),
+  ]
+}
+
 function FixedProp({ type, x = 50, y = 80, w = 20, h = 4, rot = 0 }: PropBox) {
-  const transform = rot ? `rotate(${rot} ${x + w / 2} ${y + h / 2})` : undefined
+  const center: Point = [x + w / 2, y + h / 2]
+  const transform = rot ? `rotate(${rot} ${center[0]} ${center[1]})` : undefined
   const highlight = (
     <rect x={x + 0.8} y={y + 0.45} width={Math.max(0, w - 1.6)} height={Math.min(1, h * 0.25)} rx={0.5} fill={STUDIO.padLight} opacity={0.75} />
   )
 
   switch (type) {
     case 'bench':
-    case 'chair':
+    case 'chair': {
+      // Beine stehen senkrecht auf dem Boden, auch unter einem schrägen Polster.
+      const feet = [0.18, 0.82].map((at) => turnAround([x + w * at, y + h], center, rot))
+      const footXs = feet.map(([footX]) => footX)
       return (
-        <g transform={transform}>
-          {[0.18, 0.82].map((at) => (
-            <line key={at} x1={x + w * at} y1={y + h} x2={x + w * at} y2={GROUND_Y} stroke={STUDIO.frame} strokeWidth={2.4} strokeLinecap="round" />
+        <g>
+          {feet.map(([footX, footY]) => (
+            <line key={footX} x1={footX} y1={footY} x2={footX} y2={GROUND_Y - 1.2} stroke={STUDIO.frame} strokeWidth={2.4} strokeLinecap="round" />
           ))}
-          {type === 'chair' ? (
-            <line x1={x + 1} y1={y} x2={x + 1} y2={y - w * 0.8} stroke={STUDIO.frame} strokeWidth={2.4} strokeLinecap="round" />
-          ) : null}
-          <rect x={x} y={y} width={w} height={h} rx={Math.min(h / 2, 2.2)} fill={STUDIO.pad} />
-          {highlight}
+          {rot ? (
+            // Eine Schrägbank steht auf einem durchgehenden Fuß.
+            <rect x={Math.min(...footXs) - 3} y={GROUND_Y - 2.2} width={Math.max(...footXs) - Math.min(...footXs) + 6} height={2.2} rx={1.1} fill={STUDIO.frame} />
+          ) : (
+            footXs.map((footX) => (
+              <rect key={footX} x={footX - 3} y={GROUND_Y - 2.2} width={6} height={2.2} rx={1.1} fill={STUDIO.frame} />
+            ))
+          )}
+          <g transform={transform}>
+            {type === 'chair' ? (
+              <line x1={x + 1} y1={y} x2={x + 1} y2={y - w * 0.8} stroke={STUDIO.frame} strokeWidth={2.4} strokeLinecap="round" />
+            ) : null}
+            <rect x={x} y={y} width={w} height={h} rx={Math.min(h / 2, 2.2)} fill={STUDIO.pad} />
+            {highlight}
+          </g>
         </g>
       )
+    }
     case 'wall':
-      return <rect x={x} y={y} width={2.6} height={h} rx={1.3} fill={STUDIO.frame} transform={transform} />
+      // Immer 2,6 breit; gedreht wird um die eigene Mitte, nicht um die von w.
+      return (
+        <rect
+          x={x}
+          y={y}
+          width={2.6}
+          height={h}
+          rx={1.3}
+          fill={STUDIO.frame}
+          transform={rot ? `rotate(${rot} ${x + 1.3} ${y + h / 2})` : undefined}
+        />
+      )
     case 'pullup-bar':
       return <rect x={x} y={y} width={w} height={2} rx={1} fill={STUDIO.metal} transform={transform} />
     case 'cable':
@@ -62,6 +101,36 @@ function FixedProp({ type, x = 50, y = 80, w = 20, h = 4, rot = 0 }: PropBox) {
           {w > 4 && h > 2 ? highlight : null}
         </g>
       )
+    case 'plate': {
+      if (h > w * 1.5) {
+        // Deutlich höher als breit: ein Gewichtsblock aus Steckgewichten.
+        const count = Math.max(3, Math.round(h / 2.8))
+        const pitch = h / count
+        return (
+          <g transform={transform}>
+            {Array.from({ length: count }, (_, index) => (
+              <rect
+                key={index}
+                x={x}
+                y={y + index * pitch}
+                width={w}
+                height={pitch - 0.55}
+                rx={0.6}
+                fill={index === 0 ? STUDIO.padLight : STUDIO.pad}
+              />
+            ))}
+            <circle cx={x + w * 0.78} cy={y + pitch * 3.5} r={0.65} fill={STUDIO.metal} />
+          </g>
+        )
+      }
+      const radius = Math.min(w, h) / 2
+      return (
+        <g>
+          <circle cx={center[0]} cy={center[1]} r={radius} fill={STUDIO.plate} />
+          <circle cx={center[0]} cy={center[1]} r={radius * 0.28} fill={STUDIO.metal} />
+        </g>
+      )
+    }
     default:
       return (
         <g transform={transform}>
@@ -70,6 +139,29 @@ function FixedProp({ type, x = 50, y = 80, w = 20, h = 4, rot = 0 }: PropBox) {
         </g>
       )
   }
+}
+
+/**
+ * Seilzug von einer festen Umlenkrolle zum Gelenk, mit Griff in der Hand. Das
+ * Seil bleibt so mit Gewicht und Hand verbunden, wie lang es auch wird.
+ */
+function Tether({ anchor, at }: { anchor: Point; at: Point }) {
+  const angle = Math.atan2(at[1] - anchor[1], at[0] - anchor[0]) * 180 / Math.PI
+  return (
+    <g>
+      <line x1={anchor[0]} y1={anchor[1]} x2={at[0]} y2={at[1]} stroke={STUDIO.metal} strokeWidth={0.7} strokeLinecap="round" />
+      <circle cx={anchor[0]} cy={anchor[1]} r={2.3} fill={STUDIO.frame} stroke={STUDIO.metal} strokeWidth={0.6} />
+      <circle cx={anchor[0]} cy={anchor[1]} r={0.7} fill={STUDIO.metal} />
+      <g transform={`translate(${at[0]} ${at[1]}) rotate(${angle})`}>
+        <rect x={-0.9} y={-3.3} width={1.8} height={6.6} rx={0.9} fill={STUDIO.plate} />
+      </g>
+    </g>
+  )
+}
+
+/** Ein Seil mit fester Rolle und Gelenk spannt sich zwischen beiden. */
+function isTether(prop: Figure['props'][number]): boolean {
+  return prop.type === 'cable' && prop.attachTo !== undefined && prop.x !== undefined && prop.y !== undefined
 }
 
 function HeldProp({ type, at }: { type: PropType; at: [number, number] }) {
@@ -150,9 +242,13 @@ export function figureFrame(figure: Figure): FigureFrame {
   }
 
   for (const prop of figure.props) {
-    if (prop.attachTo || prop.x === undefined || prop.y === undefined) continue
-    xs.push(prop.x, prop.x + (prop.w ?? 0))
-    ys.push(prop.y, prop.y + (prop.h ?? 0))
+    if (prop.x === undefined || prop.y === undefined) continue
+    // Von einem Seilzug zählt die feste Rolle, das andere Ende hängt am Gelenk.
+    xs.push(prop.x)
+    ys.push(prop.y)
+    if (prop.attachTo) continue
+    xs.push(prop.x + (prop.w ?? 0))
+    ys.push(prop.y + (prop.h ?? 0))
   }
 
   // Kopfkreis und Bodenlinie gehören dazu.
@@ -254,10 +350,16 @@ export function FigureContent({
           <FixedProp key={`fixed-${index}`} {...prop} />
         ))}
 
+      {/* Vor dem Körper gezeichnet: die Hand liegt über dem Griff. */}
+      {figure.props.filter(isTether).map((prop, index) => {
+        const at = joints[prop.attachTo!]
+        return at ? <Tether key={`tether-${index}`} anchor={[prop.x!, prop.y!]} at={at} /> : null
+      })}
+
       <HumanBody joints={joints} figure={figure} id={id} />
 
       {figure.props
-        .filter((prop) => prop.attachTo)
+        .filter((prop) => prop.attachTo && !isTether(prop))
         .map((prop, index) => {
           const at = joints[prop.attachTo!]
           return at ? <HeldProp key={`held-${index}`} type={prop.type} at={at} /> : null

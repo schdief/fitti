@@ -111,14 +111,34 @@ Zwischen `start` und `mid` sollen sich mindestens zwei Gelenke deutlich untersch
 sonst ist der Unterschied auf dem Telefon nicht erkennbar. Als deutlich gilt eine
 Verschiebung von mindestens 6 Einheiten.
 
+Bewegte Gelenke laufen im Bogen um das vorige Gelenk. Bewegt sich eine Gliedmaße dagegen
+durch die Bildtiefe, auf den Betrachter zu oder von ihm weg, ihre Gelenke in `depthJoints`
+eintragen, etwa `"depthJoints": ["elbowL", "elbowR", "handL", "handR"]` für die Arme beim
+Butterfly reverse von hinten. Sie laufen dann geradlinig, statt nach unten durchzuschwingen.
+
+Füße, die sich bewegen, drehen mit dem Unterschenkel mit; aufgesetzte Füße bleiben flach.
+In der Rückansicht (`view: "back"`) liegen die Arme hinter dem Rumpf: Was vor der Brust
+ist, verdeckt der Körper.
+
 ## Requisiten
 
-`props` enthält Gegenstände. Zwei Varianten:
+`props` enthält Gegenstände, höchstens acht. Drei Varianten:
 
 - **Fest platziert**, mit `x`, `y`, `w`, `h` und optional `rot` – etwa
   `{ "type": "mat", "x": 10, "y": 89, "w": 78, "h": 3 }`.
 - **An ein Gelenk gebunden**, mit `attachTo` – etwa `{ "type": "dumbbell", "attachTo": "handR" }`.
   Die Requisite folgt dem Gelenk automatisch in beiden Posen.
+- **Seilzug**, ein `cable` mit `x`, `y` und `attachTo` – etwa
+  `{ "type": "cable", "x": 78, "y": 43, "attachTo": "handR" }`. Das Seil läuft von der
+  Umlenkrolle bei x/y zum Gelenk, mit Griff in der Hand, und bleibt verbunden.
+
+Hinweise zu einzelnen Typen:
+
+- `bench` steht immer auf senkrechten Beinen, auch schräg gestellt. Die Oberkante liegt
+  direkt unter dem Körperteil, das aufliegt, und folgt dessen Neigung.
+- `plate` fest platziert und deutlich höher als breit zeichnet einen Gewichtsblock, sonst
+  eine Hantelscheibe.
+- `wall` ist ein schmaler Pfosten, `box` ein Rahmenteil, `mat` ein Polster.
 
 Eine Bodenlinie zeichnet der Renderer immer selbst, dafür braucht es keine Requisite.
 
@@ -128,5 +148,7 @@ Eine Bodenlinie zeichnet der Renderer immer selbst, dafür braucht es keine Requ
 - [ ] `mid` enthält nur bewegte Gelenke
 - [ ] Kein y-Wert größer als 90, außer die Übung findet bewusst tiefer statt
 - [ ] Gliedmaßenlängen zwischen `start` und `mid` etwa gleich, Arme und Beine dehnen sich nicht
+- [ ] Bewegung durch die Bildtiefe: betroffene Gelenke in `depthJoints`
+- [ ] Polster und Bänke liegen am Körper an, Seilzüge hängen am Gelenk statt frei im Raum
 - [ ] `arrowJoint` zeigt auf ein Gelenk, das sich bewegt
 - [ ] `id` gleich dem Dateinamen ohne `.json`

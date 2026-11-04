@@ -31,5 +31,6 @@
     }
   },
   "arrowJoint": "handR",
+  "depthJoints": ["elbowL", "elbowR", "handL", "handR"],
   "emphasis": ["rear-delts", "upper-back"]
 }

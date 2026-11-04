@@ -220,6 +220,12 @@ export const figureSchema = z
       .strict(),
     /** Bewegungspfeil von start nach mid für dieses Gelenk. */
     arrowJoint: z.enum(JOINTS).optional(),
+    /**
+     * Gelenke, die sich durch die Bildtiefe bewegen, etwa die Arme beim
+     * Butterfly reverse von hinten. Sie laufen geradlinig statt im Bogen um
+     * das vorige Gelenk, damit sie nicht nach unten durchschwingen.
+     */
+    depthJoints: z.array(z.enum(JOINTS)).max(13).optional(),
     emphasis: z.array(muscleSchema).max(4).default([]),
   })
   .strict()
@@ -231,6 +237,15 @@ export const figureSchema = z
         message: 'arrowJoint muss sich in poses.mid bewegen',
       })
     }
+    figure.depthJoints?.forEach((joint, index) => {
+      if (!figure.poses.mid?.[joint]) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['depthJoints', index],
+          message: 'depthJoints müssen sich in poses.mid bewegen',
+        })
+      }
+    })
   })
 
 export type Figure = z.infer<typeof figureSchema>
