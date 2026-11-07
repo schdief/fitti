@@ -243,7 +243,7 @@ function SoundCheckRow() {
     await unlockAudio()
     setAudioSessionType(WORKOUT_AUDIO_SESSION)
     playCueElement()
-    speak('Weitermachen')
+    speak('Pause')
     setPhase('asking')
   }
 
@@ -284,7 +284,7 @@ function TrainingSection() {
     <Card>
       <ListRow
         label="Sprachausgabe"
-        hint="Kurze Ansagen wie „Pause“ und „Weitermachen“. Die Musik wird dabei nur kurz leiser."
+        hint="Kurze Trainingsansage: „Pause“."
         control={
           <Toggle
             label="Sprachausgabe"

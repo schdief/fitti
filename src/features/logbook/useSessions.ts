@@ -3,6 +3,8 @@ import { create } from 'zustand'
 import { deleteSession, listSessions, saveSession } from '@/features/logbook/db'
 import type { SetResult, WorkoutSession } from '@/features/logbook/db'
 
+export { sessionVolume } from '@/features/logbook/sessionVolume'
+
 interface SessionState {
   sessions: WorkoutSession[]
   loaded: boolean
@@ -34,13 +36,6 @@ export const useSessions = create<SessionState>()((set, get) => ({
     return fresh.length
   },
 }))
-
-export function sessionVolume(session: WorkoutSession): number {
-  return session.results.reduce(
-    (total, result) => total + (result.reps ?? 0) * (result.weightKg ?? 0),
-    0,
-  )
-}
 
 export function describeResult(result: SetResult): string {
   return [

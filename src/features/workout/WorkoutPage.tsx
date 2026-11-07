@@ -417,7 +417,6 @@ export function WorkoutPage() {
         cue('Pause')
         useWorkout.getState().finishWork()
       } else {
-        cue('Weitermachen')
         advance()
       }
     }
@@ -983,7 +982,6 @@ export function WorkoutPage() {
   )
 
   const continueAfterRest = () => {
-    cue('Weitermachen')
     advance()
   }
 
