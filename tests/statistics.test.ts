@@ -138,6 +138,38 @@ test('volume buckets cover the requested rolling periods and label month and yea
   )
 })
 
+test('monthly and yearly volume buckets use the current month west of UTC', () => {
+  const previousTz = process.env.TZ
+  process.env.TZ = 'America/New_York'
+  try {
+    const dated = (year: number, month: number, day: number) => ({
+      ...session(day),
+      startedAt: new Date(year, month, day, 12).toISOString(),
+    })
+    const sessions = [
+      dated(2025, 11, 31),
+      dated(2026, 0, 1),
+      dated(2026, 0, 31),
+      dated(2026, 1, 1),
+    ]
+    const now = new Date(2026, 1, 15, 12)
+    const months = aggregateVolume(sessions, now, 'month')
+    const years = aggregateVolume(sessions, now, 'year')
+    const monthLabels = months.map((bucket) => volumeBucketLabel(bucket.startDay, 'month'))
+
+    assert.equal(monthLabels.length, 12)
+    assert.equal(monthLabels.at(-2), 'Jan. 26')
+    assert.equal(monthLabels.at(-1), 'Feb. 26')
+    assert.equal(months.at(-2)?.volumeKg, 2 * 360)
+    assert.equal(months.at(-1)?.volumeKg, 360)
+    assert.deepEqual(years.map((bucket) => volumeBucketLabel(bucket.startDay, 'year')), ['2025', '2026'])
+    assert.deepEqual(years.map((bucket) => bucket.volumeKg), [360, 3 * 360])
+  } finally {
+    if (previousTz === undefined) delete process.env.TZ
+    else process.env.TZ = previousTz
+  }
+})
+
 test('daily volume uses local calendar dates across the daylight-saving transition', () => {
   const previousTz = process.env.TZ
   process.env.TZ = 'America/New_York'

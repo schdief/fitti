@@ -123,7 +123,7 @@ function VolumeChart({ sessions, now }: { sessions: WorkoutSession[]; now: Date 
   const peakIndex = values.indexOf(maximum)
   const periodLabel = { day: 'Tag', week: 'Woche', month: 'Monat', year: 'Jahr' }[period]
   const detailsLabel = `Volumendetails ${periodLabel}`
-  const chartDescription = `Kg Volumen pro ${periodLabel}. Einzelwerte stehen unter ${detailsLabel}.`
+  const chartDescription = `kg Volumen pro ${periodLabel}. Einzelwerte stehen unter ${detailsLabel}.`
   const visibleLabels = new Set([0, Math.floor((buckets.length - 1) / 2), buckets.length - 1])
 
   return (
@@ -131,7 +131,7 @@ function VolumeChart({ sessions, now }: { sessions: WorkoutSession[]; now: Date 
       <div>
         <h2 className="flex items-center gap-2 text-base font-semibold">
           <ChartColumn size={18} className="text-accent" aria-hidden />
-          Kg Volumen
+          kg Volumen
         </h2>
         <p className="mt-1 text-xs text-fg-muted">
           {period === 'day' ? 'Letzte 14 Tage' : period === 'week' ? 'Letzte 12 Wochen · Montag bis Sonntag' : period === 'month' ? 'Letzte 12 Monate' : 'Seit dem Jahr deines ersten Trainings'}
@@ -190,11 +190,11 @@ function VolumeChart({ sessions, now }: { sessions: WorkoutSession[]; now: Date 
         <summary className="cursor-pointer py-3 text-sm text-fg-muted">{detailsLabel}</summary>
         {buckets.length ? (
           <table className="w-full text-left text-xs tabular-nums">
-            <caption className="sr-only">Kg Volumen pro {periodLabel}</caption>
+            <caption className="sr-only">kg Volumen pro {periodLabel}</caption>
             <thead>
               <tr className="text-fg-muted">
                 <th scope="col" className="py-2 font-medium">{periodLabel}</th>
-                <th scope="col" className="text-right font-medium">Kg Volumen</th>
+                <th scope="col" className="text-right font-medium">kg Volumen</th>
               </tr>
             </thead>
             <tbody>{[...buckets].reverse().map((bucket) => (

@@ -31,15 +31,15 @@ test('statistics is the third tab, shows stored training and supports weekly hou
   await expect(page.getByRole('img', { name: /Trainingseinheiten der letzten/ })).toBeVisible()
   await page.getByRole('radio', { name: 'Stunden', exact: true }).click()
   await expect(page.getByRole('img', { name: /Trainingsstunden der letzten/ })).toBeVisible()
-  await expect(page.getByRole('img', { name: /Kg Volumen pro Tag/ })).toBeVisible()
+  await expect(page.getByRole('img', { name: /kg Volumen pro Tag/ })).toBeVisible()
   await expect(page.getByText('1.080 kg', { exact: true })).toBeVisible()
   for (const period of ['Woche', 'Monat', 'Jahr']) {
     await page.getByRole('radio', { name: period, exact: true }).click()
-    await expect(page.getByRole('img', { name: new RegExp(`Kg Volumen pro ${period}`) })).toBeVisible()
+    await expect(page.getByRole('img', { name: new RegExp(`kg Volumen pro ${period}`) })).toBeVisible()
   }
   await page.getByRole('radio', { name: 'Woche', exact: true }).click()
   await page.getByText('Volumendetails Woche', { exact: true }).click()
-  const volumeTable = page.getByRole('table', { name: 'Kg Volumen pro Woche' })
+  const volumeTable = page.getByRole('table', { name: 'kg Volumen pro Woche' })
   await expect(volumeTable).toBeVisible()
   await expect(volumeTable.locator('tbody tr')).toHaveCount(12)
   await page.screenshot({ path: test.info().outputPath('statistics.png') })

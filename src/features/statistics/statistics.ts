@@ -154,7 +154,7 @@ export function aggregateVolume(
     startDay: period === 'day' || period === 'week'
       ? firstStartDay + index * (period === 'day' ? 1 : 7)
       : period === 'month'
-        ? monthStartDay(monthIndex(new Date(firstStartDay * DAY_MS)) + index)
+        ? monthStartDay(monthIndex(now) - bucketCount + 1 + index)
         : yearStartDay(new Date(firstStartDay * DAY_MS).getUTCFullYear() + index),
     volumeKg: 0,
   }))
